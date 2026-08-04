@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/_10sdp"
+    android:layout_marginBottom="@dimen/_10sdp"
+    android:background="@drawable/bg_card"
+    android:padding="@dimen/_12sdp">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:ellipsize="end"
+        android:fontFamily="@font/saans_semibold"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_14ssp"
+        app:layout_constraintEnd_toStartOf="@id/btnTryIt"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Purple Spiky Hair" />
+
+    <TextView
+        android:id="@+id/btnTryIt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_try_it"
+        android:clickable="true"
+        android:focusable="true"
+        android:fontFamily="@font/saans_semibold"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:includeFontPadding="false"
+        android:paddingHorizontal="@dimen/_20sdp"
+        android:paddingVertical="@dimen/_8sdp"
+        android:text="@string/try_it"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_2sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:ellipsize="end"
+        android:fontFamily="@font/saans_regular"
+        android:includeFontPadding="false"
+        android:maxLines="2"
+        android:textColor="@color/text_secondary_dark"
+        android:textSize="@dimen/_11ssp"
+        app:layout_constraintEnd_toStartOf="@id/btnTryIt"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        tools:text="Bold purple spikes" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/beforeImageContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/_10sdp"
+        app:cardBackgroundColor="@color/photo_select_icon_background"
+        app:cardCornerRadius="@dimen/_16sdp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        app:strokeColor="@android:color/transparent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toStartOf="@id/afterImageContainer"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDescription"
+        app:layout_constraintWidth_percent="0.48">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.hairstyle.generator.aimakerover.utils.TopCropImageView
+                android:id="@+id/ivBefore"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerBefore"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:shimmer_auto_start="true"
+                app:shimmer_base_alpha="1"
+                app:shimmer_base_color="@color/shimmer_base"
+                app:shimmer_duration="1100"
+                app:shimmer_highlight_alpha="0.6"
+                app:shimmer_highlight_color="@color/shimmer_highlight"
+                app:shimmer_intensity="0.4">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_shimmer_placeholder" />
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="@dimen/_10sdp"
+                android:background="@drawable/bg_badge_before"
+                android:fontFamily="@font/saans_medium"
+                android:includeFontPadding="false"
+                android:paddingHorizontal="@dimen/_10sdp"
+                android:paddingVertical="@dimen/_4sdp"
+                android:text="@string/before"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_8ssp" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/afterImageContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:cardBackgroundColor="@color/photo_select_icon_background"
+        app:cardCornerRadius="@dimen/_16sdp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        app:strokeColor="@android:color/transparent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/beforeImageContainer"
+        app:layout_constraintTop_toTopOf="@id/beforeImageContainer"
+        app:layout_constraintWidth_percent="0.48">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.hairstyle.generator.aimakerover.utils.TopCropImageView
+                android:id="@+id/ivAfter"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerAfter"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:shimmer_auto_start="true"
+                app:shimmer_base_alpha="1"
+                app:shimmer_base_color="@color/shimmer_base"
+                app:shimmer_duration="1100"
+                app:shimmer_highlight_alpha="0.6"
+                app:shimmer_highlight_color="@color/shimmer_highlight"
+                app:shimmer_intensity="0.4">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_shimmer_placeholder" />
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="@dimen/_10sdp"
+                android:background="@drawable/bg_badge_before"
+                android:fontFamily="@font/saans_medium"
+                android:includeFontPadding="false"
+                android:paddingHorizontal="@dimen/_10sdp"
+                android:paddingVertical="@dimen/_4sdp"
+                android:text="@string/after"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_8ssp" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <ImageView
+        android:id="@+id/ivArrow"
+        android:layout_width="@dimen/_36sdp"
+        android:layout_height="@dimen/_36sdp"
+        android:contentDescription="@null"
+        android:elevation="6dp"
+        android:src="@drawable/ic_result_arrow"
+        app:layout_constraintBottom_toBottomOf="@id/beforeImageContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/beforeImageContainer" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

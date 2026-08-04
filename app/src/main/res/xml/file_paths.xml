@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <cache-path name="cache" path="." />
+    <cache-path name="video_cache" path="video_cache/" />
+    <cache-path name="camera" path="camera/" />
+    <cache-path name="crop" path="crop/" />
+    <cache-path name="compressed" path="compressed/" />
+    <cache-path name="results" path="results/" />
+    <files-path name="files" path="." />
+    <files-path name="user_creations" path="user_creations/" />
+    <external-path name="external" path="." />
+</paths>

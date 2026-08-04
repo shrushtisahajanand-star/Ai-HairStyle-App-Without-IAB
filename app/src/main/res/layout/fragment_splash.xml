@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:keepScreenOn="true"
+    tools:context="com.hairstyle.generator.aimakerover.ui.splash.SplashFragment">
+
+    <ImageView
+        android:id="@+id/ivSplashAnimation"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_splash_vector" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/_120sdp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_14sdp"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/playfair_bold"
+            android:text="AI Hairstyle &amp;"
+            android:textColor="@color/on_primary"
+            android:textSize="@dimen/_28sdp" />
+
+        <TextView
+            android:id="@+id/hairCutTryOn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_14sdp"
+            android:fontFamily="@font/playfair_medium_italic"
+            android:text="Haircut Try On"
+            android:textSize="@dimen/_20sdp" />
+    </LinearLayout>
+
+    </RelativeLayout>
+</FrameLayout>

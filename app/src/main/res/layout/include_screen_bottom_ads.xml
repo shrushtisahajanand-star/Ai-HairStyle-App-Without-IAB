@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/screenAdContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerScreenAd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:shimmer_auto_start="false"
+        app:shimmer_base_alpha="1"
+        app:shimmer_base_color="@color/shimmer_base"
+        app:shimmer_duration="1100"
+        app:shimmer_highlight_color="@color/shimmer_highlight">
+
+        <include layout="@layout/layout_small_native_ad_load" />
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardNativeAd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/nav_bar_background"
+        app:cardCornerRadius="@dimen/_12sdp"
+        app:cardElevation="0dp">
+
+        <FrameLayout
+            android:id="@+id/flNativeAd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </androidx.cardview.widget.CardView>
+
+    <FrameLayout
+        android:id="@+id/flBannerAd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+</LinearLayout>

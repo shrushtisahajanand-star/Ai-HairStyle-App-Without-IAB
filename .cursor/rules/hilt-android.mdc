@@ -1,0 +1,47 @@
+---
+description: Hilt dependency injection conventions for this Android project
+globs: app/src/main/java/**/*.kt
+alwaysApply: true
+---
+
+# Hilt — AI Hairstyle Studio
+
+This project uses Hilt (`@HiltAndroidApp` on `AiHairstyleApplication`). Always follow these rules when adding or editing Kotlin code.
+
+## Fragments & Activity
+
+- Add `@AndroidEntryPoint` to every `Fragment` and `Activity`.
+- Parent fragments that host child fragments via `childFragmentManager` **must** be `@AndroidEntryPoint` (e.g. `HomePageFragment`).
+- Child fragments loaded manually (`HomeFragment()`, `FunFragment()`, etc.) also need `@AndroidEntryPoint`.
+
+```kotlin
+@AndroidEntryPoint
+class MyFragment : Fragment() { ... }
+```
+
+## ViewModels
+
+- Use `@HiltViewModel` + `@Inject constructor(...)`.
+- In fragments: `private val viewModel: MyViewModel by viewModels()` or `by activityViewModels()`.
+
+## Field injection
+
+- Use `@Inject lateinit var` only when constructor injection is not possible (e.g. `ResultFragment` helpers).
+
+## DI modules
+
+- Singleton bindings → `@InstallIn(SingletonComponent::class)` in `di/` package.
+- Reuse existing `NetworkModule` / `RepositoryModule` patterns; do not duplicate providers.
+
+## Do NOT use Hilt for
+
+- XML layouts, drawables, styles
+- Pure utility objects / extension functions (`NavGradientHelper`, `EdgeToEdgeUtils`)
+- Data classes and models without injection
+
+## When adding new screens
+
+1. Fragment → `@AndroidEntryPoint`
+2. Needs state/API logic → `@HiltViewModel` ViewModel
+3. Needs repository/service → inject via constructor in ViewModel or `@Inject` in fragment
+4. New API/repository → add to `di/` module with `@Binds` or `@Provides`
