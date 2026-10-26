@@ -53,6 +53,19 @@ public class ADSNativeDisplay {
 
     /** True while Splash PreLoad request is in flight (do not hide Language native during this). */
     private static boolean isNativePreloading = false;
+
+    /**
+     * Home bottom Native only. When set, overrides Firebase {@code ads_background_color}
+     * and tints the shimmer placeholder to match.
+     */
+    private static Integer homeNativeBackgroundColor = null;
+    private static Integer homeNativeShimmerColor = null;
+
+    /** Home screen: force Native card + shimmer to a single background. Pass null to clear. */
+    public static void setHomeNativeBackgroundOverride(Integer backgroundColor, Integer shimmerColor) {
+        homeNativeBackgroundColor = backgroundColor;
+        homeNativeShimmerColor = shimmerColor;
+    }
     private static WeakReference<FrameLayout> pendingNativeContainer;
     private static WeakReference<ShimmerFrameLayout> pendingNativeShimmer;
     private static WeakReference<Context> pendingNativeContext;
@@ -107,6 +120,28 @@ public class ADSNativeDisplay {
         }
         shimmerFrameLayout.removeAllViews();
         LayoutInflater.from(ctx).inflate(shimmerLayoutForSize(size), shimmerFrameLayout, true);
+        if (homeNativeBackgroundColor != null) {
+            shimmerFrameLayout.setBackgroundColor(homeNativeBackgroundColor);
+            int placeholder = homeNativeShimmerColor != null
+                    ? homeNativeShimmerColor
+                    : homeNativeBackgroundColor;
+            tintShimmerPlaceholders(shimmerFrameLayout, placeholder);
+        }
+    }
+
+    private static void tintShimmerPlaceholders(View root, int color) {
+        if (root == null) return;
+        if (!(root instanceof ShimmerFrameLayout) && root.getBackground() != null) {
+            android.graphics.drawable.Drawable bg = root.getBackground().mutate();
+            bg.setTint(color);
+            root.setBackground(bg);
+        }
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                tintShimmerPlaceholders(group.getChildAt(i), color);
+            }
+        }
     }
 
     private static void hideNativeShimmer(ShimmerFrameLayout shimmerFrameLayout, FrameLayout linearLayout) {
@@ -339,6 +374,62 @@ public class ADSNativeDisplay {
         }
     }
 
+    /**
+     * Home bottom Native reload: hide current ad → shimmer → new AdMob request → show when ready.
+     * Skips if a load is already in flight ({@code LoadingCheck == false}).
+     *
+     * @param onFinished optional; called on main thread after load success or failure
+     */
+    public static void reloadAdmobNativeAd(
+            String adsId,
+            final FrameLayout linearLayout,
+            ShimmerFrameLayout shimmerFrameLayout,
+            String ads_type,
+            final Context context
+    ) {
+        reloadAdmobNativeAd(adsId, linearLayout, shimmerFrameLayout, ads_type, context, null);
+    }
+
+    public static void reloadAdmobNativeAd(
+            String adsId,
+            final FrameLayout linearLayout,
+            ShimmerFrameLayout shimmerFrameLayout,
+            String ads_type,
+            final Context context,
+            final Runnable onFinished
+    ) {
+        if (context == null || linearLayout == null) {
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            if (activity.isFinishing() || activity.isDestroyed()) {
+                if (onFinished != null) onFinished.run();
+                return;
+            }
+        }
+        if (ADSMainClass.getAds_Free()) {
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+        if (adsId == null || adsId.trim().isEmpty()) {
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+        if (!LoadingCheck) {
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+
+        setDisplaySize(ads_type);
+        LoadingCheck = false;
+        // Clear previous native so fail path does not treat stale views as "still showing".
+        linearLayout.removeAllViews();
+        showNativeShimmer(shimmerFrameLayout, linearLayout);
+        AdmobFullNative(context, adsId, shimmerFrameLayout, linearLayout, false, true, onFinished);
+    }
+
     /** Shared path for small / medium / big — layout chosen from {@code size}. */
     private static void showNativeBySize(
             Context context,
@@ -392,10 +483,23 @@ public class ADSNativeDisplay {
 
     public static void AdmobFullNative(final Context context, String adsId, ShimmerFrameLayout shimmerFrameLayout, final FrameLayout linearLayout, boolean banner_flag) {
         AdmobFullNative(context, adsId, shimmerFrameLayout, linearLayout, banner_flag,
-                ADSMainClass.getAdsTypeManage() != null && ADSMainClass.getAdsTypeManage().equals("Load"));
+                ADSMainClass.getAdsTypeManage() != null && ADSMainClass.getAdsTypeManage().equals("Load"),
+                null);
     }
 
     public static void AdmobFullNative(final Context context, String adsId, ShimmerFrameLayout shimmerFrameLayout, final FrameLayout linearLayout, boolean banner_flag, boolean showWhenLoaded) {
+        AdmobFullNative(context, adsId, shimmerFrameLayout, linearLayout, banner_flag, showWhenLoaded, null);
+    }
+
+    public static void AdmobFullNative(
+            final Context context,
+            String adsId,
+            ShimmerFrameLayout shimmerFrameLayout,
+            final FrameLayout linearLayout,
+            boolean banner_flag,
+            boolean showWhenLoaded,
+            final Runnable onFinished
+    ) {
 
 //        if (!FailArrayId) {
 //            LoadingCheck = true;
@@ -449,6 +553,9 @@ public class ADSNativeDisplay {
                                 bindNativeAdToLayout(context, linearLayout, shimmerFrameLayout);
                             }
                         }
+                        if (onFinished != null) {
+                            onFinished.run();
+                        }
                     }
 
                 });
@@ -477,6 +584,9 @@ public class ADSNativeDisplay {
                         } else {
                             AdmobNativeAd = null;
                             hideNativeShimmer(shimmerFrameLayout, linearLayout);
+                        }
+                        if (onFinished != null) {
+                            onFinished.run();
                         }
                     }
 
@@ -554,7 +664,7 @@ public class ADSNativeDisplay {
             if (flag) {
                 adView.getStarRatingView().setVisibility(View.GONE);
             } else {
-                adView.getStarRatingView().setVisibility(View.VISIBLE);
+                adView.getStarRatingView().setVisibility(View.GONE);
             }
         }
 
@@ -818,7 +928,7 @@ public class ADSNativeDisplay {
             Objects.requireNonNull(adView.getStarRatingView()).setVisibility(View.GONE);
         } else {
             ((RatingBar) Objects.requireNonNull(adView.getStarRatingView())).setRating(nativeAd.getStarRating().floatValue());
-            adView.getStarRatingView().setVisibility(View.VISIBLE);
+            adView.getStarRatingView().setVisibility(View.GONE);
         }
 
         if (nativeAd.getAdvertiser() == null) {
@@ -867,9 +977,15 @@ public class ADSNativeDisplay {
         if (adView == null) return;
         try {
             View main = adView.findViewById(R.id.llMainLayout);
-            String cardBg = ADSMainClass.getAdsBackgroundColor();
-            if (main != null && !TextUtils.isEmpty(cardBg)) {
-                main.setBackgroundColor(Color.parseColor(cardBg.trim()));
+            if (main != null) {
+                if (homeNativeBackgroundColor != null) {
+                    main.setBackgroundColor(homeNativeBackgroundColor);
+                } else {
+                    String cardBg = ADSMainClass.getAdsBackgroundColor();
+                    if (!TextUtils.isEmpty(cardBg)) {
+                        main.setBackgroundColor(Color.parseColor(cardBg.trim()));
+                    }
+                }
             }
 
             View badge = adView.findViewById(R.id.adsLayout);
@@ -891,10 +1007,10 @@ public class ADSNativeDisplay {
             if (!TextUtils.isEmpty(allText)) {
                 int color = Color.parseColor(allText.trim());
                 applyTextColorIfPresent(adView.findViewById(R.id.ad_headline), color);
-                applyTextColorIfPresent(adView.findViewById(R.id.ad_body), color);
-                applyTextColorIfPresent(adView.findViewById(R.id.ad_advertiser), color);
-                applyTextColorIfPresent(adView.findViewById(R.id.ad_price), color);
-                applyTextColorIfPresent(adView.findViewById(R.id.ad_store), color);
+//                applyTextColorIfPresent(adView.findViewById(R.id.ad_body), color);
+//                applyTextColorIfPresent(adView.findViewById(R.id.ad_advertiser), color);
+//                applyTextColorIfPresent(adView.findViewById(R.id.ad_price), color);
+//                applyTextColorIfPresent(adView.findViewById(R.id.ad_store), color);
             }
         } catch (Exception ignored) {
             // Invalid color from Remote Config — keep layout defaults.

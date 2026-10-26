@@ -1,20 +1,18 @@
 package com.hairstyle.generator.aimakerover.ui.setting
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentSettingBinding
 import com.hairstyle.generator.aimakeover.databinding.ItemSettingsRowBinding
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
-import com.hairstyle.generator.aimakerover.ui.language.LanguageFragment
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.utils.AppLinkHelper
 import com.hairstyle.generator.aimakerover.utils.InAppReviewHelper
 import com.hairstyle.generator.aimakerover.utils.LocaleManager
@@ -23,24 +21,21 @@ import com.hairstyle.generator.aimakerover.utils.RateAppManager
 import com.hairstyle.generator.aimakerover.utils.applyStatusBarPadding
 import com.hairstyle.generator.aimakerover.utils.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class SettingFragment : Fragment() {
+class SettingActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentSettingBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentSettingBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentSettingBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
         binding.root.applyStatusBarPadding()
         binding.toolbar.setNavigationOnClickListener {
@@ -52,6 +47,11 @@ class SettingFragment : Fragment() {
         setupClicks()
         updateLanguageSubtitle()
         updatePremiumUi()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                billingManager.entitlementRevision.collect { updatePremiumUi() }
+            }
+        }
         ScreenAdsHelper.load(this, binding.settingBottomAds, ScreenAdsHelper.settingBottom())
         ScreenAdsHelper.loadSettingCenter(
             this,
@@ -59,7 +59,6 @@ class SettingFragment : Fragment() {
             ScreenAdsHelper.settingCenter()
         )
     }
-
 
     private fun updateLanguageSubtitle() {
         binding.rowLanguage.tvSubtitle.text = LocaleManager.getLanguageSubtitle()
@@ -141,59 +140,56 @@ class SettingFragment : Fragment() {
 
     private fun setupClicks() {
         binding.btnUpgrade.setOnClickListener {
-            findNavController().navigate(R.id.action_setting_to_premium)
+            AppNavigator.openPremium(this)
         }
         binding.rowActiveSubscription.root.setOnClickListener {
-            findNavController().navigate(R.id.action_setting_to_activeSubscription)
+            AppNavigator.openActiveSubscription(this)
         }
         binding.rowUserCreations.root.setOnClickListener {
             InterstitialNavHelper.showOnClick(this, ScreenInterAds.settingRows()) {
-                findNavController().navigate(R.id.action_setting_to_userCreation)
+                AppNavigator.openUserCreation(this)
             }
         }
         binding.rowLanguage.root.setOnClickListener {
             InterstitialNavHelper.showOnClick(this, ScreenInterAds.settingRows()) {
-                findNavController().navigate(
-                    R.id.action_setting_to_language,
-                    bundleOf(LanguageFragment.ARG_FROM_SETTINGS to true)
-                )
+                AppNavigator.openLanguage(this, fromSettings = true)
             }
         }
         binding.rowShareApp.root.setOnClickListener {
-            AppLinkHelper.shareApp(requireContext())
+            AppLinkHelper.shareApp(this)
         }
         binding.rowRateUs.root.setOnClickListener {
             RateAppManager.markUserRated()
-            val activity = activity
-            if (activity != null && !activity.isFinishing && !activity.isDestroyed) {
-                InAppReviewHelper.launch(activity)
+            if (!isFinishing && !isDestroyed) {
+                InAppReviewHelper.launch(this)
             } else {
-                AppLinkHelper.openPlayStore(requireContext())
+                AppLinkHelper.openPlayStore(this)
             }
         }
         binding.rowFeedback.root.setOnClickListener {
-            findNavController().navigate(R.id.action_setting_to_feedback)
+            AppNavigator.openFeedback(this)
         }
         binding.rowPrivacyPolicy.root.setOnClickListener {
-            AppLinkHelper.openPrivacyPolicy(requireContext())
+            AppLinkHelper.openPrivacyPolicy(this)
         }
         binding.rowTermsOfService.root.setOnClickListener {
-            AppLinkHelper.openPrivacyPolicy(requireContext())
+            AppLinkHelper.openTermsOfService(this)
         }
         binding.rowCheckForUpdate.root.setOnClickListener {
             showSnackbar(getString(R.string.checking_for_update))
-            AppLinkHelper.openPlayStore(requireContext())
+            AppLinkHelper.openPlayStore(this)
         }
     }
 
     override fun onResume() {
         super.onResume()
+        billingManager.refreshEntitlements()
         updateLanguageSubtitle()
         updatePremiumUi()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
         _binding = null
+        super.onDestroy()
     }
 }

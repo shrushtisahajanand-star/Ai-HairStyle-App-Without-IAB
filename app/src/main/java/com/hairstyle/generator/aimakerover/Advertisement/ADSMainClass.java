@@ -60,6 +60,10 @@ public class ADSMainClass {
     private static final String ConsentPendingOnLanguage = "ConsentPendingOnLanguage";
     public static final String CONSENT_SCREEN_SPLASH = "splash";
     public static final String CONSENT_SCREEN_LANGUAGE = "language";
+    public static final String NORMAL_USER = "normal_user";
+    public static final String PAID_USER = "paid_user";
+    private static final String ReferrerUrl = "install_referrer_urls";
+    private static final String InstallReferrerFetched = "install_referrer_fetched";
     private static final String FBNativeBannerID = "FBNativeBannerID";
     private static final String SplashADType = "SplashADType";
     private static final String ExitAds = "ExitAds";
@@ -208,6 +212,8 @@ public class ADSMainClass {
     public static String RESULT_NATIVE = "result_native_ads_id";
     public static String RESULT_BANNER = "result_banner_ads_id";
     public static String LEAVE_BUTTON_SHOW_INTER = "leave_button_show_inter";
+    /** result_screen.save_photo_show_ads — false skips Save dialog / rewarded ad. */
+    public static String SAVE_PHOTO_SHOW_ADS = "save_photo_show_ads";
 
     /** Home screen action interstitials (under home_screen JSON). */
     public static String TRYIT_SHOW_INTER = "tryit_show_inter";
@@ -333,10 +339,22 @@ public class ADSMainClass {
     public static String OtherAdsType = "OtherAdsType";
     public static String OtherAdsShow = "OtherAdsShow";
     public static String InterAdsLoadType = "InterAdsLoadType";
+    /** Firebase {@code inter_ads_show_type}: {@code Click} | {@code Time}. */
+    public static String InterAdsShowType = "InterAdsShowType";
+    /** Firebase {@code inter_ads_time_seconds}. */
+    public static String InterAdsTimeSeconds = "InterAdsTimeSeconds";
+    /** Firebase {@code ads.native_ads_reload_seconds} — Home bottom Native only. */
+    public static String NativeAdsReloadSeconds = "NativeAdsReloadSeconds";
+    /** Firebase {@code ads.native_ads_reloading} — Home bottom Native only. */
+    public static String NativeAdsReloading = "NativeAdsReloading";
     /** Intro-only click threshold — Firebase {@code intro_inter_ads_click_count}. */
     public static String IntroInterAdsClickCount = "IntroInterAdsClickCount";
     /** Intro back → next — Firebase {@code intro_back_send_to_next}. */
     public static String IntroBackSendToNext = "IntroBackSendToNext";
+    /** Intro1 layout — Firebase {@code intro_show_screen_type}: {@code single} | {@code multi}. */
+    public static String IntroShowScreenType = "IntroShowScreenType";
+    public static final String INTRO_SCREEN_MULTI = "multi";
+    public static final String INTRO_SCREEN_SINGLE = "single";
     public static String CALL_END_INTER_ADS_SHOW_COUNTRIES = "call_end_inter_ads_show_country";
     public static String CALL_END_INTER_ADS_TYPE = "call_end_inter_ads_type";
     public static String NOTIFICATION_SCREEN_BACK_ADS_SHOW = "notification_screen_back_ads_show";
@@ -578,6 +596,51 @@ public class ADSMainClass {
     public static boolean isInterShowLoadMode() {
         String t = getInterAdsLoadType();
         return t != null && (t.equalsIgnoreCase("Show") || t.equalsIgnoreCase("Load"));
+    }
+
+    public static String getInterAdsShowType() {
+        return ADSPrefManage().getString(InterAdsShowType, "Click");
+    }
+
+    public static void setInterAdsShowType(String value) {
+        ADSPrefManage().edit().putString(InterAdsShowType, normalizeInterAdsShowType(value)).apply();
+    }
+
+    /** Firebase: {@code Click} (default) | {@code Time}. */
+    public static String normalizeInterAdsShowType(String raw) {
+        if (raw != null && raw.trim().equalsIgnoreCase("Time")) {
+            return "Time";
+        }
+        return "Click";
+    }
+
+    public static boolean isInterAdsTimeMode() {
+        return "Time".equalsIgnoreCase(getInterAdsShowType());
+    }
+
+    public static int getInterAdsTimeSeconds() {
+        return ADSPrefManage().getInt(InterAdsTimeSeconds, 60);
+    }
+
+    public static void setInterAdsTimeSeconds(int value) {
+        ADSPrefManage().edit().putInt(InterAdsTimeSeconds, Math.max(0, value)).apply();
+    }
+
+    /** Home bottom Native auto-reload. {@code 0} = disabled (existing one-shot load). */
+    public static int getNativeAdsReloadSeconds() {
+        return ADSPrefManage().getInt(NativeAdsReloadSeconds, 0);
+    }
+
+    public static void setNativeAdsReloadSeconds(int value) {
+        ADSPrefManage().edit().putInt(NativeAdsReloadSeconds, Math.max(0, value)).apply();
+    }
+
+    public static boolean getNativeAdsReloading() {
+        return ADSPrefManage().getBoolean(NativeAdsReloading, false);
+    }
+
+    public static void setNativeAdsReloading(boolean value) {
+        ADSPrefManage().edit().putBoolean(NativeAdsReloading, value).apply();
     }
 
     private static final String BottomNavigationClickAdsShow = "BottomNavigationClickAdsShow";
@@ -1437,6 +1500,22 @@ public class ADSMainClass {
         ADSPrefManage().edit().putString(key, value).apply();
     }
 
+    public static String getReferrerUrl() {
+        return ADSPrefManage().getString(ReferrerUrl, "");
+    }
+
+    public static void setReferrerUrl(String url) {
+        ADSPrefManage().edit().putString(ReferrerUrl, url != null ? url : "").apply();
+    }
+
+    public static boolean isInstallReferrerFetched() {
+        return ADSPrefManage().getBoolean(InstallReferrerFetched, false);
+    }
+
+    public static void setInstallReferrerFetched(boolean value) {
+        ADSPrefManage().edit().putBoolean(InstallReferrerFetched, value).apply();
+    }
+
     public static int getIntValue(String key, int defaultValue) {
         return ADSPrefManage().getInt(key, defaultValue);
     }
@@ -1789,6 +1868,18 @@ public class ADSMainClass {
 
     public static void setIntroBackSendToNext(boolean value) {
         ADSPrefManage().edit().putBoolean(IntroBackSendToNext, value).apply();
+    }
+
+    /** {@code true} when Firebase {@code intro_show_screen_type} is single/singal. Default: multi. */
+    public static boolean isIntroSingleScreen() {
+        String raw = ADSPrefManage().getString(IntroShowScreenType, INTRO_SCREEN_MULTI);
+        if (raw == null) return false;
+        String value = raw.trim().toLowerCase(java.util.Locale.US);
+        return INTRO_SCREEN_SINGLE.equals(value) || "singal".equals(value);
+    }
+
+    public static void setIntroShowScreenType(String value) {
+        ADSPrefManage().edit().putString(IntroShowScreenType, value).apply();
     }
 
     public static String getPrivacyPolicy() {

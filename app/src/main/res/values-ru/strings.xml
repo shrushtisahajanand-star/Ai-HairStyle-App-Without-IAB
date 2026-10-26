@@ -258,6 +258,9 @@
     <string name="feedback_email_hint">Введите ваш email</string>
     <string name="feedback_email_invalid">Пожалуйста, введите действительный адрес электронной почты.</string>
     <string name="beard_fade_haircut_styles">Борода, Фейд &amp; Стрижки</string>
+    <string name="daily_quota_finished_title">Дневной лимит исчерпан</string>
+    <string name="daily_quota_finished_message">Ваш дневной лимит изображений исчерпан. Вернитесь завтра для новых генераций.</string>
+    <string name="premium_subscription_expired">Ваша премиум-подписка закончилась. Продлите её, чтобы продолжить генерацию.</string>
 </resources>
 
 

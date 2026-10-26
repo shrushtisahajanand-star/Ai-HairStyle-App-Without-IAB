@@ -1,4 +1,4 @@
-package com.hairstyle.generator.aimakerover.Advertisement
+﻿package com.hairstyle.generator.aimakerover.Advertisement
 
 import android.app.Activity
 import android.util.Log
@@ -33,6 +33,10 @@ object ScreenAdsHelper {
 
     fun load(fragment: Fragment, root: View, config: Config) {
         val activity = fragment.activity ?: return
+        load(activity, root, config)
+    }
+
+    fun load(activity: Activity, root: View, config: Config) {
         if (activity.isFinishing || activity.isDestroyed) return
 
         val slot = ensureBottomSlot(root) ?: return
@@ -50,6 +54,10 @@ object ScreenAdsHelper {
 
     fun loadSettingCenter(fragment: Fragment, centerContainer: View, config: Config) {
         val activity = fragment.activity ?: return
+        loadSettingCenter(activity, centerContainer, config)
+    }
+
+    fun loadSettingCenter(activity: Activity, centerContainer: View, config: Config) {
         if (activity.isFinishing || activity.isDestroyed) return
         val slot = IncludeSettingCenterAdsBinding.bind(centerContainer)
         bindAds(
@@ -77,13 +85,13 @@ object ScreenAdsHelper {
         val adsFree = ADSMainClass.getAds_Free()
         val canRequestAds = ADSConsentManager.canRequestAds(activity)
         if (!config.show || adsFree || !canRequestAds) {
-            Log.d(
-                TAG,
-                "Ads blocked → show=${config.show} adsFree=$adsFree " +
-                    "ads_blocked=${ADSMainClass.getAdsBlocked()} " +
-                    "canRequestAds=$canRequestAds premium=${PremiumPlanManager.isPremiumActive()} " +
-                    "type=${config.adsType} nativeId=${config.nativeId} bannerId=${config.bannerId}"
-            )
+            //Log.d(
+//                TAG,
+//                "Ads blocked → show=${config.show} adsFree=$adsFree " +
+//                    "ads_blocked=${ADSMainClass.getAdsBlocked()} " +
+//                    "canRequestAds=$canRequestAds premium=${PremiumPlanManager.isPremiumActive()} " +
+//                    "type=${config.adsType} nativeId=${config.nativeId} bannerId=${config.bannerId}"
+//            )
             container.visibility = View.GONE
             return
         }
@@ -125,6 +133,54 @@ object ScreenAdsHelper {
                 ADSBannerSmall.loadAdMobBanner(bannerId, flBanner, shimmer, activity)
             }
         }
+    }
+
+    /**
+     * Home bottom Native reload: shimmer → new request → show when ready.
+     * [onFinished] runs after load success or failure (so the next timer can start from Show).
+     */
+    fun reloadHomeBottomNative(
+        activity: Activity,
+        root: View,
+        onFinished: (() -> Unit)? = null
+    ) {
+        if (activity.isFinishing || activity.isDestroyed) {
+            onFinished?.invoke()
+            return
+        }
+        if (!ADSMainClass.getNativeAdsReloading()) {
+            onFinished?.invoke()
+            return
+        }
+        val config = home()
+        if (normalizeAdsType(config.adsType) != "native") {
+            onFinished?.invoke()
+            return
+        }
+        val adsFree = ADSMainClass.getAds_Free()
+        val canRequestAds = ADSConsentManager.canRequestAds(activity)
+        if (!config.show || adsFree || !canRequestAds) {
+            onFinished?.invoke()
+            return
+        }
+        val nativeId = config.nativeId.trim()
+        if (nativeId.isEmpty()) {
+            onFinished?.invoke()
+            return
+        }
+        val slot = ensureBottomSlot(root) ?: run {
+            onFinished?.invoke()
+            return
+        }
+        val size = ADSNativeDisplay.normalizeNativeSize(config.adsSize)
+        ADSNativeDisplay.reloadAdmobNativeAd(
+            nativeId,
+            slot.flNativeAd,
+            slot.shimmerScreenAd,
+            size,
+            activity,
+            onFinished?.let { done -> Runnable { done() } }
+        )
     }
 
     fun hide(root: View) {

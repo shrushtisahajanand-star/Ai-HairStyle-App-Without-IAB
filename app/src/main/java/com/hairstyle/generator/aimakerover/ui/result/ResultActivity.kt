@@ -1,28 +1,25 @@
 package com.hairstyle.generator.aimakerover.ui.result
 
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentResultBinding
+import com.hairstyle.generator.aimakerover.Advertisement.ADSMainClass
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.RewardedAdHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
 import com.hairstyle.generator.aimakerover.domain.model.GenerationSession
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.ui.common.RateAppDialog
 import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModel
+import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModelOwner
 import com.hairstyle.generator.aimakerover.utils.PremiumPlanManager
 import com.hairstyle.generator.aimakerover.utils.ResultImageHelper
 import com.hairstyle.generator.aimakerover.utils.ResultWatermarkHelper
@@ -34,12 +31,14 @@ import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ResultFragment : Fragment() {
+class ResultActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentResultBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: GenerationViewModel by activityViewModels()
+    private val viewModel: GenerationViewModel by sharedViewModels({ GenerationViewModelOwner })
 
     @Inject lateinit var resultImageHelper: ResultImageHelper
 
@@ -47,25 +46,19 @@ class ResultFragment : Fragment() {
     private var loadedResultUrl: String? = null
     private var imageSavedToGallery = false
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentResultBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentResultBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
         binding.root.applyStatusBarPadding()
         setupLeaveHandling()
         updateWatermarkVisibility()
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.result())
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 updateWatermarkVisibility()
                 viewModel.session.collect { session ->
                     bindBeforeAfter(session)
@@ -84,10 +77,14 @@ class ResultFragment : Fragment() {
         binding.btnShare.setOnClickListener { shareImage() }
     }
 
-    /** Premium â†’ save directly (no dialog). Free â†’ show Save dialog. */
+    /** Premium → save directly (no dialog). Free + save_photo_show_ads false → save photo with no dialog. */
     private fun onSaveClicked(highQuality: Boolean) {
         if (PremiumPlanManager.isPremiumActive()) {
             saveImage(highQuality = true)
+            return
+        }
+        if (!highQuality && !shouldShowSavePhotoAds()) {
+            saveImage(highQuality = false)
             return
         }
         showSaveDialog(
@@ -96,11 +93,14 @@ class ResultFragment : Fragment() {
         )
     }
 
+    private fun shouldShowSavePhotoAds(): Boolean =
+        ADSMainClass.getBooleanValue(ADSMainClass.SAVE_PHOTO_SHOW_ADS, false)
+
     private fun setupLeaveHandling() {
         binding.toolbar.setNavigationOnClickListener { handleLeaveAttempt() }
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        onBackPressedDispatcher.addCallback(
+            this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     handleLeaveAttempt()
@@ -118,12 +118,14 @@ class ResultFragment : Fragment() {
     }
 
     private fun showImageNotSavedBottomSheet() {
-        if (childFragmentManager.findFragmentByTag(ImageNotSavedBottomSheet.TAG) != null) return
+        if (supportFragmentManager.findFragmentByTag(ImageNotSavedBottomSheet.TAG) != null) return
 
         ImageNotSavedBottomSheet.newInstance(
             onSaveClick = {
                 if (PremiumPlanManager.isPremiumActive()) {
                     saveImage(highQuality = true)
+                } else if (!shouldShowSavePhotoAds()) {
+                    saveImage(highQuality = false)
                 } else {
                     showSaveDialog(SaveHairstyleDialog.Mode.SAVE_PHOTO)
                 }
@@ -133,29 +135,29 @@ class ResultFragment : Fragment() {
                     navigateHome()
                 }
             }
-        ).show(childFragmentManager, ImageNotSavedBottomSheet.TAG)
+        ).show(supportFragmentManager, ImageNotSavedBottomSheet.TAG)
     }
 
     private fun navigateHome() {
-        findNavController().navigate(R.id.action_result_to_home)
         viewModel.clearSession()
+        AppNavigator.openHomeClearTask(this)
     }
 
     private fun showSaveDialog(mode: SaveHairstyleDialog.Mode) {
         SaveHairstyleDialog.show(
-            fragment = this,
+            activity = this,
             mode = mode,
             onFreeAdClick = {
                 // Save is never blocked by generate quota (incl. 3rd / last free image).
                 RewardedAdHelper.showForReward(
-                    fragment = this,
+                    activity = this,
                     onRewardEarned = {
                         saveImage(highQuality = mode == SaveHairstyleDialog.Mode.SAVE_HD)
                     },
-                    onFailedOrSkipped = { /* stay on result â€” no save */ }
+                    onFailedOrSkipped = { /* stay on result — no save */ }
                 )
             },
-            onPremiumClick = { findNavController().navigate(R.id.action_result_to_premium) }
+            onPremiumClick = { AppNavigator.openPremium(this) }
         )
     }
 
@@ -168,7 +170,7 @@ class ResultFragment : Fragment() {
         val afterPath = session.resultImagePath
         val afterUrl = session.resultImageUrl
 
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             try {
                 val beforeBitmap = resultImageHelper.decodeResultBitmap(File(beforePath)) ?: return@launch
                 val afterFile = when {
@@ -192,7 +194,7 @@ class ResultFragment : Fragment() {
         if (loadedResultUrl == resultUrl) return
         loadedResultUrl = resultUrl
 
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             try {
                 val resultFile = resultImageHelper.ensureLocalFile(
                     imageUrl = session.resultImageUrl,
@@ -205,7 +207,6 @@ class ResultFragment : Fragment() {
                 beforeAfterBound = false
                 bindBeforeAfter(viewModel.session.value)
             } catch (e: Exception) {
-                // Log.e(TAG, "Failed to load result image", e)
                 showSnackbar(e.message ?: getString(R.string.error_no_result))
             }
         }
@@ -223,17 +224,17 @@ class ResultFragment : Fragment() {
     }
 
     private fun saveImage(highQuality: Boolean) {
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             try {
                 val file = getResultFileOrThrow()
                 resultImageHelper.saveToGallery(file, highQuality)
                 imageSavedToGallery = true
                 Toast.makeText(
-                    requireContext(),
+                    this@ResultActivity,
                     R.string.saved_successfully,
                     Toast.LENGTH_SHORT
                 ).show()
-                RateAppDialog.showAfterSave(this@ResultFragment)
+                RateAppDialog.showAfterSave(this@ResultActivity)
             } catch (e: Exception) {
                 showImageNotSavedBottomSheet()
             }
@@ -241,10 +242,10 @@ class ResultFragment : Fragment() {
     }
 
     private fun shareImage() {
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             try {
                 val file = getResultFileOrThrow()
-                resultImageHelper.shareImage(file, requireContext())
+                resultImageHelper.shareImage(file, this@ResultActivity)
             } catch (e: Exception) {
                 showSnackbar(e.message ?: getString(R.string.error_no_result))
             }
@@ -264,16 +265,16 @@ class ResultFragment : Fragment() {
         return file
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
         loadedResultUrl = null
         localResultFile = null
         beforeAfterBound = false
         imageSavedToGallery = false
         _binding = null
+        super.onDestroy()
     }
 
     companion object {
-        private const val TAG = "ResultFragment"
+        private const val TAG = "ResultActivity"
     }
 }

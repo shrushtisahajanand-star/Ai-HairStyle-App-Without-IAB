@@ -1,39 +1,32 @@
 package com.hairstyle.generator.aimakerover.ui.intro
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentIntroRatingBinding
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 /** Intro flow page 4 — rating / reviews (was ViewPager last page). Ads: intro_screen1d */
 @AndroidEntryPoint
-class Intro1dFragment : Fragment() {
+class Intro1dActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons = true
 
     private var _binding: FragmentIntroRatingBinding? = null
     private val binding get() = _binding!!
 
     private var reviewAutoScroller: IntroReviewAutoScroller? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentIntroRatingBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentIntroRatingBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         setupSystemBackNavigation()
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.intro1d())
 
@@ -45,13 +38,13 @@ class Intro1dFragment : Fragment() {
         binding.btnContinue.setText(page.buttonRes)
         binding.btnContinue.setOnClickListener {
             InterstitialNavHelper.showOnIntroClick(this, ScreenInterAds.intro1d()) {
-                findNavController().navigate(R.id.action_intro1d_to_intro2)
+                navigateIntroToPremiumOrHome()
             }
         }
 
         val reviewAdapter = IntroReviewAdapter().apply { submitList(page.reviews) }
         binding.rvReviews.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(this@Intro1dActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = reviewAdapter
             overScrollMode = View.OVER_SCROLL_NEVER
             isNestedScrollingEnabled = false
@@ -69,10 +62,10 @@ class Intro1dFragment : Fragment() {
         super.onPause()
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         reviewAutoScroller?.stop()
         reviewAutoScroller = null
-        super.onDestroyView()
+        super.onDestroy()
         _binding = null
     }
 }

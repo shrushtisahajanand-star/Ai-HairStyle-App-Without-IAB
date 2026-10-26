@@ -3,7 +3,9 @@ package com.hairstyle.generator.aimakerover.ui
 import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
@@ -12,25 +14,26 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelLazy
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.NavHostFragment
-import com.hairstyle.generator.aimakeover.R
-import com.hairstyle.generator.aimakeover.databinding.ActivityMainBinding
 import com.hairstyle.generator.aimakerover.billing.BillingManager
+import com.hairstyle.generator.aimakerover.data.repository.LocalHairstyleRepository.Companion.TAG
 import com.hairstyle.generator.aimakerover.ui.common.NoInternetDialogController
+import com.hairstyle.generator.aimakerover.utils.DeviceIdProvider
 import com.hairstyle.generator.aimakerover.utils.LocaleManager
 import com.hairstyle.generator.aimakerover.utils.NetworkMonitor
 import com.hairstyle.generator.aimakerover.utils.PrefManager
+import com.hairstyle.generator.aimakerover.utils.PremiumPlanManager
+import com.hairstyle.generator.aimakerover.utils.contentBottomInsetOrFallback
 import com.hairstyle.generator.aimakerover.utils.setStatusBarLightIcons
 import com.hairstyle.generator.aimakerover.utils.setupEdgeToEdge
-import com.hairstyle.generator.aimakerover.utils.stableNavigationBarBottom
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+abstract class BaseActivity : AppCompatActivity() {
 
     @Inject
     lateinit var billingManager: BillingManager
@@ -38,9 +41,10 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var networkMonitor: NetworkMonitor
 
-    private lateinit var binding: ActivityMainBinding
-    private var currentDestinationId = R.id.splashFragment
     private var noInternetDialog: NoInternetDialogController? = null
+
+    protected open val useLightStatusBarIcons: Boolean = true
+    protected open val isSplashScreen: Boolean = false
 
     override fun attachBaseContext(newBase: Context) {
         PrefManager.init(newBase)
@@ -48,25 +52,47 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        if (isSplashScreen) {
+            installSplashScreen()
+        }
+        val deviceId = DeviceIdProvider.getDeviceId(this)
+//        Log.d(TAG, "device_id    = $deviceId")
+
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        setupEdgeToEdge(binding.navHostFragment)
-        setupNavHostInsetsForDestination()
-        setupStatusBarForDestination()
         billingManager.startConnection()
-
+        observePremiumEntitlement()
         noInternetDialog = NoInternetDialogController(this, networkMonitor)
         networkMonitor.start()
         observeNetwork()
     }
 
+    protected fun setupWindow(contentView: View) {
+        setupEdgeToEdge(contentView)
+        ViewCompat.setOnApplyWindowInsetsListener(contentView) { view, insets ->
+            val sys = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            val bottomPadding = if (isSplashScreen) 0 else insets.contentBottomInsetOrFallback(view)
+            view.updatePadding(left = sys.left, right = sys.right, bottom = bottomPadding)
+            insets
+        }
+        ViewCompat.requestApplyInsets(contentView)
+        setStatusBarLightIcons(useLightStatusBarIcons)
+    }
+
+    private fun observePremiumEntitlement() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                billingManager.entitlementRevision.collect {
+                    PremiumPlanManager.syncAdsFreeFlag()
+                }
+            }
+        }
+    }
+
     private fun observeNetwork() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Immediate check when entering STARTED (covers Home already open)
                 networkMonitor.refresh()
                 networkMonitor.isOnline.collect { online ->
                     noInternetDialog?.onConnectivityChanged(online)
@@ -75,7 +101,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Tap anywhere outside the focused input → dismiss the keyboard. */
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.action == MotionEvent.ACTION_DOWN) {
             val focused = currentFocus
@@ -94,65 +119,35 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        billingManager.refreshEntitlements()
         networkMonitor.start()
         networkMonitor.refresh()
         noInternetDialog?.onConnectivityChanged(networkMonitor.isOnline.value)
     }
 
+    override fun onResume() {
+        super.onResume()
+        ViewCompat.requestApplyInsets(window.decorView)
+    }
+
     override fun onDestroy() {
         noInternetDialog?.release()
         noInternetDialog = null
-        if (isFinishing) {
-            networkMonitor.stop()
-        }
         super.onDestroy()
     }
 
-    private fun setupNavHostInsetsForDestination() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.navHostFragment) { view, insets ->
-            // decorFitsSystemWindows=false disables adjustResize, so the IME inset has to be
-            // applied by hand — otherwise the keyboard covers the content instead of shrinking it.
-            val imeBottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
-            val bottomPadding = when {
-                currentDestinationId == R.id.splashFragment -> 0
-                else -> maxOf(imeBottom, insets.stableNavigationBarBottom())
-            }
-            view.updatePadding(bottom = bottomPadding)
-            insets
-        }
-        ViewCompat.requestApplyInsets(binding.navHostFragment)
-    }
+    protected fun isScreenAlive(): Boolean = !isFinishing && !isDestroyed
 
-    private fun setupStatusBarForDestination() {
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
-
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            currentDestinationId = destination.id
-            ViewCompat.requestApplyInsets(binding.navHostFragment)
-
-            val useLightStatusBarIcons = when (destination.id) {
-                R.id.homePageFragment,
-                R.id.photoSelectFragment,
-                R.id.galleryPhotoSelectionFragment,
-                R.id.progressFragment,
-                R.id.settingFragment,
-                R.id.activeSubscriptionFragment,
-                R.id.premiumFragment,
-                R.id.userCreationFragment,
-                R.id.userCreationPreviewFragment,
-                R.id.feedbackFragment,
-                R.id.resultFragment,
-                R.id.selectCategoryFragment,
-                R.id.languageFragment,
-                R.id.intro2Fragment,
-                R.id.intro3Fragment,
-                R.id.splashFragment -> false
-
-                else -> true
-            }
-            setStatusBarLightIcons(useLightStatusBarIcons)
-        }
-    }
+    /**
+     * Activity [androidx.activity.viewModels] has no ownerProducer.
+     * Use this to keep a ViewModel on a custom [ViewModelStoreOwner] with Hilt's factory.
+     */
+    protected inline fun <reified VM : ViewModel> sharedViewModels(
+        noinline ownerProducer: () -> ViewModelStoreOwner
+    ): Lazy<VM> = ViewModelLazy(
+        VM::class,
+        { ownerProducer().viewModelStore },
+        { defaultViewModelProviderFactory },
+        { defaultViewModelCreationExtras }
+    )
 }

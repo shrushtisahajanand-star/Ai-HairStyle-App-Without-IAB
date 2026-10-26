@@ -258,6 +258,8 @@
     <string name="feedback_email_hint">Geben Sie Ihre E-Mail ein</string>
     <string name="feedback_email_invalid">Bitte geben Sie eine gültige E-Mail-Adresse ein.</string>
     <string name="beard_fade_haircut_styles">Bart, Fade &amp; Haarschnitt-Stile</string>
-
+    <string name="daily_quota_finished_title">Tägliches Limit erreicht</string>
+    <string name="daily_quota_finished_message">Ihr tägliches Bildlimit ist erreicht. Kommen Sie morgen wieder für weitere Generierungen.</string>
+    <string name="premium_subscription_expired">Ihr Premium-Abonnement ist abgelaufen. Verlängern Sie es, um weiter zu generieren.</string>
 </resources>
 

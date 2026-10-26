@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">Voer u e-pos in</string>
     <string name="feedback_email_invalid">Voer asseblief \'n geldige e-posadres in.</string>
     <string name="beard_fade_haircut_styles">Baard, Fade &amp; Haarsny-style</string>
+    <string name="daily_quota_finished_title">Daaglikse Limiet Verby</string>
+    <string name="daily_quota_finished_message">Jou daaglikse beeldlimiet is verby. Kom môre terug vir meer generasies.</string>
+    <string name="premium_subscription_expired">Jou premium-intekening het geëindig. Hernu om aan te hou genereer.</string>
 </resources>

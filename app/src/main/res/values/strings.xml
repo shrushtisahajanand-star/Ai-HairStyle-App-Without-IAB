@@ -12,6 +12,11 @@
     <string name="intro_rating_stars" translatable="false">★★★★★</string>
      <string name="notification_channel_name" translatable="false">App Updates</string>
     <string name="notification_channel_description" translatable="false">Hairstyle tips, new styles and app updates</string>
+    <string name="markrting_converter1" translatable="false">gclid</string>
+    <string name="utm_source_apps_facebook_com" translatable="false">utm_source=apps.facebook.com</string>
+    <string name="utm_source_apps_instagram_com" translatable="false">utm_source=apps.instagram.com</string>
+    <string name="utm_source_marketing" translatable="false">utm_source=marketing</string>
+
 
     <string name="upload_your_photo">Upload Your Photo</string>
     <string name="try_premium">Try Premium Styles</string>
@@ -34,6 +39,9 @@
     <string name="generate_now">Generate Now</string>
     <string name="premium_image_limit_reached">Your premium plan image limit is fully used.</string>
     <string name="premium_daily_limit_reached">Today\'s image limit is reached. Come back tomorrow for more images.</string>
+    <string name="daily_quota_finished_title">Daily Limit Over</string>
+    <string name="daily_quota_finished_message">Your daily image limit is finished. Come back tomorrow for more generations.</string>
+    <string name="premium_subscription_expired">Your premium subscription has ended. Renew to continue generating.</string>
     <string name="free_image_limit_reached">Free image limit reached. Upgrade to premium for more.</string>
     <string name="billing_purchase_success">Premium activated successfully!</string>
     <string name="billing_restore_success">Premium restored successfully!</string>

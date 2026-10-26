@@ -72,7 +72,7 @@
                 android:layout_marginTop="@dimen/_2sdp"
                 android:ellipsize="end"
                 android:includeFontPadding="false"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="#B3FFFFFF"
                 android:textSize="@dimen/_9sdp"
                 tools:text="Short body text for the ad" />

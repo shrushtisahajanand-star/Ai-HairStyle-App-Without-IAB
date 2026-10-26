@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
@@ -22,6 +21,7 @@ import com.hairstyle.generator.aimakeover.databinding.BottomSheetHairColorBindin
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
 import com.hairstyle.generator.aimakerover.domain.model.GenerationType
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
 import com.hairstyle.generator.aimakerover.ui.common.ShimmerItemFooterAdapter
 import com.hairstyle.generator.aimakerover.utils.PrefManager
 import com.hairstyle.generator.aimakerover.utils.showSnackbar
@@ -139,16 +139,13 @@ class HairColorBottomSheet : BottomSheetDialogFragment() {
             apiValue = selectedColor.apiValue
         )
 
-        val actionId = when (source) {
-            Source.HOME -> R.id.action_homePage_to_selectPhoto
-            Source.SELECT_CATEGORY -> R.id.action_selectCategory_to_photoSelect
-            // Upload Your Photo: photo already chosen → go generate.
-            Source.PHOTO_FIRST -> R.id.action_selectCategory_to_progress
-        }
-        val host = parentFragment ?: this
-        InterstitialNavHelper.showOnClick(host, ScreenInterAds.selectImageNext()) {
+        InterstitialNavHelper.showOnClick(this, ScreenInterAds.selectImageNext()) {
             dismiss()
-            host.findNavController().navigate(actionId)
+            val host = activity ?: return@showOnClick
+            when (source) {
+                Source.HOME, Source.SELECT_CATEGORY -> AppNavigator.openPhotoSelect(host)
+                Source.PHOTO_FIRST -> AppNavigator.openProgress(host)
+            }
         }
     }
 

@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">Voer uw e-mail in</string>
     <string name="feedback_email_invalid">Voer een geldig e-mailadres in.</string>
     <string name="beard_fade_haircut_styles">Baard, Fade &amp; Kapsels</string>
+    <string name="daily_quota_finished_title">Dagelijkse Limiet Overschreden</string>
+    <string name="daily_quota_finished_message">Uw dagelijkse afbeeldingslimiet is overschreden. Kom morgen terug voor meer generaties.</string>
+    <string name="premium_subscription_expired">Uw premium-abonnement is afgelopen. Vernieuw om door te gaan met genereren.</string>
 </resources>

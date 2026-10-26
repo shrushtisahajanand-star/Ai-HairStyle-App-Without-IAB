@@ -39,6 +39,9 @@ object Intro1Data {
         buttonRes = R.string.continue_text,
         reviews = IntroReviewData.reviews
     )
+
+    /** Single-screen ViewPager: 3 video pages + rating page. */
+    val pages: List<Intro1Page> = videoPages + ratingPage
 }
 
 sealed class Intro1Page {

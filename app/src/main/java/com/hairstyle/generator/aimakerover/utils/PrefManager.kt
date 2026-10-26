@@ -24,6 +24,7 @@ object PrefManager {
     private const val KEY_VIDEOS_API_URL = "videos_api_url"
     private const val KEY_GENERATE_BASE_URL = "generate_base_url"
     private const val KEY_PRIVACY_POLICY_URL = "privacy_policy_url"
+    private const val KEY_TERMS_URL = "terms_url"
     private const val KEY_FEEDBACK_URL = "feedback_url"
     private const val KEY_PAGE_LIMIT = "images_page_limit"
     private const val KEY_REMOTE_CONFIG_FETCHED = "remote_config_fetched"
@@ -126,6 +127,14 @@ object PrefManager {
 
     fun getPrivacyPolicyUrl(): String {
         return prefsOrThrow().getString(KEY_PRIVACY_POLICY_URL, "") ?: ""
+    }
+
+    fun setTermsUrl(value: String) {
+        prefsOrThrow().edit().putString(KEY_TERMS_URL, value).apply()
+    }
+
+    fun getTermsUrl(): String {
+        return prefsOrThrow().getString(KEY_TERMS_URL, "") ?: ""
     }
 
     /** Plain feedback API base URL from Firebase (no encrypt/decrypt). */

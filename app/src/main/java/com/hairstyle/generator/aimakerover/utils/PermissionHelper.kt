@@ -7,8 +7,10 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import android.app.Activity
 import com.hairstyle.generator.aimakerover.Advertisement.ADSAppManage
 
 object PermissionHelper {
@@ -38,20 +40,22 @@ object PermissionHelper {
 
     fun cameraPermissions(): Array<String> = arrayOf(Manifest.permission.CAMERA)
 
-    fun storagePermissions(): Array<String> = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-            arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
-        }
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-        else -> {
-            arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-        }
-    }
+    // System Photo Picker — no gallery read permission; manifest has no READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE.
+    fun storagePermissions(): Array<String> = emptyArray()
+//        when {
+//            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+//                arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+//            }
+//            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+//                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+//            }
+//            else -> {
+//                arrayOf(
+//                    Manifest.permission.READ_EXTERNAL_STORAGE,
+//                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                )
+//            }
+//        }
 
     /** Android 13+ only; below Tiramisu notifications do not need runtime permission. */
     fun notificationPermissions(): Array<String> = when {
@@ -79,8 +83,11 @@ object PermissionHelper {
     }
 
     fun hasPermissions(fragment: Fragment, permissions: Array<String>): Boolean =
+        hasPermissions(fragment.requireContext(), permissions)
+
+    fun hasPermissions(context: Context, permissions: Array<String>): Boolean =
         permissions.isEmpty() || permissions.all {
-            ContextCompat.checkSelfPermission(fragment.requireContext(), it) ==
+            ContextCompat.checkSelfPermission(context, it) ==
                 PackageManager.PERMISSION_GRANTED
         }
 
@@ -101,9 +108,29 @@ object PermissionHelper {
         }
     }
 
+    fun isPermanentlyDenied(activity: Activity, type: PermissionType): Boolean {
+        val permissions = permissionsFor(type)
+        if (permissions.isEmpty()) return false
+        if (hasPermissions(activity, permissions)) return false
+
+        val deniedBefore = when (type) {
+            PermissionType.CAMERA -> PrefManager.getBoolean(KEY_CAMERA_DENIED, false)
+            PermissionType.STORAGE -> PrefManager.getBoolean(KEY_STORAGE_DENIED, false)
+            PermissionType.NOTIFICATION -> PrefManager.getBoolean(KEY_NOTIFICATION_DENIED, false)
+        }
+        if (!deniedBefore) return false
+
+        return permissions.any { permission ->
+            !ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
+        }
+    }
+
     /** True while the system dialog can still be shown for this permission. */
     fun shouldShowRationale(fragment: Fragment, type: PermissionType): Boolean =
         permissionsFor(type).any { fragment.shouldShowRequestPermissionRationale(it) }
+
+    fun shouldShowRationale(activity: Activity, type: PermissionType): Boolean =
+        permissionsFor(type).any { ActivityCompat.shouldShowRequestPermissionRationale(activity, it) }
 
     enum class PermissionOutcome {
         GRANTED,
@@ -135,13 +162,29 @@ object PermissionHelper {
         if (result.isEmpty()) return PermissionOutcome.CAN_ASK_AGAIN
 
         // A single "Don't allow" — the system still shows the dialog next time.
-        if (shouldShowRationale(fragment, type)) return PermissionOutcome.CAN_ASK_AGAIN
+        if (shouldShowRationale(fragment.requireActivity(), type)) return PermissionOutcome.CAN_ASK_AGAIN
 
         // Rationale was already false and the dialog stayed up: the user tapped outside.
         if (!rationaleBefore && elapsedMs > AUTO_DENY_MAX_MS) {
             return PermissionOutcome.CAN_ASK_AGAIN
         }
 
+        return PermissionOutcome.PERMANENTLY_DENIED
+    }
+
+    fun evaluateResult(
+        activity: Activity,
+        type: PermissionType,
+        result: Map<String, Boolean>,
+        rationaleBefore: Boolean,
+        elapsedMs: Long
+    ): PermissionOutcome {
+        if (result.isNotEmpty() && result.values.all { it }) return PermissionOutcome.GRANTED
+        if (result.isEmpty()) return PermissionOutcome.CAN_ASK_AGAIN
+        if (shouldShowRationale(activity, type)) return PermissionOutcome.CAN_ASK_AGAIN
+        if (!rationaleBefore && elapsedMs > AUTO_DENY_MAX_MS) {
+            return PermissionOutcome.CAN_ASK_AGAIN
+        }
         return PermissionOutcome.PERMANENTLY_DENIED
     }
 

@@ -1,4 +1,4 @@
-package com.hairstyle.generator.aimakerover.billing
+﻿package com.hairstyle.generator.aimakerover.billing
 
 import android.app.Activity
 import android.content.Context
@@ -38,17 +38,31 @@ class BillingManager @Inject constructor(
     private val _entitlementRevision = MutableStateFlow(0)
     val entitlementRevision: StateFlow<Int> = _entitlementRevision.asStateFlow()
 
+    private val _isInitialSyncComplete = MutableStateFlow(false)
+    val isInitialSyncComplete: StateFlow<Boolean> = _isInitialSyncComplete.asStateFlow()
+
     private val packageByProductId = mutableMapOf<String, RcPackage>()
 
     private var offeringsLoading = false
 
+    /** Last time CustomerInfo reported an active premium SKU (avoids empty-sync races). */
+    @Volatile
+    private var lastPositiveRcSyncAtMs: Long = 0L
+
+    /** Refresh Play / RevenueCat entitlement without loading offerings (safe to call often). */
+    fun refreshEntitlements() {
+        syncCustomerInfoSilent()
+    }
+
     fun startConnection() {
+        refreshEntitlements()
         if (offeringsLoading) return
         offeringsLoading = true
         Purchases.sharedInstance.getOfferingsWith(
             onError = { error ->
                 offeringsLoading = false
                 // Log.e(TAG, "getOfferings failed: code=${error.code} msg=${error.message}")
+                _isInitialSyncComplete.value = true
             },
             onSuccess = { offerings ->
                 offeringsLoading = false
@@ -109,19 +123,35 @@ class BillingManager @Inject constructor(
             },
             onSuccess = { storeTransaction, customerInfo ->
                 syncFromCustomerInfo(customerInfo, notifyUi = false)
-                Log.d(TAG, "purchasePackage: " + customerInfo.originalAppUserId)
-                Log.d(TAG, "purchasePackage: " + customerInfo)
-                Log.d(TAG, "purchasePackage: " + customerInfo)
+                //Log.d(TAG, "purchasePackage: uid=${customerInfo.originalAppUserId}")
+                //Log.d(
+//                    TAG,
+//                    "purchasePackage: activeSubs=${customerInfo.activeSubscriptions} " +
+//                        "entitlements=${customerInfo.entitlements.active.keys}"
+//                )
+                //Log.d(
+//                    TAG,
+//                    "purchasePackage: allExpirationDatesByProduct=${customerInfo.allExpirationDatesByProduct} " +
+//                            "entitlements=${customerInfo.latestExpirationDate}"
+//                )
                 val productId = storeTransaction?.productIds?.firstOrNull()
                     ?: PremiumPlanManager.getProductId(plan)
                 storeTransaction?.purchaseToken?.let { PrefManager.setPremiumPurchaseToken(it) }
                 PrefManager.setPremiumProductId(productId)
                 val unlocked = PremiumPlanManager.planForProductId(productId) ?: plan
-                if (PremiumPlanManager.isPlanActive(unlocked) ||
-                    customerInfo.entitlements[RevenueCatConfig.ENTITLEMENT_ID]?.isActive == true
-                ) {
+                val entitlement = resolveActiveEntitlement(customerInfo)
+                val entitlementActive = entitlement?.isActive == true
+                val subActive = customerInfo.activeSubscriptions.any { subId ->
+                    PremiumPlanManager.planForProductId(subId) != null
+                }
+                if (PremiumPlanManager.isPlanActive(unlocked) || entitlementActive || subActive) {
                     if (!PremiumPlanManager.isPlanActive(unlocked)) {
-                        PremiumPlanManager.activatePlan(unlocked)
+                        PremiumPlanManager.activatePlan(
+                            unlocked,
+                            purchaseMs = entitlement?.latestPurchaseDate?.time
+                                ?: entitlement?.originalPurchaseDate?.time,
+                            expiryMs = entitlement?.expirationDate?.time
+                        )
                     }
                     _billingState.value = BillingUiState.Success(unlocked)
                 } else {
@@ -254,21 +284,24 @@ class BillingManager @Inject constructor(
         Purchases.sharedInstance.getCustomerInfoWith(
             onError = { error ->
                 // Log.w(TAG, "getCustomerInfo failed: ${error.message}")
+                _isInitialSyncComplete.value = true
             },
             onSuccess = { customerInfo ->
                 syncFromCustomerInfo(customerInfo, notifyUi = false)
                 notifyEntitlementChanged()
+                _isInitialSyncComplete.value = true
             }
         )
     }
 
     /**
-     * Source of truth = RevenueCat entitlement [RevenueCatConfig.ENTITLEMENT_ID].
-     * Maps active product identifier(s) onto local [PremiumPlanManager] plans.
+     * Source of truth = RevenueCat entitlement [RevenueCatConfig.ENTITLEMENT_ID],
+     * with fallbacks so a dashboard Identifier mismatch cannot wipe a valid
+     * Play subscription for [BillingProductIds].
      */
     private fun syncFromCustomerInfo(customerInfo: CustomerInfo, notifyUi: Boolean) {
         val beforePremium = PremiumPlanManager.isPremiumActive()
-        val entitlement = customerInfo.entitlements[RevenueCatConfig.ENTITLEMENT_ID]
+        val entitlement = resolveActiveEntitlement(customerInfo)
         val activePlans = linkedSetOf<PremiumPlan>()
         var lastActivated: PremiumPlan? = null
 
@@ -276,52 +309,112 @@ class BillingManager @Inject constructor(
             PrefManager.setRcOriginalAppUserId(it)
         }
 
-        if (entitlement?.isActive == true) {
-            val productIds = LinkedHashSet<String>().apply {
-                addAll(customerInfo.activeSubscriptions)
-                entitlement.productIdentifier.takeIf { it.isNotBlank() }?.let { add(it) }
-            }
-            productIds.forEach { productId ->
-                val plan = PremiumPlanManager.planForProductId(productId) ?: return@forEach
-                if (!PremiumPlanManager.isPlanActive(plan)) {
-                    PremiumPlanManager.activatePlan(plan)
-                }
-                PrefManager.setPremiumProductId(productId)
-                activePlans.add(plan)
-                lastActivated = plan
-            }
-            // Entitlement active but product id unknown to our SKUs â€” still unlock a plan
-            if (activePlans.isEmpty()) {
-                val fallbackId = entitlement.productIdentifier
-                val plan = PremiumPlanManager.planForProductId(fallbackId)
-                    ?: PremiumPlan.YEARLY
-                PremiumPlanManager.activatePlan(plan)
-                PrefManager.setPremiumProductId(fallbackId)
-                activePlans.add(plan)
-                lastActivated = plan
-            }
+        val purchaseMs = entitlement?.latestPurchaseDate?.time
+            ?: entitlement?.originalPurchaseDate?.time
+        val expiryMs = entitlement?.expirationDate?.time
 
-            // Prefer RevenueCat purchase / expiry when available (API + local record).
-            val purchaseMs = entitlement.latestPurchaseDate?.time
-                ?: entitlement.originalPurchaseDate?.time
-            val expiryMs = entitlement.expirationDate?.time
+        val productIds = LinkedHashSet<String>().apply {
+            addAll(customerInfo.activeSubscriptions)
+            entitlement?.productIdentifier?.takeIf { it.isNotBlank() }?.let { add(it) }
+        }
+
+        productIds.forEach { productId ->
+            val plan = PremiumPlanManager.planForProductId(productId) ?: return@forEach
+            if (!PremiumPlanManager.isPlanActive(plan)) {
+                PremiumPlanManager.activatePlan(plan, purchaseMs = purchaseMs, expiryMs = expiryMs)
+            } else if (purchaseMs != null || expiryMs != null) {
+                // Refresh Started/Expires for Active Subscription UI from RC.
+                PremiumPlanManager.updatePrimaryPlanDates(purchaseMs, expiryMs)
+            }
+            PrefManager.setPremiumProductId(productId)
+            activePlans.add(plan)
+            lastActivated = plan
+        }
+
+        // Named entitlement active but SKU not in our map — still unlock.
+        if (activePlans.isEmpty() && entitlement?.isActive == true) {
+            val fallbackId = entitlement.productIdentifier
+            val plan = PremiumPlanManager.planForProductId(fallbackId)
+                ?: PremiumPlan.YEARLY
+            if (!PremiumPlanManager.isPlanActive(plan)) {
+                PremiumPlanManager.activatePlan(plan, purchaseMs = purchaseMs, expiryMs = expiryMs)
+            }
+            PrefManager.setPremiumProductId(fallbackId)
+            activePlans.add(plan)
+            lastActivated = plan
+        }
+
+        if (activePlans.isEmpty()) {
+            val configuredEntitlement =
+                customerInfo.entitlements[RevenueCatConfig.ENTITLEMENT_ID]
+            val definitivelyExpired = customerInfo.activeSubscriptions.isEmpty() &&
+                (
+                    customerInfo.entitlements.active.isEmpty() ||
+                        configuredEntitlement?.isActive == false
+                    )
+            if (definitivelyExpired) {
+                PremiumPlanManager.retainOnlyPlayActivePlans(emptySet())
+            } else {
+                // Transient empty CustomerInfo (race after a positive sync in same session).
+                val sincePositive = System.currentTimeMillis() - lastPositiveRcSyncAtMs
+                if (beforePremium && sincePositive in 0 until EMPTY_SYNC_GRACE_MS) {
+                    //Log.w(
+//                        TAG,
+//                        "RC sync: ignoring empty CustomerInfo within ${EMPTY_SYNC_GRACE_MS}ms " +
+//                            "of positive sync (race)"
+//                    )
+                    return
+                }
+                PremiumPlanManager.retainOnlyPlayActivePlans(emptySet())
+            }
+        } else {
+            lastPositiveRcSyncAtMs = System.currentTimeMillis()
+            PremiumPlanManager.retainOnlyPlayActivePlans(activePlans)
             if (purchaseMs != null || expiryMs != null) {
                 PremiumPlanManager.updatePrimaryPlanDates(
                     purchaseMs = purchaseMs,
                     expiryMs = expiryMs
                 )
             }
+            // Past RC expirationDate used to prune local plans while entitlement stayed active.
+            activePlans.forEach { plan ->
+                if (!PremiumPlanManager.isPlanActive(plan)) {
+                    PremiumPlanManager.activatePlan(
+                        plan,
+                        purchaseMs = purchaseMs,
+                        expiryMs = expiryMs
+                    )
+                }
+            }
         }
 
-        PremiumPlanManager.retainOnlyPlayActivePlans(activePlans)
         val afterPremium = PremiumPlanManager.isPremiumActive()
-        // Log.d(
-            // TAG,
-            // "RC sync: activePlans=$activePlans beforePremium=$beforePremium afterPremium=$afterPremium"
-        // )
+        //Log.d(
+//            TAG,
+//            "RC sync: entitlement=${entitlement?.identifier} " +
+//                "activeSubs=${customerInfo.activeSubscriptions} " +
+//                "rcExpiryMs=$expiryMs " +
+//                "activePlans=$activePlans before=$beforePremium after=$afterPremium " +
+//                "allEntitlements=${customerInfo.entitlements.active.keys}"
+//        )
 
         if (notifyUi && lastActivated != null && afterPremium) {
             _billingState.value = BillingUiState.Success(lastActivated!!)
+        }
+    }
+
+    /**
+     * Prefer configured entitlement id; otherwise any active entitlement whose product
+     * maps to our Play SKUs (covers Identifier vs Display Name mistakes in dashboard).
+     */
+    private fun resolveActiveEntitlement(
+        customerInfo: CustomerInfo
+    ): com.revenuecat.purchases.EntitlementInfo? {
+        val configured = customerInfo.entitlements[RevenueCatConfig.ENTITLEMENT_ID]
+        if (configured?.isActive == true) return configured
+
+        return customerInfo.entitlements.active.values.firstOrNull { info ->
+            PremiumPlanManager.planForProductId(info.productIdentifier) != null
         }
     }
 
@@ -349,5 +442,7 @@ class BillingManager @Inject constructor(
 
     companion object {
         private const val TAG = "BillingManager"
+        /** Ignore empty RC payloads shortly after a positive sync (multi startConnection race). */
+        private const val EMPTY_SYNC_GRACE_MS = 60_000L
     }
 }

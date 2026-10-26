@@ -1,9 +1,10 @@
 package com.hairstyle.generator.aimakerover.Advertisement
 
 import android.app.Activity
+import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.LifecycleOwner
 
 object InterstitialNavHelper {
 
@@ -26,6 +27,10 @@ object InterstitialNavHelper {
             onContinue()
             return
         }
+        showOnClick(activity, onContinue)
+    }
+
+    fun showOnClick(activity: Activity, onContinue: () -> Unit) {
         ADSInterDisplayClick.ADSInterstitialShowing(
             activity,
             forwardAdId(),
@@ -45,16 +50,28 @@ object InterstitialNavHelper {
         showOnClick(fragment, onContinue)
     }
 
+    fun showOnClick(activity: Activity, enabled: Boolean, onContinue: () -> Unit) {
+        if (!enabled) {
+            onContinue()
+            return
+        }
+        showOnClick(activity, onContinue)
+    }
+
     /**
      * Intro1–3 only — uses Firebase {@code intro_inter_ads_click_count}
      * (separate from global {@code inter_ads_click}).
      */
     fun showOnIntroClick(fragment: Fragment, enabled: Boolean, onContinue: () -> Unit) {
-        if (!enabled) {
+        val activity = fragment.activity ?: run {
             onContinue()
             return
         }
-        val activity = fragment.activity ?: run {
+        showOnIntroClick(activity, enabled, onContinue)
+    }
+
+    fun showOnIntroClick(activity: Activity, enabled: Boolean, onContinue: () -> Unit) {
+        if (!enabled) {
             onContinue()
             return
         }
@@ -70,6 +87,10 @@ object InterstitialNavHelper {
             onContinue()
             return
         }
+        showOnBottomNav(activity, onContinue)
+    }
+
+    fun showOnBottomNav(activity: Activity, onContinue: () -> Unit) {
         ADSInterDisplayClick.ADSBottomNavInterstitial(
             activity,
             forwardAdId(),
@@ -83,6 +104,10 @@ object InterstitialNavHelper {
             onContinue()
             return
         }
+        showOnBack(activity, onContinue)
+    }
+
+    fun showOnBack(activity: Activity, onContinue: () -> Unit) {
         ADSInterDisplayClick.ADSBackDisplayInterstitial(
             activity,
             backAdId(),
@@ -92,9 +117,13 @@ object InterstitialNavHelper {
 
     fun navigateUpWithBackInter(fragment: Fragment) {
         showOnBack(fragment) {
-            if (!fragment.findNavController().navigateUp()) {
-                fragment.activity?.finish()
-            }
+            fragment.activity?.finish()
+        }
+    }
+
+    fun navigateUpWithBackInter(activity: Activity) {
+        showOnBack(activity) {
+            activity.finish()
         }
     }
 
@@ -102,6 +131,12 @@ object InterstitialNavHelper {
     fun installSystemBackInter(fragment: Fragment) {
         fragment.requireActivity().onBackPressedDispatcher.addCallback(fragment.viewLifecycleOwner) {
             navigateUpWithBackInter(fragment)
+        }
+    }
+
+    fun installSystemBackInter(activity: ComponentActivity, owner: LifecycleOwner = activity) {
+        activity.onBackPressedDispatcher.addCallback(owner) {
+            navigateUpWithBackInter(activity)
         }
     }
 }

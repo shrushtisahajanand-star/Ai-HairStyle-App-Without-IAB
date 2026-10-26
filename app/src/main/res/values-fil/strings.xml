@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">Ilagay ang iyong Email</string>
     <string name="feedback_email_invalid">Pakilagay ang wastong email address.</string>
     <string name="beard_fade_haircut_styles">Balbas, Fade &amp; Mga Estilo ng Gupit</string>
+    <string name="daily_quota_finished_title">Tapos na ang Araw-araw na Limitasyon</string>
+    <string name="daily_quota_finished_message">Tapos na ang iyong araw-araw na limitasyon sa larawan. Bumalik bukas para sa higit pang mga generasyon.</string>
+    <string name="premium_subscription_expired">Tapos na ang iyong premium na subscription. I-renew upang magpatuloy sa pag-generate.</string>
 </resources>

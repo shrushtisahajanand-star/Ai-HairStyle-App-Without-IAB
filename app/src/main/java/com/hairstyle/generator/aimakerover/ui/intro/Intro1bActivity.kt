@@ -1,24 +1,22 @@
 package com.hairstyle.generator.aimakerover.ui.intro
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentIntroVideoBinding
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
 import com.hairstyle.generator.aimakerover.data.repository.VideosRepository
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 
-/** Intro screen 1 — Girls hairstyle video. Ads: intro_screen1 */
+/** Intro screen 2 — Mens hairstyle video. Ads: intro_screen1b */
 @AndroidEntryPoint
-class Intro1Fragment : Fragment() {
+class Intro1bActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons = true
 
     private var _binding: FragmentIntroVideoBinding? = null
     private val binding get() = _binding!!
@@ -28,29 +26,24 @@ class Intro1Fragment : Fragment() {
 
     private var binder: IntroVideoScreenBinder? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentIntroVideoBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentIntroVideoBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val page = Intro1Data.videoPages[0]
+        val page = Intro1Data.videoPages[1]
         binder = IntroVideoScreenBinder(
-            fragment = this,
+            activity = this,
             binding = binding,
             page = page,
-            pageIndex = 0,
-            adsConfig = ScreenAdsHelper.intro1(),
+            pageIndex = 1,
+            adsConfig = ScreenAdsHelper.intro1b(),
             videosRepository = videosRepository,
             okHttpClient = okHttpClient,
             onContinue = {
-                InterstitialNavHelper.showOnIntroClick(this, ScreenInterAds.intro1()) {
-                    findNavController().navigate(R.id.action_intro1_to_intro1b)
+                InterstitialNavHelper.showOnIntroClick(this, ScreenInterAds.intro1b()) {
+                    AppNavigator.openIntro1c(this)
                 }
             }
         ).also { it.setup() }
@@ -66,10 +59,10 @@ class Intro1Fragment : Fragment() {
         super.onPause()
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         binder?.onDestroyView()
         binder = null
-        super.onDestroyView()
+        super.onDestroy()
         _binding = null
     }
 }

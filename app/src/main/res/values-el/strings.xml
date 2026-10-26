@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">Εισάγετε το email σας</string>
     <string name="feedback_email_invalid">Παρακαλώ εισάγετε έγκυρη διεύθυνση email.</string>
     <string name="beard_fade_haircut_styles">Γένια, Fade &amp; Κουρέματα</string>
+    <string name="daily_quota_finished_title">Το Ημερήσιο Όριο Έληξε</string>
+    <string name="daily_quota_finished_message">Το ημερήσιο όριο εικόνων σας έληξε. Επιστρέψτε αύριο για περισσότερες δημιουργίες.</string>
+    <string name="premium_subscription_expired">Η premium συνδρομή σας έληξε. Ανανεώστε για να συνεχίσετε τη δημιουργία.</string>
 </resources>

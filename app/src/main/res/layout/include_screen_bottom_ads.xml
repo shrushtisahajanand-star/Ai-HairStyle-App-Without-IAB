@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:layout_marginBottom="12dp"
         app:shimmer_auto_start="false"
         app:shimmer_base_alpha="1"
         app:shimmer_base_color="@color/shimmer_base"
@@ -26,6 +27,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:layout_marginBottom="12dp"
         app:cardBackgroundColor="@color/nav_bar_background"
         app:cardCornerRadius="@dimen/_12sdp"
         app:cardElevation="0dp">
@@ -40,5 +42,6 @@
         android:id="@+id/flBannerAd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:visibility="gone" />
 </LinearLayout>

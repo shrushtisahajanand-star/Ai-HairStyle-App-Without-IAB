@@ -172,7 +172,7 @@ class SecondVisitPromoBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        (parentFragment as? HomePageFragment)?.onSecondVisitPromoDismissed()
+        (activity as? HomePageActivity)?.onSecondVisitPromoDismissed()
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

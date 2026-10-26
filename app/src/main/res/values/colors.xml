@@ -40,6 +40,8 @@
     <color name="intro_dot_active">#FFFFFF</color>
     <color name="intro_dot_inactive">#525252</color>
     <color name="nav_bar_background">#191919</color>
+    <color name="home_native_ads_background">#2B2A2A</color>
+    <color name="home_native_ads_shimmer">#3B3B3B</color>
     <color name="button_color">#2E2E2E</color>
     <color name="fun_tab_bar_background">#2A2A2A</color>
     <color name="pro_button_background">#99381E00</color>

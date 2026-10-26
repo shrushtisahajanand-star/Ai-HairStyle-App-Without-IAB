@@ -1,18 +1,24 @@
 package com.hairstyle.generator.aimakerover.utils
 
 import android.content.Context
-import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.ConcurrentHashMap
 
 object VideoCacheManager {
-    private const val TAG = "VideoCacheManager"
     private const val CACHE_DIR_NAME = "video_cache"
+    private val downloadLocks = ConcurrentHashMap<String, Any>()
 
     fun resolveCacheExtension(url: String): String {
-        return if (SplashAnimationHelper.isWebpSource(url)) ".webp" else ".mp4"
+        val path = url.substringBefore('?').substringAfterLast('/').lowercase()
+        val ext = path.substringAfterLast('.', missingDelimiterValue = "")
+        return if (ext.isNotBlank() && ext.length in 2..5 && '/' !in ext) {
+            ".$ext"
+        } else {
+            ".mp4"
+        }
     }
 
     /**
@@ -24,11 +30,11 @@ object VideoCacheManager {
         sourceUrl: String? = null
     ): File? {
         val cacheDir = FileUtils.getCacheDir(context, CACHE_DIR_NAME)
-        val extensions = buildList {
-            sourceUrl?.let { add(resolveCacheExtension(it)) }
-            add(".webp")
-            add(".mp4")
-        }.distinct()
+        if (!sourceUrl.isNullOrBlank()) {
+            val preferred = File(cacheDir, "$videoTitleKey${resolveCacheExtension(sourceUrl)}")
+            return preferred.takeIf { it.exists() && it.length() > 0 }
+        }
+        val extensions = listOf(".mp4", ".webp", ".gif", ".webm", ".mov", ".m4v")
         return extensions.firstNotNullOfOrNull { ext ->
             File(cacheDir, "$videoTitleKey$ext").takeIf { it.exists() && it.length() > 0 }
         }
@@ -43,6 +49,7 @@ object VideoCacheManager {
 
     /**
      * Downloads and caches the media to a local file.
+     * Skips if already on disk. One download per title at a time.
      */
     fun cacheVideo(
         context: Context,
@@ -51,22 +58,31 @@ object VideoCacheManager {
         url: String
     ): File? {
         if (videoTitleKey.isBlank() || url.isBlank()) return null
+        val lock = downloadLocks.getOrPut(videoTitleKey) { Any() }
+        synchronized(lock) {
+            return cacheVideoLocked(context, okHttpClient, videoTitleKey, url)
+        }
+    }
+
+    private fun cacheVideoLocked(
+        context: Context,
+        okHttpClient: OkHttpClient,
+        videoTitleKey: String,
+        url: String
+    ): File? {
         val cacheDir = FileUtils.getCacheDir(context, CACHE_DIR_NAME)
         val extension = resolveCacheExtension(url)
         val tempFile = File(cacheDir, "${videoTitleKey}.tmp")
         val destFile = File(cacheDir, "$videoTitleKey$extension")
 
         if (destFile.exists() && destFile.length() > 0) {
-            // Log.d(TAG, "Media $videoTitleKey is already cached.")
             return destFile
         }
 
         try {
-            // Log.d(TAG, "Starting cache download for $videoTitleKey: $url")
             val request = Request.Builder().url(url).build()
             val response = okHttpClient.newCall(request).execute()
             if (!response.isSuccessful) {
-                // Log.e(TAG, "Failed to download media $videoTitleKey, response code: ${response.code}")
                 return null
             }
 
@@ -78,14 +94,10 @@ object VideoCacheManager {
 
             if (tempFile.exists() && tempFile.length() > 0) {
                 if (tempFile.renameTo(destFile)) {
-                    // Log.d(TAG, "Successfully cached media $videoTitleKey")
                     return destFile
-                } else {
-                    // Log.e(TAG, "Failed to rename temp file for $videoTitleKey")
                 }
             }
-        } catch (e: Exception) {
-            // Log.e(TAG, "Error caching media $videoTitleKey", e)
+        } catch (_: Exception) {
             if (tempFile.exists()) tempFile.delete()
         }
         return null

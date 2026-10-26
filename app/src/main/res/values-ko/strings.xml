@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">이메일 입력</string>
     <string name="feedback_email_invalid">유효한 이메일 주소를 입력해 주세요.</string>
     <string name="beard_fade_haircut_styles">수염, 페이드 &amp; 헤어컷 스타일</string>
+    <string name="daily_quota_finished_title">일일 한도 초과</string>
+    <string name="daily_quota_finished_message">일일 이미지 한도가 모두 사용되었습니다. 더 많은 생성을 위해 내일 다시 방문하세요.</string>
+    <string name="premium_subscription_expired">프리미엄 구독이 만료되었습니다. 생성을 계속하려면 갱신하세요.</string>
 </resources>

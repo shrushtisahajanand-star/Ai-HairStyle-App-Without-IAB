@@ -51,7 +51,7 @@ object PremiumPlanManager {
             gson.fromJson(json, PremiumPlanDetailsRoot::class.java)
         }.getOrElse {
             // Falling back here means Firebase values are ignored — never fail silently.
-            Log.w(TAG, "premium_plan_detils parse failed, using defaults: $json", it)
+//            Log.w(TAG, "premium_plan_detils parse failed, using defaults: $json", it)
             null
         } ?: defaultDetails()
     }
@@ -240,12 +240,22 @@ object PremiumPlanManager {
         com.hairstyle.generator.aimakerover.Advertisement.ADSMainClass.setAds_Free(isPremiumActive())
     }
 
+    /** Prune locally expired plans on cold start (before RevenueCat responds). */
+    fun refreshLocalExpiryOnLaunch() {
+        getActivePlans()
+        syncAdsFreeFlag()
+    }
+
     /**
      * Updates the highest-tier active plan's purchase / expiry from RevenueCat when available.
      * Used so generate API can send accurate `purchase_date` / `expiry_date`.
+     *
+     * Never writes a past [expiryMs] — that would make [getActivePlans] prune the plan while
+     * RevenueCat still reports the entitlement as active (sandbox / billing-retry).
      */
     fun updatePrimaryPlanDates(purchaseMs: Long?, expiryMs: Long?) {
         if (purchaseMs == null && expiryMs == null) return
+        val now = System.currentTimeMillis()
         val plans = loadPlansMutable()
         if (plans.isEmpty()) return
         val primaryKey = getActivePlans().firstOrNull()?.planKey ?: return
@@ -253,12 +263,17 @@ object PremiumPlanManager {
         if (idx < 0) return
         val current = plans[idx]
         val nextStarted = purchaseMs?.takeIf { it > 0L } ?: current.startedAt
-        val nextExpires = expiryMs?.takeIf { it > 0L } ?: current.expiresAt
+        // Ignore past RC expiry while sub is still considered active by the caller.
+        val safeRcExpiry = expiryMs?.takeIf { it > now }
+        val nextExpires = when {
+            safeRcExpiry != null -> safeRcExpiry
+            current.expiresAt > now -> current.expiresAt
+            else -> now + planDays(planFromKey(current.planKey) ?: PremiumPlan.WEEKLY) * DAY_MS
+        }
         if (nextStarted == current.startedAt && nextExpires == current.expiresAt) return
         plans[idx] = current.copy(
             startedAt = nextStarted,
             expiresAt = nextExpires,
-            // Keep quota period start if already set; otherwise align with purchase.
             periodStartedAt = current.periodStartedAt.takeIf { it > 0L } ?: nextStarted
         )
         savePlans(plans)
@@ -266,18 +281,26 @@ object PremiumPlanManager {
     }
 
     /** Adds [plan] while keeping other active plans. Same plan type is replaced. */
-    fun activatePlan(plan: PremiumPlan) {
+    fun activatePlan(
+        plan: PremiumPlan,
+        purchaseMs: Long? = null,
+        expiryMs: Long? = null
+    ) {
         val now = System.currentTimeMillis()
-        val expiresAt = now + planDays(plan) * DAY_MS
+        val startedAt = purchaseMs?.takeIf { it > 0L } ?: now
+        // RC may send a past expirationDate while entitlement.isActive is still true —
+        // never store a past expiry or premium disappears on the next prune.
+        val expiresAt = expiryMs?.takeIf { it > now }
+            ?: (now + planDays(plan) * DAY_MS)
         val key = planKey(plan)
         val plans = loadPlansMutable()
         plans.removeAll { it.planKey == key }
         plans.add(
             ActivePlanRecord(
                 planKey = key,
-                startedAt = now,
+                startedAt = startedAt,
                 expiresAt = expiresAt,
-                periodStartedAt = now,
+                periodStartedAt = startedAt,
                 periodImagesUsed = 0,
                 currentDayIndex = 0
             )
@@ -287,6 +310,43 @@ object PremiumPlanManager {
         refreshCachedAvailability(plans)
         syncAdsFreeFlag()
     }
+
+    /**
+     * Updates a specific plan's purchase / expiry from server (check-free-limit subscription).
+     * Ignores past expiry timestamps (same rule as [updatePrimaryPlanDates]).
+     */
+    fun syncPlanDatesFromServer(serverPlanKey: String, purchaseMs: Long?, expiryMs: Long?) {
+        if (purchaseMs == null && expiryMs == null) return
+        val plan = planFromKey(serverPlanKey) ?: return
+        val now = System.currentTimeMillis()
+        val safeExpiry = expiryMs?.takeIf { it > now }
+        if (!isPlanActive(plan)) {
+            if (safeExpiry != null || purchaseMs != null) {
+                activatePlan(plan, purchaseMs = purchaseMs, expiryMs = safeExpiry)
+            }
+            return
+        }
+        val plans = loadPlansMutable()
+        val key = planKey(plan)
+        val idx = plans.indexOfFirst { it.planKey == key }
+        if (idx < 0) return
+        val current = plans[idx]
+        val nextStarted = purchaseMs?.takeIf { it > 0L } ?: current.startedAt
+        val nextExpires = when {
+            safeExpiry != null -> safeExpiry
+            current.expiresAt > now -> current.expiresAt
+            else -> now + planDays(plan) * DAY_MS
+        }
+        if (nextStarted == current.startedAt && nextExpires == current.expiresAt) return
+        plans[idx] = current.copy(
+            startedAt = nextStarted,
+            expiresAt = nextExpires,
+            periodStartedAt = current.periodStartedAt.takeIf { it > 0L } ?: nextStarted
+        )
+        savePlans(plans)
+        syncLegacyFields(plans)
+    }
+
 
     fun isPremiumActive(): Boolean = getActivePlans().isNotEmpty()
 
@@ -298,6 +358,7 @@ object PremiumPlanManager {
     /** All non-expired plans, highest tier first (Yearly → Monthly → Weekly). */
     fun getActivePlans(): List<ActivePlanRecord> {
         val loaded = loadPlans()
+//        Log.d(TAG, "DDDDDDD   getActivePlans: " + loaded)
         val pruned = pruneExpired(loaded)
         saveIfChanged(pruned, loaded)
         return pruned.sortedWith(compareByDescending { planRank(it.planKey) })
@@ -625,6 +686,7 @@ object PremiumPlanManager {
 
     private fun loadPlans(): List<ActivePlanRecord> {
         val json = PrefManager.getActivePremiumPlansJson()
+//        Log.d(TAG, "DDDDDDD   json: " + json)
         if (json.isNotBlank()) {
             return runCatching {
                 gson.fromJson<List<ActivePlanRecord>>(json, plansListType).orEmpty()
@@ -681,6 +743,7 @@ object PremiumPlanManager {
     }
 
     private fun savePlans(plans: List<ActivePlanRecord>) {
+//        Log.d(TAG, "DDDDDDD   plans: " + plans)
         PrefManager.setActivePremiumPlansJson(gson.toJson(plans))
     }
 

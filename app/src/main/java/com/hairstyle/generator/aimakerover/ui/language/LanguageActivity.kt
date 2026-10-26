@@ -1,14 +1,10 @@
 package com.hairstyle.generator.aimakerover.ui.language
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentLanguageBinding
 import com.hairstyle.generator.aimakerover.Advertisement.ADSAppManage
 import com.hairstyle.generator.aimakerover.Advertisement.ADSBannerAdaptive
@@ -18,6 +14,8 @@ import com.hairstyle.generator.aimakerover.Advertisement.ADSMainClass
 import com.hairstyle.generator.aimakerover.Advertisement.ADSNativeDisplay
 import com.hairstyle.generator.aimakerover.Advertisement.ADSUtilitis
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.ui.intro.setupSystemBackNavigation
 import com.hairstyle.generator.aimakerover.utils.LocaleManager
 import com.hairstyle.generator.aimakerover.utils.applyStatusBarPadding
@@ -27,7 +25,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class LanguageFragment : Fragment() {
+class LanguageActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons = false
 
     private var _binding: FragmentLanguageBinding? = null
     private val binding get() = _binding!!
@@ -38,29 +38,24 @@ class LanguageFragment : Fragment() {
     private var fromSettings: Boolean = false
     private var showNextJob: Job? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentLanguageBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentLanguageBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding.root.applyStatusBarPadding()
-        fromSettings = arguments?.getBoolean(ARG_FROM_SETTINGS, false) ?: false
+        fromSettings = intent.getBooleanExtra(ARG_FROM_SETTINGS, false)
         savedCode = LocaleManager.getLanguageCode()
 
-        // Locale recreate after Confirm â€” finish navigation without a second Confirm tap.
+        // Locale recreate after Confirm — finish navigation without a second Confirm tap.
         when (LocaleManager.consumePendingAfterLanguageChange()) {
             LocaleManager.PENDING_NAV_INTRO -> {
-                findNavController().navigate(R.id.action_language_to_intro1)
+                AppNavigator.openIntro1(this)
                 return
             }
             LocaleManager.PENDING_NAV_UP -> {
-                findNavController().navigateUp()
+                finish()
                 return
             }
         }
@@ -80,27 +75,23 @@ class LanguageFragment : Fragment() {
     }
 
     private fun continueAfterConsent(action: () -> Unit) {
-        val activity = activity ?: run {
-            action()
-            return
-        }
-        if (activity.isFinishing || activity.isDestroyed) {
+        if (isFinishing || isDestroyed) {
             action()
             return
         }
 
-        // No internet â†’ skip consent form, continue next
-        if (!ADSUtilitis.IsNetworkConnected(activity)) {
-            // Log.d(TAG, "No internet â€” skip consent, continue")
+        // No internet → skip consent form, continue next
+        if (!ADSUtilitis.IsNetworkConnected(this)) {
+            // Log.d(TAG, "No internet — skip consent, continue")
             action()
             return
         }
 
-        ADSConsentManager.gatherConsent(activity, true) { formShown ->
-            if (!isAdded || _binding == null) return@gatherConsent
-            if (activity.isFinishing || activity.isDestroyed) return@gatherConsent
+        ADSConsentManager.gatherConsent(this, true) { formShown ->
+            if (!isScreenAlive() || _binding == null) return@gatherConsent
+            if (isFinishing || isDestroyed) return@gatherConsent
 
-            if (formShown || ADSConsentManager.canRequestAds(activity)) {
+            if (formShown || ADSConsentManager.canRequestAds(this)) {
                 ADSMainClass.setConsentPendingOnLanguage(false)
             }
 
@@ -109,21 +100,17 @@ class LanguageFragment : Fragment() {
     }
 
     private fun initializeAdsAndLoad(action: () -> Unit) {
-        val activity = activity ?: run {
-            action()
-            return
-        }
-        if (ADSConsentManager.canRequestAds(activity) && !ADSMainClass.getAds_Free()) {
-            ADSAppManage.initializeMobileAdsIfNeeded(activity.applicationContext) {
-                activity.runOnUiThread {
-                    if (isAdded && _binding != null && !activity.isFinishing && !activity.isDestroyed) {
+        if (ADSConsentManager.canRequestAds(this) && !ADSMainClass.getAds_Free()) {
+            ADSAppManage.initializeMobileAdsIfNeeded(applicationContext) {
+                runOnUiThread {
+                    if (isScreenAlive() && _binding != null && !isFinishing && !isDestroyed) {
                         action()
                     }
                 }
             }
         } else {
-            activity.runOnUiThread {
-                if (isAdded && _binding != null) {
+            runOnUiThread {
+                if (isScreenAlive() && _binding != null) {
                     action()
                 }
             }
@@ -131,15 +118,14 @@ class LanguageFragment : Fragment() {
     }
 
     private fun loadLanguageAds() {
-        val activity = activity
-        if (activity == null || _binding == null) return
+        if (_binding == null) return
 
         if (!ADSMainClass.getLanguageScreenBottomAdShow()) {
             hideLanguageAdPlaceholders()
             return
         }
 
-        if (!ADSConsentManager.canRequestAds(activity) || ADSMainClass.getAds_Free()) {
+        if (!ADSConsentManager.canRequestAds(this) || ADSMainClass.getAds_Free()) {
             hideLanguageAdPlaceholders()
             return
         }
@@ -159,7 +145,7 @@ class LanguageFragment : Fragment() {
                 binding.flNativeSmallPlaceholder,
                 binding.shimmerContainerSmall,
                 adsSize,
-                activity
+                this
             )
         } else {
             binding.cardView.visibility = View.GONE
@@ -168,7 +154,7 @@ class LanguageFragment : Fragment() {
                 ADSMainClass.getStringValue(ADSMainClass.LANGUAGE_SCREEN_BANNER),
                 binding.flBannerSmallPlaceholder,
                 binding.shimmerContainerSmall,
-                activity
+                this
             )
         }
     }
@@ -210,7 +196,7 @@ class LanguageFragment : Fragment() {
             binding.btnConfirm.visibility = View.VISIBLE
             scrollToSelectedLanguage()
         } else {
-            // First-time: no preselect â€” user must pick a language; Next stays hidden.
+            // First-time: no preselect — user must pick a language; Next stays hidden.
             selectedCode = ""
             adapter.setSelectedCode("")
             binding.btnConfirm.visibility = View.INVISIBLE
@@ -230,9 +216,9 @@ class LanguageFragment : Fragment() {
         showNextJob?.cancel()
         if (binding.btnConfirm.visibility == View.VISIBLE) return
 
-        showNextJob = viewLifecycleOwner.lifecycleScope.launch {
+        showNextJob = lifecycleScope.launch {
             delay(NEXT_ICON_DELAY_MS)
-            if (_binding == null || !isAdded) return@launch
+            if (_binding == null || !isScreenAlive()) return@launch
             if (selectedCode.isNotBlank()) {
                 binding.btnConfirm.visibility = View.VISIBLE
             }
@@ -261,13 +247,8 @@ class LanguageFragment : Fragment() {
             return
         }
 
-        val activity = activity ?: run {
-            applySelectedLanguage()
-            return
-        }
-
         ADSInterDisplay.ADSInterstitialShowingForced(
-            activity,
+            this,
             ADSMainClass.getStringValue(ADSMainClass.INTER_FIRST_TIME),
             ADSInterDisplay.OnFinishAds {
                 applySelectedLanguage()
@@ -276,40 +257,46 @@ class LanguageFragment : Fragment() {
     }
 
     private fun applySelectedLanguage() {
-        if (!isAdded || selectedCode.isBlank()) return
+        if (!isScreenAlive() || selectedCode.isBlank()) return
 
         if (fromSettings) {
             if (selectedCode == savedCode) {
-                findNavController().navigateUp()
+                finish()
                 return
             }
-            // Activity recreates for locale â€” resume with navigateUp (no second Confirm).
+            // Activity recreates for locale — resume with finish (no second Confirm).
             LocaleManager.setPendingAfterLanguageChange(LocaleManager.PENDING_NAV_UP)
             LocaleManager.applyLanguage(selectedCode)
             return
         }
 
         if (selectedCode != savedCode) {
-            // Activity recreates for locale â€” resume with Intro1 (no second Confirm).
+            // Activity recreates for locale — resume with Intro1 (no second Confirm).
             LocaleManager.setPendingAfterLanguageChange(LocaleManager.PENDING_NAV_INTRO)
             LocaleManager.completeOnboarding(selectedCode)
         } else {
             LocaleManager.setLanguageOnboardingDone()
             LocaleManager.setLanguageCode(selectedCode)
-            findNavController().navigate(R.id.action_language_to_intro1)
+            AppNavigator.openIntro1(this)
         }
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         showNextJob?.cancel()
         showNextJob = null
-        super.onDestroyView()
+        super.onDestroy()
         _binding = null
     }
 
     companion object {
         private const val TAG = "LanguageAds"
-        private const val NEXT_ICON_DELAY_MS = 1_000L
+        private const val NEXT_ICON_DELAY_MS = 400L
         const val ARG_FROM_SETTINGS = "from_settings"
+
+        fun createIntent(context: Context, fromSettings: Boolean): Intent {
+            return Intent(context, LanguageActivity::class.java).apply {
+                putExtra(ARG_FROM_SETTINGS, fromSettings)
+            }
+        }
     }
 }

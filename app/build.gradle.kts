@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.navigation.safeargs)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
 }
@@ -16,8 +15,8 @@ android {
         applicationId = "com.hairstyle.generator.aimakeover"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 4
+        versionName = "1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Old ailabapi key — unused; generate uses Firebase URL via LocalHairstyleRepository.
 //        buildConfigField(
@@ -110,6 +109,7 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.coil)
     implementation(libs.coil.gif)
+    implementation(libs.androidx.media3.exoplayer)
     implementation(libs.lottie)
     implementation(libs.datastore.preferences)
     implementation(libs.coroutines.core)
@@ -143,5 +143,8 @@ dependencies {
     // Play In-App Review (no API to check if user already reviewed on Play Store)
     implementation("com.google.android.play:review:2.0.2")
     implementation("com.google.android.play:review-ktx:2.0.2")
+//// Install Refer
+    implementation("com.android.installreferrer:installreferrer:2.2")
+
 
 }

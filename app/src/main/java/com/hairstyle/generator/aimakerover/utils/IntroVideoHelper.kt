@@ -24,7 +24,6 @@ object IntroVideoHelper {
         val remoteUrl = VideoUrlManager.getVideoUrl(videoTitleKey)
         if (remoteUrl.isNullOrBlank()) {
             showFallback(webpView, shimmerLayout, fallbackImageRes)
-            onPrepared(0, 0)
             return
         }
 
@@ -45,7 +44,6 @@ object IntroVideoHelper {
             },
             onError = {
                 showFallback(webpView, shimmerLayout, fallbackImageRes)
-                onPrepared(0, 0)
             }
         )
     }

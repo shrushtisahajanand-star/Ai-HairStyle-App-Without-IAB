@@ -1,37 +1,30 @@
 package com.hairstyle.generator.aimakerover.ui.intro
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import com.hairstyle.generator.aimakeover.databinding.FragmentIntro3Binding
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.utils.UserGenderManager
 import com.hairstyle.generator.aimakerover.utils.applyStatusBarPadding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class Intro3Fragment : Fragment() {
+class Intro3Activity : BaseActivity() {
+
+    override val useLightStatusBarIcons = false
 
     private var _binding: FragmentIntro3Binding? = null
     private val binding get() = _binding!!
 
     private lateinit var adapter: IntroOptionAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentIntro3Binding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentIntro3Binding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
         binding.root.applyStatusBarPadding()
         setupSystemBackNavigation()
@@ -51,8 +44,8 @@ class Intro3Fragment : Fragment() {
         adapter.submitList(Intro3Data.options)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
+        super.onDestroy()
         _binding = null
     }
 }

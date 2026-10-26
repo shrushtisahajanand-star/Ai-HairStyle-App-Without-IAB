@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">メールアドレスを入力</string>
     <string name="feedback_email_invalid">有効なメールアドレスを入力してください。</string>
     <string name="beard_fade_haircut_styles">ひげ、フェード &amp; ヘアカットスタイル</string>
+    <string name="daily_quota_finished_title">日刊制限終了</string>
+    <string name="daily_quota_finished_message">あなたの日刊画像制限が終了しました。 より多くの生成のために明日戻ってきてください。</string>
+    <string name="premium_subscription_expired">あなたのプレミアムサブスクリプションが終了しました。 生成を続けるには更新してください。</string>
 </resources>

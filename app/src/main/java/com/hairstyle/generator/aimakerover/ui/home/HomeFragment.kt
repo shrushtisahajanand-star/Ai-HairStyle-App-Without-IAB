@@ -6,14 +6,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,9 +26,8 @@ import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
 import com.hairstyle.generator.aimakerover.data.remoteconfig.InAppUpdateConfig
 import com.hairstyle.generator.aimakerover.data.remoteconfig.RemoteConfigManager
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
 import com.hairstyle.generator.aimakerover.ui.category.HairColorBottomSheet
-import com.hairstyle.generator.aimakerover.ui.category.SelectCategoryFragment
-import com.hairstyle.generator.aimakerover.ui.gallery.PhotoSelectFragment
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.hairstyle.generator.aimakerover.ui.common.RateAppDialog
 import com.hairstyle.generator.aimakerover.ui.common.ShimmerItemFooterAdapter
@@ -141,10 +138,8 @@ class HomeFragment : Fragment() {
         binding.btnUploadPhoto.setOnClickListener {
             // Upload Your Photo: pick photo → Select Category → hair color → generate.
             InterstitialNavHelper.showOnClick(this, ScreenInterAds.uploadPhoto()) {
-                findNavController().navigate(
-                    R.id.action_homePage_to_selectPhoto,
-                    bundleOf(PhotoSelectFragment.ARG_PHOTO_FIRST_FLOW to true)
-                )
+                val host = activity ?: return@showOnClick
+                AppNavigator.openPhotoSelect(host, photoFirstFlow = true)
             }
         }
 
@@ -179,12 +174,12 @@ class HomeFragment : Fragment() {
 
     /**
      * Scroll down → hide title/Pro/Settings. Scroll up (or top) → show with smooth animation.
-     * Only affects Home tab header on [HomePageFragment]; no layout reflow (no blink).
+     * Only affects Home tab header on [HomePageActivity]; no layout reflow (no blink).
      */
     private fun setupHomeHeaderScrollBehavior() {
         var accumulatedDy = 0
         binding.root.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            val homePage = parentFragment as? HomePageFragment ?: return@setOnScrollChangeListener
+            val homePage = activity as? HomePageActivity ?: return@setOnScrollChangeListener
             val dy = scrollY - oldScrollY
 
             if (scrollY <= 0) {
@@ -231,7 +226,7 @@ class HomeFragment : Fragment() {
             maybeShowUpdateThenPromo()
             // Returning to Home: sync header with current scroll (no blink).
             if (_binding != null) {
-                (parentFragment as? HomePageFragment)?.setHomeHeaderCollapsed(
+                (activity as? HomePageActivity)?.setHomeHeaderCollapsed(
                     binding.root.scrollY > HEADER_SCROLL_THRESHOLD
                 )
             }
@@ -283,13 +278,13 @@ class HomeFragment : Fragment() {
         }
 
         binding.categoryVideoBeard.root.setOnClickListener {
-            (parentFragment as? HomePageFragment)?.openBeardTab()
+            (activity as? HomePageActivity)?.openBeardTab()
         }
         binding.categoryVideoHairstyle.root.setOnClickListener {
             openSelectCategory(tab = 0, interEnabled = ScreenInterAds.tryIt())
         }
         binding.categoryVideoFun.root.setOnClickListener {
-            (parentFragment as? HomePageFragment)?.openFunTab()
+            (activity as? HomePageActivity)?.openFunTab()
         }
     }
 
@@ -460,8 +455,8 @@ class HomeFragment : Fragment() {
         if (PremiumPlanManager.isPremiumActive()) return
         if (!AppVisitManager.shouldShowPromoOnAppOpen()) return
         val promo = PromoImageManager.getRandomPromoContent() ?: return
-        val homePage = parentFragment as? HomePageFragment ?: return
-        if (homePage.childFragmentManager.findFragmentByTag(SecondVisitPromoBottomSheet.TAG) != null) {
+        val homePage = activity as? HomePageActivity ?: return
+        if (homePage.supportFragmentManager.findFragmentByTag(SecondVisitPromoBottomSheet.TAG) != null) {
             return
         }
 
@@ -492,10 +487,8 @@ class HomeFragment : Fragment() {
 
     private fun openSelectCategory(tab: Int, interEnabled: Boolean) {
         InterstitialNavHelper.showOnClick(this, interEnabled) {
-            findNavController().navigate(
-                R.id.action_homePage_to_selectCategory,
-                bundleOf(SelectCategoryFragment.ARG_TAB to tab)
-            )
+            val host = activity ?: return@showOnClick
+            AppNavigator.openSelectCategory(host, tab = tab)
         }
     }
 

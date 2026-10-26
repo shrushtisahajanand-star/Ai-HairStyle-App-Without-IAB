@@ -2,20 +2,14 @@ package com.hairstyle.generator.aimakerover.ui.progress
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import coil.load
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentProgressBinding
@@ -24,12 +18,17 @@ import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.RewardedAdHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
+import com.hairstyle.generator.aimakerover.data.repository.FreeLimitCheckResult
+import com.hairstyle.generator.aimakerover.data.repository.FreeLimitRepository
 import com.hairstyle.generator.aimakerover.data.repository.LocalHairstyleRepository
 import com.hairstyle.generator.aimakerover.data.repository.UserCreationRepository
 import com.hairstyle.generator.aimakerover.domain.model.GenerationType
-import com.hairstyle.generator.aimakerover.ui.premium.PremiumPlan
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
+import com.hairstyle.generator.aimakerover.ui.common.DailyQuotaFinishedDialog
+import com.hairstyle.generator.aimakerover.ui.premium.PremiumBottomSheet
 import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModel
-import com.hairstyle.generator.aimakerover.utils.DeviceIdProvider
+import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModelOwner
 import com.hairstyle.generator.aimakerover.utils.PrefManager
 import com.hairstyle.generator.aimakerover.utils.PremiumPlanManager
 import com.hairstyle.generator.aimakerover.utils.PremiumPlanManager.ImageAccessBlockReason
@@ -43,32 +42,29 @@ import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ProgressFragment : Fragment() {
+class ProgressActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentProgressBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: GenerationViewModel by activityViewModels()
+    private val viewModel: GenerationViewModel by sharedViewModels({ GenerationViewModelOwner })
 
     @Inject lateinit var localHairstyleRepository: LocalHairstyleRepository
     @Inject lateinit var userCreationRepository: UserCreationRepository
+    @Inject lateinit var freeLimitRepository: FreeLimitRepository
 
     private var progressJob: Job? = null
     private var apiJob: Job? = null
     private var generationStarted = false
     private var navigatedToResult = false
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentProgressBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentProgressBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
         binding.root.applyStatusBarPadding()
         binding.cardAreaContainer.doOnLayout { fitSelectedImageToAvailableSpace() }
@@ -76,8 +72,8 @@ class ProgressFragment : Fragment() {
 
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.progress())
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        onBackPressedDispatcher.addCallback(
+            this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() = Unit
             }
@@ -86,7 +82,7 @@ class ProgressFragment : Fragment() {
         // Close uses normal forward inter count (not back-click counter).
         binding.btnClose.setOnClickListener {
             InterstitialNavHelper.showOnClick(this, ScreenInterAds.progressClose()) {
-                findNavController().navigateUp()
+                finish()
             }
         }
 
@@ -96,8 +92,8 @@ class ProgressFragment : Fragment() {
         binding.progressBar.progress = 0
         binding.tvPercent.text = getString(R.string.percent_format, 0)
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.session.collect { session ->
                     session.originalImageUri?.let { uri ->
                         binding.ivSelectedImage.load(uri) { crossfade(true) }
@@ -122,22 +118,15 @@ class ProgressFragment : Fragment() {
     }
 
     private fun setupChoiceButtons() {
-        // PremiumPlanManager.refreshPremiumQuotaIfNeeded() // OLD image_access quota — disabled
         val isPremium = PremiumPlanManager.isPremiumActive()
         val showAds = PremiumPlanManager.shouldShowAds()
         // TEMP: client image_access disabled — always allow generate until free-limit API is ready.
         val canGenerate = true
-        // val canGenerate = PremiumPlanManager.canGenerateImage()
         logQuotaState(isPremium, canGenerate)
         binding.btnFreeAd.isVisible = canGenerate && (showAds || isPremium)
-        // Out of quota → keep Upgrade as the only action so the screen is never empty.
-        binding.btnUpgradePremium.isVisible = !isPremium // || !canGenerate
+        binding.btnUpgradePremium.isVisible = !isPremium
         binding.ivAdIcon.isVisible = !isPremium
         binding.tvLimitMessage.isVisible = false
-        // binding.tvLimitMessage.isVisible = !canGenerate
-        // if (!canGenerate) {
-        //     binding.tvLimitMessage.setText(imageLimitMessageRes())
-        // }
 
         binding.tvFreeAdAction.text = if (isPremium && !showAds) {
             getString(R.string.generate_now)
@@ -146,66 +135,77 @@ class ProgressFragment : Fragment() {
         }
 
         binding.btnFreeAd.setOnClickListener {
-            // OLD client image_access gate — disabled until backend free-limit API is ready.
-            // if (!PremiumPlanManager.canGenerateImage() ||
-            //     PremiumPlanManager.getRemainingImageAccess() <= 0
-            // ) {
-            //     showImageLimitToast()
-            //     setupChoiceButtons()
-            //     return@setOnClickListener
-            // }
-
-            // Firebase ads.temporary_skip_generate_api — skip API, open Result with user photo
-            if (ADSMainClass.getTemporarySkipGenerateApi()) {
-                // if (!PremiumPlanManager.consumeImageAccess()) {
-                //     showImageLimitToast()
-                //     setupChoiceButtons()
-                //     return@setOnClickListener
-                // }
-                navigateToResultWithoutApi()
-                return@setOnClickListener
-            }
-
-            // Premium (no ads) → generate directly
-            if (isPremium && !showAds) {
-                startGenerateAfterReward()
-                return@setOnClickListener
-            }
-
-            // Free / ads path → must watch Rewarded Ad completely
-            RewardedAdHelper.showForReward(
-                fragment = this,
-                onRewardEarned = { startGenerateAfterReward() },
-                onFailedOrSkipped = {
-                    generationStarted = false
-                    if (isAdded && _binding != null) showChoiceState()
+            lifecycleScope.launch {
+                when (val limitResult = freeLimitRepository.checkBeforeFaceDetection()) {
+                    FreeLimitCheckResult.Allowed -> Unit
+                    FreeLimitCheckResult.FreeLimitReached,
+                    FreeLimitCheckResult.PremiumExpired -> {
+                        if (!isScreenAlive() || _binding == null) return@launch
+                        if (limitResult is FreeLimitCheckResult.PremiumExpired) {
+                            Toast.makeText(
+                                this@ProgressActivity,
+                                getString(R.string.premium_subscription_expired),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            setupChoiceButtons()
+                        }
+                        showProgressPremiumSheet()
+                        return@launch
+                    }
+                    FreeLimitCheckResult.DailyLimitReached -> {
+                        if (isScreenAlive()) DailyQuotaFinishedDialog.show(this@ProgressActivity)
+                        return@launch
+                    }
                 }
-            )
+                if (!isScreenAlive() || _binding == null) return@launch
+
+                // Firebase ads.temporary_skip_generate_api — skip API, open Result with user photo
+                if (ADSMainClass.getTemporarySkipGenerateApi()) {
+                    navigateToResultWithoutApi()
+                    return@launch
+                }
+
+                // Premium (no ads) → generate directly
+                val isPremiumUser = PremiumPlanManager.isPremiumActive()
+                val showAdsUser = PremiumPlanManager.shouldShowAds()
+                if (isPremiumUser && !showAdsUser) {
+                    startGenerateAfterReward()
+                    return@launch
+                }
+
+                // Free / ads path → must watch Rewarded Ad completely
+                RewardedAdHelper.showForReward(
+                    activity = this@ProgressActivity,
+                    onRewardEarned = { startGenerateAfterReward() },
+                    onFailedOrSkipped = {
+                        generationStarted = false
+                        if (isScreenAlive() && _binding != null) showChoiceState()
+                    }
+                )
+            }
         }
 
         binding.btnUpgradePremium.setOnClickListener {
-            findNavController().navigate(R.id.action_progress_to_premium)
+            AppNavigator.openPremium(this)
         }
     }
 
+    private fun showProgressPremiumSheet() {
+        if (supportFragmentManager.findFragmentByTag(PremiumBottomSheet.TAG) != null) return
+        PremiumBottomSheet.newInstance(
+            onCancelClick = { /* stay on progress */ },
+            onPremiumClick = {
+                AppNavigator.openPremium(this)
+            }
+        ).show(supportFragmentManager, PremiumBottomSheet.TAG)
+    }
+
     /** Prints the exact quota inputs so Firebase values can be verified on-device. */
+    @Suppress("UNUSED_PARAMETER")
     private fun logQuotaState(isPremium: Boolean, canGenerate: Boolean) {
-        val plans = PremiumPlanManager.getActivePlans()
+        PremiumPlanManager.getActivePlans()
             .joinToString { "${it.planKey}(used=${it.periodImagesUsed})" }
             .ifBlank { "none" }
-        Log.d(
-            TAG,
-            "QUOTA → premium=$isPremium activePlans=[$plans] canGenerate=$canGenerate " +
-                "device_id=${DeviceIdProvider.getDeviceId(requireContext().applicationContext)} " +
-                "weekPrice=${PremiumPlanManager.getPlan(PremiumPlan.WEEKLY).price} " +
-                "monthPrice=${PremiumPlanManager.getPlan(PremiumPlan.MONTHLY).price} " +
-                "yearPrice=${PremiumPlanManager.getPlan(PremiumPlan.YEARLY).price} " +
-                "freePrice=${PremiumPlanManager.getFreeUserPlan().price} " +
-                "freeUsed=${PrefManager.getFreeImagesUsed()} " +
-                "remoteDetails=${PremiumPlanManager.hasRemotePlanDetails()}"
-        )
-        // Log.d(TAG, "QUOTA perDay → ${PremiumPlanManager.quotaBreakdown()}")
-        Log.d(TAG, "QUOTA rawPlanDetails = ${PrefManager.getPremiumPlanDetailsJson()}")
     }
 
     private fun imageLimitMessageRes(): Int {
@@ -223,7 +223,7 @@ class ProgressFragment : Fragment() {
     }
 
     private fun showImageLimitToast() {
-        Toast.makeText(requireContext(), getString(imageLimitMessageRes()), Toast.LENGTH_SHORT)
+        Toast.makeText(this, getString(imageLimitMessageRes()), Toast.LENGTH_SHORT)
             .show()
     }
 
@@ -239,10 +239,10 @@ class ProgressFragment : Fragment() {
 
         navigatedToResult = true
         viewModel.updateResultImagePath(compressedPath)
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             persistUserCreation(imageUrl = null, tempLocalPath = compressedPath)
-            if (!isAdded) return@launch
-            findNavController().navigate(R.id.action_progress_to_result)
+            if (!isScreenAlive()) return@launch
+            AppNavigator.openResult(this@ProgressActivity)
         }
     }
 
@@ -301,7 +301,7 @@ class ProgressFragment : Fragment() {
         if (progressJob?.isActive == true) return
         binding.progressBar.progress = 0
         binding.tvPercent.text = getString(R.string.percent_format, 0)
-        progressJob = viewLifecycleOwner.lifecycleScope.launch {
+        progressJob = lifecycleScope.launch {
             for (p in 1..90) {
                 delay(50)
                 if (_binding == null) return@launch
@@ -314,7 +314,7 @@ class ProgressFragment : Fragment() {
 
     private fun callGenerateApi() {
         if (apiJob?.isActive == true) return
-        apiJob = viewLifecycleOwner.lifecycleScope.launch {
+        apiJob = lifecycleScope.launch {
             val start = System.currentTimeMillis()
             try {
                 val imagePath = viewModel.session.value.compressedImagePath
@@ -325,7 +325,7 @@ class ProgressFragment : Fragment() {
                         val beardStyle = PrefManager.getSelectedHairstyleApiValue()
                         require(beardStyle.isNotBlank()) { "Selected beard style value missing from API" }
 
-                         Log.d(TAG, "â”€â”€â”€â”€â”€â”€â”€â”€ START BEARD GENERATE â”€â”€â”€â”€â”€â”€â”€â”€")
+                         Log.d(TAG, "──────── START BEARD GENERATE ────────")
                          Log.d(TAG, "beardStyle  = $beardStyle  (display=${PrefManager.getSelectedHairstyleTitle()})")
                          Log.d(TAG, "imagePath   = $imagePath")
                          Log.d(TAG, "imageExists = ${imageFile != null}")
@@ -342,7 +342,7 @@ class ProgressFragment : Fragment() {
                         val color = PrefManager.getSelectedHairColorApiValue()
                         require(color.isNotBlank()) { "Selected hair color value missing from API" }
 
-                         Log.d(TAG, "â”€â”€â”€â”€â”€â”€â”€â”€ START GENERATE â”€â”€â”€â”€â”€â”€â”€â”€")
+                         Log.d(TAG, "──────── START GENERATE ────────")
                          Log.d(TAG, "hairStyle   = $hairStyle  (display=${PrefManager.getSelectedHairstyleTitle()})")
                          Log.d(TAG, "color       = $color  (display=${PrefManager.getSelectedHairColorTitle()})")
                          Log.d(TAG, "imagePath   = $imagePath")
@@ -364,14 +364,6 @@ class ProgressFragment : Fragment() {
                 }
                 require(!response.image.isNullOrBlank()) { "No result image URL in API response" }
 
-                // OLD client image_access hard-stop — disabled until free-limit API is ready.
-                // if (!PremiumPlanManager.canGenerateImage() ||
-                //     PremiumPlanManager.getRemainingImageAccess() <= 0 ||
-                //     !PremiumPlanManager.consumeImageAccess()
-                // ) {
-                //     throw IllegalStateException(getString(R.string.premium_image_limit_reached))
-                // }
-
                 val resultUrl = localHairstyleRepository.resolveResultImageUrl(response.image)
                 require(resultUrl.isNotBlank()) { "No result image available" }
 
@@ -389,7 +381,7 @@ class ProgressFragment : Fragment() {
             } catch (e: Exception) {
                  Log.e(TAG, "Generate error: ${e.message}", e)
                 progressJob?.cancel()
-                if (!isAdded || _binding == null) return@launch
+                if (!isScreenAlive() || _binding == null) return@launch
 
                 val limitMessage = getString(R.string.premium_image_limit_reached)
                 if (e.message == limitMessage) {
@@ -411,12 +403,8 @@ class ProgressFragment : Fragment() {
     }
 
     private fun navigateToHomeAfterGenerateFail() {
-        if (!isAdded) return
-        runCatching {
-            findNavController().navigate(R.id.action_progress_to_home)
-        }.onFailure {
-            findNavController().popBackStack(R.id.homePageFragment, false)
-        }
+        if (!isScreenAlive()) return
+        AppNavigator.openHomeClearTask(this)
     }
 
     private suspend fun persistUserCreation(imageUrl: String?, tempLocalPath: String?) {
@@ -437,9 +425,9 @@ class ProgressFragment : Fragment() {
             binding.tvPercent.text = getString(R.string.percent_format, 100)
         }
         delay(300)
-        if (!isAdded || navigatedToResult) return
+        if (!isScreenAlive() || navigatedToResult) return
         navigatedToResult = true
-        findNavController().navigate(R.id.action_progress_to_result)
+        AppNavigator.openResult(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -447,11 +435,11 @@ class ProgressFragment : Fragment() {
         outState.putBoolean(KEY_GENERATION_STARTED, generationStarted)
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         progressJob?.cancel()
         apiJob?.cancel()
-        super.onDestroyView()
         _binding = null
+        super.onDestroy()
     }
 
     companion object {

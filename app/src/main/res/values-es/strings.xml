@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">Introduce tu correo electrónico</string>
     <string name="feedback_email_invalid">Introduce una dirección de correo electrónico válida.</string>
     <string name="beard_fade_haircut_styles">Barba, Fade &amp; Cortes de pelo</string>
+    <string name="daily_quota_finished_title">Límite Diario Alcanzado</string>
+    <string name="daily_quota_finished_message">Tu límite diario de imágenes ha terminado. Vuelve mañana para más generaciones.</string>
+    <string name="premium_subscription_expired">Tu suscripción premium ha finalizado. Renueva para seguir generando.</string>
 </resources>

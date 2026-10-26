@@ -1,4 +1,4 @@
-package com.hairstyle.generator.aimakerover.data.repository
+﻿package com.hairstyle.generator.aimakerover.data.repository
 
 import android.content.Context
 import android.util.Log
@@ -62,15 +62,15 @@ class LocalHairstyleRepository @Inject constructor(
                 "Image file is required for generate API"
             }
             val sizeKb = imageFile.length() / 1024
-            Log.d(TAG, "imagePath   = ${imageFile.absolutePath}")
-            Log.d(TAG, "imageName   = photo.jpg")
-            Log.d(TAG, "imageSize   = ${sizeKb}KB")
-            Log.d(TAG, "imageMime   = image/jpeg")
+//            Log.d(TAG, "imagePath   = ${imageFile.absolutePath}")
+//            Log.d(TAG, "imageName   = photo.jpg")
+//            Log.d(TAG, "imageSize   = ${sizeKb}KB")
+//            Log.d(TAG, "imageMime   = image/jpeg")
 //
             val body = imageFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
             multipart.addFormDataPart("image", "photo.jpg", body)
         } else {
-            Log.d(TAG, "imagePath   = (not sent)")
+//            Log.d(TAG, "imagePath   = (not sent)")
         }
 
         val request = Request.Builder()
@@ -80,21 +80,21 @@ class LocalHairstyleRepository @Inject constructor(
 
         okHttpClient.newCall(request).execute().use { response ->
             val raw = response.body?.string().orEmpty()
-            Log.d(TAG, "â”€â”€â”€â”€â”€â”€â”€â”€ RESPONSE â”€â”€â”€â”€â”€â”€â”€â”€")
-            Log.d(TAG, "httpCode    = ${response.code}")
-            Log.d(TAG, "rawBody     = $raw")
+            //Log.d(TAG, "â”€â”€â”€â”€â”€â”€â”€â”€ RESPONSE â”€â”€â”€â”€â”€â”€â”€â”€")
+//            Log.d(TAG, "httpCode    = ${response.code}")
+//            Log.d(TAG, "rawBody     = $raw")
 
             if (!response.isSuccessful) {
-                 Log.e(TAG, "Generate failed: HTTP ${response.code}")
+//                 Log.e(TAG, "Generate failed: HTTP ${response.code}")
                 error("Generate failed: HTTP ${response.code} $raw")
             }
             val parsed = gson.fromJson(raw, LocalHairstyleResponse::class.java)
                 ?: error("Invalid generate response")
 
-            Log.d(TAG, "success     = ${parsed.success}")
-            Log.d(TAG, "resultUrl   = ${parsed.image}")
+//            Log.d(TAG, "success     = ${parsed.success}")
+//            Log.d(TAG, "resultUrl   = ${parsed.image}")
             if (!parsed.success) {
-                Log.e(TAG, "serverMsg   = ${parsed.failureReason()} (HTTP ${response.code})")
+//                Log.e(TAG, "serverMsg   = ${parsed.failureReason()} (HTTP ${response.code})")
             }
             parsed
         }
@@ -163,7 +163,7 @@ class LocalHairstyleRepository @Inject constructor(
         val deviceId = DeviceIdProvider.getDeviceId(context)
         val isPremium = PremiumPlanManager.isPremiumActive()
         Log.d(TAG, "device_id    = $deviceId")
-        Log.d(TAG, "is_premium   = $isPremium")
+//        Log.d(TAG, "is_premium   = $isPremium")
         builder
             .addFormDataPart("device_id", deviceId)
             .addFormDataPart("is_premium", isPremium.toString())
@@ -190,11 +190,11 @@ class LocalHairstyleRepository @Inject constructor(
             builder.addFormDataPart("expiry_date", expiryDate)
         }
 
-        Log.d(
-            TAG,
-            "premiumFields → purchase_id=$purchaseId plan_type=$planType " +
-                "purchase_date=$purchaseDate expiry_date=$expiryDate"
-        )
+        //Log.d(TAG, "──────── GENERATE API premium fields ────────")
+//        Log.d(TAG, "purchase_id   = $purchaseId")
+//        Log.d(TAG, "plan_type     = $planType")
+//        Log.d(TAG, "purchase_date = $purchaseDate")
+//        Log.d(TAG, "expiry_date   = $expiryDate")
     }
 
     /** RevenueCat originalAppUserId (unique). Falls back to live appUserID if prefs empty. */

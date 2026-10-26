@@ -1,7 +1,6 @@
 package com.hairstyle.generator.aimakerover.data.repository
 
 import android.content.Context
-import android.util.Log
 import com.google.gson.Gson
 import com.hairstyle.generator.aimakerover.data.model.VideoItemDto
 import com.hairstyle.generator.aimakerover.data.model.VideosApiResponse
@@ -11,15 +10,22 @@ import com.hairstyle.generator.aimakerover.domain.model.PromoImageItem
 import com.hairstyle.generator.aimakerover.utils.AESHelper
 import com.hairstyle.generator.aimakerover.utils.PrefManager
 import com.hairstyle.generator.aimakerover.utils.VideoCacheManager
+import com.hairstyle.generator.aimakerover.utils.VideoTitleKeys
 import com.hairstyle.generator.aimakerover.utils.VideoUrlManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,8 +36,27 @@ class VideosRepository @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val gson: Gson
 ) {
+    private val catalogMutex = Mutex()
+    private val preloadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val startedPreloads = ConcurrentHashMap.newKeySet<String>()
 
+    @Volatile
+    private var catalogFetched = false
+
+    /**
+     * Fetches the videos API JSON and stores URLs in prefs.
+     * Does not download video files — use [preloadIntroVideos] / [preloadPremiumVideo] /
+     * [preloadHomeVideos] so Splash is not blocked by full media cache.
+     */
     suspend fun fetchAndSaveAllVideos() = withContext(Dispatchers.IO) {
+        catalogMutex.withLock {
+            if (catalogFetched) return@withLock
+            fetchAndSaveCatalogLocked()
+            catalogFetched = true
+        }
+    }
+
+    private fun fetchAndSaveCatalogLocked() {
         val apiUrl = remoteConfigManager.getVideosApiUrl()
         require(apiUrl.isNotBlank()) { "videos_url missing from Remote Config" }
 
@@ -71,41 +96,57 @@ class VideosRepository @Inject constructor(
             addAll(parsed.data?.homeImages.orEmpty().filter { isPromoImageTitle(it.title) })
         }
         savePromoImages(apiUrl, promoSources)
+    }
 
-//        Log.d(TAG, "Saved ${items.size} video URLs to SharedPreferences")
+    fun preloadIntroVideos() {
+        preloadInBackground(
+            VideoTitleKeys.INTRO_VIDEO_1,
+            VideoTitleKeys.INTRO_VIDEO_2,
+            VideoTitleKeys.INTRO_VIDEO_3
+        )
+    }
 
-        // Background cache for remaining videos (non-blocking)
-        CoroutineScope(Dispatchers.IO).launch {
-            items.forEach { item ->
-                val title = item.title?.trim().orEmpty()
-                val videoUrl = VideoUrlManager.getVideoUrl(title)
-                if (!videoUrl.isNullOrBlank()) {
-                    VideoCacheManager.cacheVideo(context, okHttpClient, title, videoUrl)
-                }
-            }
-        }
+    fun preloadPremiumVideo() {
+        preloadInBackground(VideoTitleKeys.PREMIUM_SCREEN)
+    }
+
+    fun preloadHomeVideos() {
+        preloadInBackground(
+            VideoTitleKeys.HOME_VIDEO_1,
+            VideoTitleKeys.HOME_VIDEO_2,
+            VideoTitleKeys.HOME_VIDEO_3
+        )
     }
 
     /**
-     * Splash: wait until listed videos are on disk (or [timeoutMs] elapses).
-     * Call after [fetchAndSaveAllVideos] so URLs exist in prefs.
+     * Waits for this title's file (reuses an in-flight download).
+     * Fetch catalog first if the URL is not in prefs yet.
      */
-    suspend fun awaitCacheVideos(
-        videoTitleKeys: List<String>,
-        timeoutMs: Long = 15_000L
-    ) = withContext(Dispatchers.IO) {
-        kotlinx.coroutines.withTimeoutOrNull(timeoutMs) {
-            videoTitleKeys.forEach { key ->
-                val url = VideoUrlManager.getVideoUrl(key)?.takeIf { it.isNotBlank() } ?: return@forEach
-                if (VideoCacheManager.getCachedMediaFile(context, key, url) != null) {
-//                    Log.d(TAG, "Already cached: $key")
-                    return@forEach
+    suspend fun ensureCached(videoTitleKey: String) = withContext(Dispatchers.IO) {
+        if (videoTitleKey.isBlank()) return@withContext
+        if (!VideoUrlManager.hasVideoUrl(videoTitleKey)) {
+            runCatching { fetchAndSaveAllVideos() }
+        }
+        val url = VideoUrlManager.getVideoUrl(videoTitleKey)?.takeIf { it.isNotBlank() }
+            ?: return@withContext
+        VideoCacheManager.cacheVideo(context, okHttpClient, videoTitleKey, url)
+    }
+
+    private fun preloadInBackground(vararg videoTitleKeys: String) {
+        val keys = videoTitleKeys.distinct().filter { startedPreloads.add(it) }
+        if (keys.isEmpty()) return
+        preloadScope.launch {
+            keys.map { key ->
+                async {
+                    val url = VideoUrlManager.getVideoUrl(key)?.takeIf { it.isNotBlank() }
+                    if (url == null) {
+                        startedPreloads.remove(key)
+                        return@async
+                    }
+                    VideoCacheManager.cacheVideo(context, okHttpClient, key, url)
+                        ?: startedPreloads.remove(key)
                 }
-//                Log.d(TAG, "Caching for splash wait: $key")
-                VideoCacheManager.cacheVideo(context, okHttpClient, key, url)
-            }
-        } ?: run {
-            // Log.w(TAG, "Video cache wait timed out after ${timeoutMs}ms")
+            }.awaitAll()
         }
     }
 
@@ -125,7 +166,6 @@ class VideosRepository @Inject constructor(
         }
         if (promoItems.isNotEmpty()) {
             PrefManager.setPromoImagesJson(gson.toJson(promoItems))
-            // Log.d(TAG, "Saved ${promoItems.size} promo image URLs")
         }
     }
 
@@ -158,7 +198,6 @@ class VideosRepository @Inject constructor(
             )
         }
         PrefManager.setHomeHeroImagesJson(gson.toJson(slides))
-        // Log.d(TAG, "Saved ${slides.size} home hero images")
     }
 
     private fun saveVideoItem(apiUrl: String, item: VideoItemDto) {
@@ -168,7 +207,6 @@ class VideosRepository @Inject constructor(
 
         val fullUrl = resolveFullVideoUrl(apiUrl, path)
         PrefManager.setVideoUrl(title, AESHelper.encrypt(fullUrl))
-        // Log.d(TAG, "video[$title] saved")
     }
 
     private fun resolveFullVideoUrl(apiUrl: String, path: String): String {
@@ -181,7 +219,7 @@ class VideosRepository @Inject constructor(
         val origin = runCatching {
             val uri = URI(apiUrl)
             "${uri.scheme}://${uri.host}"
-        }.getOrDefault("https://hair.champslevl.com")
+        }.getOrDefault("https://aihair.brainfungames.com")
 
         return origin.trimEnd('/') + path
     }

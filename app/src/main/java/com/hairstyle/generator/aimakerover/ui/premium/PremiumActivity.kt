@@ -1,33 +1,30 @@
 package com.hairstyle.generator.aimakerover.ui.premium
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.UnderlineSpan
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentPremiumBinding
 import com.hairstyle.generator.aimakerover.billing.BillingUiState
 import com.hairstyle.generator.aimakerover.data.remoteconfig.RemoteConfigManager
 import com.hairstyle.generator.aimakerover.data.repository.VideosRepository
-import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.ui.intro.completeIntroAndGoHome
-import com.hairstyle.generator.aimakerover.utils.IntroVideoHelper
 import com.hairstyle.generator.aimakerover.utils.AppLinkHelper
+import com.hairstyle.generator.aimakerover.utils.IntroVideoHelper
 import com.hairstyle.generator.aimakerover.utils.PremiumPlanManager
 import com.hairstyle.generator.aimakerover.utils.VideoTitleKeys
 import com.hairstyle.generator.aimakerover.utils.applyStatusBarTopMargin
@@ -37,11 +34,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PremiumFragment : Fragment() {
+class PremiumActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons = false
 
     private var _binding: FragmentPremiumBinding? = null
     private val binding get() = _binding!!
@@ -54,9 +53,6 @@ class PremiumFragment : Fragment() {
     @Inject
     lateinit var videosRepository: VideosRepository
 
-    @Inject
-    lateinit var okHttpClient: OkHttpClient
-
     private var selectedPlan: PremiumPlan = PremiumPlan.YEARLY
     private var fromIntro: Boolean = false
     private var videoPrepared = false
@@ -65,20 +61,11 @@ class PremiumFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fromIntro = arguments?.getBoolean(ARG_FROM_INTRO, false) ?: false
-    }
+        fromIntro = intent.getBooleanExtra(ARG_FROM_INTRO, false)
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentPremiumBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentPremiumBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
         // Onboarding: if premium already restored/active, skip paywall → Home.
         if (fromIntro && PremiumPlanManager.isPremiumActive()) {
@@ -99,10 +86,10 @@ class PremiumFragment : Fragment() {
         applyTitleGradient()
         applyFooterUnderline()
         binding.tvFooter.setOnClickListener {
-            AppLinkHelper.openPrivacyPolicy(requireContext())
+            AppLinkHelper.openPrivacyPolicy(this)
         }
         binding.termsAndConditions.setOnClickListener {
-            AppLinkHelper.openPrivacyPolicy(requireContext())
+            AppLinkHelper.openTermsOfService(this)
         }
         applyUpgradePlanVisibility()
         updatePlanSelection(selectedPlan)
@@ -117,12 +104,12 @@ class PremiumFragment : Fragment() {
             if (fromIntro) {
                 completeIntroAndGoHome()
             } else {
-                InterstitialNavHelper.navigateUpWithBackInter(this)
+                finish()
             }
         }
         // System / gesture back disabled — leave only via Close button.
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        onBackPressedDispatcher.addCallback(
+            this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() = Unit
             }
@@ -133,7 +120,7 @@ class PremiumFragment : Fragment() {
         binding.cardWeekly.setOnClickListener { updatePlanSelection(PremiumPlan.WEEKLY) }
         binding.btnContinue.setOnClickListener {
 //            Log.d("TAG", "onViewCreated: " + selectedPlan)
-            viewModel.purchase(requireActivity(), selectedPlan)
+            viewModel.purchase(this, selectedPlan)
         }
         binding.tvRestore.setOnClickListener {
             viewModel.restorePurchases()
@@ -149,25 +136,21 @@ class PremiumFragment : Fragment() {
 
     private fun scheduleCloseButtonReveal() {
         closeRevealJob?.cancel()
-        closeRevealJob = viewLifecycleOwner.lifecycleScope.launch {
+        closeRevealJob = lifecycleScope.launch {
             delay(CLOSE_BUTTON_REVEAL_DELAY_MS)
-            if (_binding == null || !isAdded) return@launch
+            if (_binding == null || !isScreenAlive()) return@launch
             binding.btnClose.visibility = View.VISIBLE
         }
     }
 
     private fun loadPremiumVideo() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            runCatching { videosRepository.fetchAndSaveAllVideos() }
-            launch(Dispatchers.IO) {
-                IntroVideoHelper.preload(
-                    requireContext().applicationContext,
-                    okHttpClient,
-                    VideoTitleKeys.PREMIUM_SCREEN
-                )
+        playPremiumVideo()
+        lifecycleScope.launch(Dispatchers.IO) {
+            videosRepository.ensureCached(VideoTitleKeys.PREMIUM_SCREEN)
+            withContext(Dispatchers.Main) {
+                if (!isScreenAlive()) return@withContext
+                if (!videoPrepared) playPremiumVideo()
             }
-            if (!isAdded) return@launch
-            playPremiumVideo()
         }
     }
 
@@ -187,8 +170,8 @@ class PremiumFragment : Fragment() {
     }
 
     private fun observeBillingState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.billingState.collect { state ->
                     when (state) {
                         BillingUiState.Idle -> setPurchaseLoading(false)
@@ -230,7 +213,7 @@ class PremiumFragment : Fragment() {
     }
 
     private fun loadPremiumPlansAndRefresh() {
-        viewLifecycleOwner.lifecycleScope.launch {
+        lifecycleScope.launch {
             if (!PremiumPlanManager.hasRemotePlanDetails()) {
                 runCatching { remoteConfigManager.fetchAndSaveAll() }
             }
@@ -240,8 +223,8 @@ class PremiumFragment : Fragment() {
     }
 
     private fun observeStorePrices() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.productsLoaded.collect {
                     if (it > 0) {
                         refreshAllPlanPrices()
@@ -327,7 +310,7 @@ class PremiumFragment : Fragment() {
         if (fromIntro) {
             completeIntroAndGoHome()
         } else {
-            findNavController().navigateUp()
+            finish()
         }
     }
 
@@ -339,8 +322,8 @@ class PremiumFragment : Fragment() {
             val shader = LinearGradient(
                 0f, 0f, width, 0f,
                 intArrayOf(
-                    ContextCompat.getColor(requireContext(), R.color.premium_title_gradient_start),
-                    ContextCompat.getColor(requireContext(), R.color.premium_title_gradient_end)
+                    ContextCompat.getColor(this, R.color.premium_title_gradient_start),
+                    ContextCompat.getColor(this, R.color.premium_title_gradient_end)
                 ),
                 null,
                 Shader.TileMode.CLAMP
@@ -398,8 +381,8 @@ class PremiumFragment : Fragment() {
             if (plan == PremiumPlan.WEEKLY) R.drawable.bg_plan_selected else R.drawable.bg_plan_unselected
         )
 
-        val gold = ContextCompat.getColor(requireContext(), R.color.premium_gold)
-        val white = ContextCompat.getColor(requireContext(), R.color.white)
+        val gold = ContextCompat.getColor(this, R.color.premium_gold)
+        val white = ContextCompat.getColor(this, R.color.white)
         binding.tvYearlyPrice.setTextColor(if (plan == PremiumPlan.YEARLY) gold else white)
         binding.tvMonthlyPrice.setTextColor(if (plan == PremiumPlan.MONTHLY) gold else white)
         binding.tvWeeklyPrice.setTextColor(if (plan == PremiumPlan.WEEKLY) gold else white)
@@ -431,19 +414,25 @@ class PremiumFragment : Fragment() {
         super.onPause()
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         closeRevealJob?.cancel()
         closeRevealJob = null
         continueButtonAnimator?.stop()
         continueButtonAnimator = null
-        IntroVideoHelper.release(binding.ivPremiumVideo)
+        _binding?.let { IntroVideoHelper.release(it.ivPremiumVideo) }
         videoPrepared = false
-        super.onDestroyView()
+        super.onDestroy()
         _binding = null
     }
 
     companion object {
         const val ARG_FROM_INTRO = "from_intro"
         private const val CLOSE_BUTTON_REVEAL_DELAY_MS = 3_000L
+
+        fun createIntent(context: Context, fromIntro: Boolean): Intent {
+            return Intent(context, PremiumActivity::class.java).apply {
+                putExtra(ARG_FROM_INTRO, fromIntro)
+            }
+        }
     }
 }

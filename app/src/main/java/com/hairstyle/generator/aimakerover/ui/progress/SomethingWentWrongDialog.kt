@@ -1,5 +1,6 @@
 package com.hairstyle.generator.aimakerover.ui.progress
 
+import android.app.Activity
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -17,12 +18,17 @@ import com.hairstyle.generator.aimakeover.databinding.DialogSomethingWentWrongBi
 object SomethingWentWrongDialog {
 
     fun show(fragment: Fragment, onCancel: () -> Unit) {
+        val activity = fragment.activity ?: return
         if (!fragment.isAdded) return
+        show(activity, onCancel)
+    }
 
-        val context = fragment.requireContext()
-        val binding = DialogSomethingWentWrongBinding.inflate(fragment.layoutInflater)
+    fun show(activity: Activity, onCancel: () -> Unit) {
+        if (activity.isFinishing || activity.isDestroyed) return
 
-        val dialog = Dialog(context, R.style.ThemeOverlay_AIHairstyleStudio_PermissionDialog).apply {
+        val binding = DialogSomethingWentWrongBinding.inflate(activity.layoutInflater)
+
+        val dialog = Dialog(activity, R.style.ThemeOverlay_AIHairstyleStudio_PermissionDialog).apply {
             setContentView(binding.root)
             setCancelable(false)
             setCanceledOnTouchOutside(false)
@@ -38,7 +44,7 @@ object SomethingWentWrongDialog {
 
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            val width = (context.resources.displayMetrics.widthPixels * 0.88f).toInt()
+            val width = (activity.resources.displayMetrics.widthPixels * 0.88f).toInt()
             setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
             addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             attributes = attributes?.apply { dimAmount = 0.72f }

@@ -13,6 +13,7 @@ data class AdsConfigRoot(
 
 data class AdsSection(
     @SerializedName("privacy_policy_url") val privacyPolicyUrl: String? = null,
+    @SerializedName("terms_url") val termsUrl: String? = null,
     @SerializedName("consent_form_show_screen") val consentFormShowScreen: String? = null,
     @SerializedName("Ads_Loading_Types") val adsLoadingTypes: String? = null,
     @SerializedName("exit_dialog_show") val exitDialogShow: Boolean? = null,
@@ -38,6 +39,12 @@ data class AdsSection(
      * `false` → ads run; `true` → all ads stop. Default / missing → `false`.
      */
     @SerializedName("ads_blocked") val adsBlocked: Boolean? = null,
+    /**
+     * Home bottom Native only. Seconds between reloads. Missing / `0` / negative → no auto-reload.
+     */
+    @SerializedName("native_ads_reload_seconds") val nativeAdsReloadSeconds: Int? = null,
+    /** Home bottom Native only. `true` → auto-reload; `false` / missing → load once. */
+    @SerializedName("native_ads_reloading") val nativeAdsReloading: Boolean? = null,
     @SerializedName("inter_and_reward") val interAndReward: InterAndRewardConfig? = null,
     @SerializedName("splash_screen") val splashScreen: SplashAdsConfig? = null,
     @SerializedName("language_screen") val languageScreen: LanguageAdsConfig? = null,
@@ -48,6 +55,10 @@ data class InterAndRewardConfig(
     @SerializedName("inter_ads_show") val interAdsShow: Boolean? = null,
     /** `PreLoad` | `Show` (also accepts `Load`) — applies to click + back interstitials. */
     @SerializedName("inter_ads_load_type") val interAdsLoadType: String? = null,
+    /** `"Click"` (default, existing click-count) | `"Time"` (interval since last interstitial). */
+    @SerializedName("inter_ads_show_type") val interAdsShowType: String? = null,
+    /** Seconds since last interstitial when [interAdsShowType] is `"Time"`. */
+    @SerializedName("inter_ads_time_seconds") val interAdsTimeSeconds: Int? = null,
     @SerializedName("inter_ads_click") val interAdsClick: Int? = null,
     /**
      * Intro1/1b/1c/1d/2/3 only — separate from [interAdsClick].
@@ -59,6 +70,8 @@ data class InterAndRewardConfig(
      * `true` → go to next intro screen; `false` → normal back (current behavior).
      */
     @SerializedName("intro_back_send_to_next") val introBackSendToNext: Boolean? = null,
+    /** `"single"` (ViewPager on Intro1) | `"multi"` (Intro1/1b/1c/1d fragments). Accepts typo `singal`. */
+    @SerializedName("intro_show_screen_type") val introShowScreenType: String? = null,
     @SerializedName("inter_ad_id") val interAdId: String? = null,
     @SerializedName("inter_back_ads_show") val interBackAdsShow: Boolean? = null,
     @SerializedName("inter_back_ads_click") val interBackAdsClick: Int? = null,

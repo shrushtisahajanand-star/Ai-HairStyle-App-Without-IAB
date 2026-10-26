@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">अपना ईमेल दर्ज करें</string>
     <string name="feedback_email_invalid">कृपया एक मान्य ईमेल पता दर्ज करें।</string>
     <string name="beard_fade_haircut_styles">दाढ़ी, फेड &amp; हेयरकट स्टाइल</string>
+    <string name="daily_quota_finished_title">दैनिक सीमा समाप्त</string>
+    <string name="daily_quota_finished_message">आपकी दैनिक छवि सीमा समाप्त हो गई है। अधिक जेनरेशन के लिए कल वापस आएं।</string>
+    <string name="premium_subscription_expired">आपकी प्रीमियम सदस्यता समाप्त हो गई है। जेनरेट करना जारी रखने के लिए नवीनीकरण करें।</string>
 </resources>

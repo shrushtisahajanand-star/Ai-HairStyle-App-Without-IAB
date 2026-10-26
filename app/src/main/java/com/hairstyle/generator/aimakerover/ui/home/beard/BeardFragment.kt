@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,10 +19,11 @@ import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
 import com.hairstyle.generator.aimakerover.domain.model.BeardStyle
 import com.hairstyle.generator.aimakerover.domain.model.GenerationType
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
 import com.hairstyle.generator.aimakerover.ui.common.RateAppDialog
 import com.hairstyle.generator.aimakerover.ui.common.ShimmerItemFooterAdapter
 import com.hairstyle.generator.aimakerover.ui.home.BeforeAfterStyleAdapter
-import com.hairstyle.generator.aimakerover.ui.home.HomePageFragment
+import com.hairstyle.generator.aimakerover.ui.home.HomePageActivity
 import com.hairstyle.generator.aimakerover.utils.PrefManager
 import com.hairstyle.generator.aimakerover.utils.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -80,7 +80,7 @@ class BeardFragment : Fragment() {
         super.onResume()
         if (!isHidden) {
             refreshVisibleImages()
-            (parentFragment as? HomePageFragment)?.maybeShowRateAppPrompt()
+            (activity as? HomePageActivity)?.maybeShowRateAppPrompt()
                 ?: RateAppDialog.showIfNeededForAppOpen(this)
         }
     }
@@ -89,7 +89,7 @@ class BeardFragment : Fragment() {
         super.onHiddenChanged(hidden)
         if (!hidden) {
             refreshVisibleImages()
-            (parentFragment as? HomePageFragment)?.maybeShowRateAppPrompt()
+            (activity as? HomePageActivity)?.maybeShowRateAppPrompt()
                 ?: RateAppDialog.showIfNeededForAppOpen(this)
         }
     }
@@ -135,7 +135,8 @@ class BeardFragment : Fragment() {
         )
 
         InterstitialNavHelper.showOnClick(this, ScreenInterAds.funBeardTryIt()) {
-            findNavController().navigate(R.id.action_homePage_to_selectPhoto)
+            val host = activity ?: return@showOnClick
+            AppNavigator.openPhotoSelect(host)
         }
     }
 

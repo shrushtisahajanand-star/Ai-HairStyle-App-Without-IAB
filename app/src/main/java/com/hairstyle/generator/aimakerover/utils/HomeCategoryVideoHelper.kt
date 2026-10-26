@@ -26,7 +26,7 @@ object HomeCategoryVideoHelper {
                 return
             }
 
-            if (started && webpView.drawable != null) {
+            if (started) {
                 SplashAnimationHelper.resume(webpView)
                 hideShimmer()
                 return

@@ -1,14 +1,17 @@
 package com.hairstyle.generator.aimakerover.data.remoteconfig
 
+import android.util.Log
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
-import com.hairstyle.generator.aimakeover.BuildConfig
+import com.hairstyle.generator.aimakerover.Advertisement.ADSMainClass
 import com.hairstyle.generator.aimakerover.data.model.PremiumPlanDetailsRoot
 import com.hairstyle.generator.aimakerover.data.remote.FeedbackApiConfig
 import com.hairstyle.generator.aimakerover.data.remote.GenerateApiConfig
 import com.hairstyle.generator.aimakerover.utils.AESHelper
+import com.hairstyle.generator.aimakerover.utils.InstallReferrerHelper
 import com.hairstyle.generator.aimakerover.utils.PrefManager
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -20,15 +23,24 @@ class RemoteConfigManager @Inject constructor(
     private val gson: Gson
 ) {
 
+    companion object {
+        private const val TAG = "UserSegment"
+        private val PREMIUM_JSON_KEYS = listOf(
+            RemoteConfigKeys.PREMIUM_PLAN_DETAILS,
+            "premium_plan_details"
+        )
+    }
+
     suspend fun fetchAndSaveAll() {
         val settings = FirebaseRemoteConfigSettings.Builder()
-            .setMinimumFetchIntervalInSeconds(if (BuildConfig.DEBUG) 0 else 3600)
+            .setMinimumFetchIntervalInSeconds(0)
             .build()
         remoteConfig.setConfigSettingsAsync(settings).await()
         remoteConfig.fetchAndActivate().await()
 
         val fileName = RemoteConfigKeys.remoteConfigFileName()
-        val json = remoteConfig.getString(fileName)
+        val rawJson = remoteConfig.getString(fileName)
+        val json = resolveUserSegmentJson(rawJson)
 
         PrefManager.setRemoteConfigJson(json)
 
@@ -39,6 +51,7 @@ class RemoteConfigManager @Inject constructor(
                 PrefManager.setVideosApiUrl(root.api?.videosUrl.orEmpty())
                 PrefManager.setGenerateBaseUrl(root.api?.generateBaseUrl.orEmpty())
                 PrefManager.setPrivacyPolicyUrl(root.api?.privacyPolicyUrl.orEmpty())
+                PrefManager.setTermsUrl(root.api?.termsUrl.orEmpty())
                 PrefManager.setFeedbackUrl(root.api?.feedbackUrl.orEmpty())
                 PrefManager.setImagesPageLimit(
                     root.api?.pageLimit ?: RemoteConfigKeys.DEFAULT_PAGE_LIMIT
@@ -46,11 +59,54 @@ class RemoteConfigManager @Inject constructor(
             }
             savePremiumPlanDetailsFromJson(json)
             saveUpdateAppFromJson(json)
-            // Splash: ads → ADSMainClass SharedPreferences (+ PrefManager ads_config_json)
             AdsConfigApplier.applyFromRemoteJson(json, gson)
         }
 
         PrefManager.setRemoteConfigFetched(true)
+    }
+
+    /**
+     * Firebase file can be `{ ads, api, ... }` or
+     * `{ "normal_user": {...}, "paid_user": {...} }` (optionally wrapped in an array).
+     */
+    private fun resolveUserSegmentJson(raw: String): String {
+        val trimmed = raw.trim()
+        if (trimmed.isBlank()) return raw
+        val rootElement = runCatching { JsonParser.parseString(trimmed) }.getOrNull() ?: return raw
+        val root = when {
+            rootElement.isJsonArray && rootElement.asJsonArray.size() > 0 -> {
+                val first = rootElement.asJsonArray[0]
+                if (first.isJsonObject) first.asJsonObject else null
+            }
+            rootElement.isJsonObject -> rootElement.asJsonObject
+            else -> null
+        } ?: return raw
+
+        if (!root.has(ADSMainClass.NORMAL_USER) && !root.has(ADSMainClass.PAID_USER)) {
+            return raw
+        }
+
+        val preferredKey = if (InstallReferrerHelper.isPaidMarketingReferrer()) {
+            Log.d(TAG, "resolveUserSegmentJson: using paid_user")
+            ADSMainClass.PAID_USER
+        } else {
+            Log.d(TAG, "resolveUserSegmentJson: using normal_user")
+            ADSMainClass.NORMAL_USER
+        }
+
+        val fallbackKey = if (preferredKey == ADSMainClass.PAID_USER) {
+            ADSMainClass.NORMAL_USER
+        } else {
+            ADSMainClass.PAID_USER
+        }
+        val block = root.get(preferredKey)?.takeIf { it.isJsonObject }
+            ?: root.get(fallbackKey)?.takeIf { it.isJsonObject }
+        if (block == null) {
+            Log.w(TAG, "resolveUserSegmentJson: missing paid_user and normal_user blocks")
+        } else if (block !== root.get(preferredKey)) {
+            Log.w(TAG, "resolveUserSegmentJson: fallback to $fallbackKey ($preferredKey missing)")
+        }
+        return block?.asJsonObject?.toString() ?: raw
     }
 
     private fun saveUpdateAppFromJson(json: String) {
@@ -72,10 +128,8 @@ class RemoteConfigManager @Inject constructor(
     }
 
     private fun savePremiumPlanDetailsFromJson(json: String) {
-        // Store the Firebase object as-is. A parse → gson.toJson round trip is lossy for
-        // custom-adapter fields and would silently fall back to the built-in defaults.
         runCatching {
-            val jsonObject = com.google.gson.JsonParser.parseString(json).asJsonObject
+            val jsonObject = JsonParser.parseString(json).asJsonObject
             val key = PREMIUM_JSON_KEYS.firstOrNull { jsonObject.has(it) }
             if (key != null) {
                 PrefManager.setPremiumPlanDetailsJson(jsonObject.get(key).toString())
@@ -88,13 +142,6 @@ class RemoteConfigManager @Inject constructor(
                 PrefManager.setPremiumPlanDetailsJson(gson.toJson(details))
             }
         }
-    }
-
-    companion object {
-        private val PREMIUM_JSON_KEYS = listOf(
-            RemoteConfigKeys.PREMIUM_PLAN_DETAILS,
-            "premium_plan_details"
-        )
     }
 
     fun getPremiumPlanDetails(): PremiumPlanDetailsRoot {
@@ -124,7 +171,6 @@ class RemoteConfigManager @Inject constructor(
         }
         return AESHelper.decrypt(encrypted)
     }
-
 
     fun getGenerateBaseUrl(): String {
         val stored = PrefManager.getGenerateBaseUrl().trim()
@@ -156,10 +202,6 @@ class RemoteConfigManager @Inject constructor(
         return runCatching { AESHelper.decrypt(stored).trim() }.getOrDefault("").trim()
     }
 
-    /**
-     * Plain feedback API base URL from Firebase `APi.feedback_url` (no encrypt/decrypt).
-     * Example: http://139.59.79.157:3002
-     */
     fun getFeedbackUrl(): String {
         val url = PrefManager.getFeedbackUrl().trim().trimEnd('/')
         require(url.isNotBlank()) {
@@ -185,11 +227,9 @@ class RemoteConfigManager @Inject constructor(
     data class ApiSection(
         @SerializedName("base_url") val baseUrl: String? = null,
         @SerializedName("videos_url") val videosUrl: String? = null,
-        /** Encrypted or plain root for generate APIs (from Firebase). */
         @SerializedName("generate_base_url") val generateBaseUrl: String? = null,
-        /** Encrypted privacy policy page URL */
         @SerializedName("privacy_policy_url") val privacyPolicyUrl: String? = null,
-        /** Plain feedback API base URL (no encrypt), e.g. http://139.59.79.157:3002 */
+        @SerializedName("terms_url") val termsUrl: String? = null,
         @SerializedName("feedback_url") val feedbackUrl: String? = null,
         @SerializedName("page_limit") val pageLimit: Int? = null
     )

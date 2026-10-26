@@ -4,31 +4,29 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Patterns
-import android.view.LayoutInflater
 import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.load
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentFeedbackBinding
-import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.utils.applyStatusBarPadding
 import com.hairstyle.generator.aimakerover.utils.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class FeedbackFragment : Fragment() {
+class FeedbackActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentFeedbackBinding? = null
     private val binding get() = _binding!!
@@ -55,23 +53,17 @@ class FeedbackFragment : Fragment() {
             if (userDraggingScroll) hideKeyboard()
         }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentFeedbackBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentFeedbackBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding.root.applyStatusBarPadding()
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.feedback())
         binding.toolbar.setNavigationOnClickListener {
-            InterstitialNavHelper.navigateUpWithBackInter(this)
+            finish()
         }
-        InterstitialNavHelper.installSystemBackInter(this)
 
         binding.etMessage.isVerticalScrollBarEnabled = true
         binding.etMessage.setOnTouchListener { v, event ->
@@ -101,15 +93,15 @@ class FeedbackFragment : Fragment() {
     }
 
     private fun hideKeyboard() {
-        val focused = activity?.currentFocus ?: return
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val focused = currentFocus ?: return
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(focused.windowToken, 0)
         focused.clearFocus()
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     if (state.submitted) {
                         showSubmittedState()
@@ -198,13 +190,13 @@ class FeedbackFragment : Fragment() {
         binding.submittedContainer.isVisible = true
     }
 
-    override fun onDestroyView() {
-        binding.formScroll.setOnScrollChangeListener(null as NestedScrollView.OnScrollChangeListener?)
-        binding.formScroll.setOnTouchListener(null)
-        binding.etMessage.setOnTouchListener(null)
+    override fun onDestroy() {
+        _binding?.formScroll?.setOnScrollChangeListener(null as NestedScrollView.OnScrollChangeListener?)
+        _binding?.formScroll?.setOnTouchListener(null)
+        _binding?.etMessage?.setOnTouchListener(null)
         userDraggingScroll = false
-        super.onDestroyView()
         attachmentUri = null
         _binding = null
+        super.onDestroy()
     }
 }

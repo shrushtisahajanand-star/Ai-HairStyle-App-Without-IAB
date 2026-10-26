@@ -6,13 +6,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"
         tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
@@ -34,7 +30,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="35">
         <activity
-            android:name="com.hairstyle.generator.aimakerover.ui.MainActivity"
+            android:name="com.hairstyle.generator.aimakerover.ui.splash.SplashActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AIHairstyleStudio.Splash"
@@ -42,10 +38,127 @@
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.language.LanguageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1Activity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1bActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1cActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1dActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro2Activity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro3Activity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.premium.PremiumActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.home.HomePageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.setting.SettingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.setting.ActiveSubscriptionActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.feedback.FeedbackActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.creation.UserCreationActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.creation.UserCreationPreviewActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.category.SelectCategoryActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.gallery.PhotoSelectActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.gallery.GalleryPhotoSelectionActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.progress.ProgressActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name="com.hairstyle.generator.aimakerover.ui.result.ResultActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AIHairstyleStudio"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"

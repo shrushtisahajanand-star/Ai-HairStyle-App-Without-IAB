@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">Masukkan Email Anda</string>
     <string name="feedback_email_invalid">Silakan masukkan alamat email yang valid.</string>
     <string name="beard_fade_haircut_styles">Jenggot, Fade &amp; Gaya Potongan Rambut</string>
+    <string name="daily_quota_finished_title">Batas Harian Habis</string>
+    <string name="daily_quota_finished_message">Batas gambar harian Anda telah habis. Kembali besok untuk generasi lainnya.</string>
+    <string name="premium_subscription_expired">Langganan premium Anda telah berakhir. Perbarui untuk terus menghasilkan.</string>
 </resources>

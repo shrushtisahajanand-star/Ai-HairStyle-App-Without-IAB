@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">Enter Your Email</string>
     <string name="feedback_email_invalid">Please enter a valid email address.</string>
     <string name="beard_fade_haircut_styles">Beard, Fade &amp; HairCut Styles</string>
+    <string name="daily_quota_finished_title">Daily Limit Over</string>
+    <string name="daily_quota_finished_message">Your daily image limit is finished. Come back tomorrow for more generations.</string>
+    <string name="premium_subscription_expired">Your premium subscription has ended. Renew to continue generating.</string>
 </resources>

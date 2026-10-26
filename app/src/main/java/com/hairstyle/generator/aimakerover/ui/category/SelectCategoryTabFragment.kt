@@ -30,7 +30,7 @@ class SelectCategoryTabFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val tabIndex: Int by lazy { requireArguments().getInt(ARG_TAB_INDEX) }
-    private val viewModel: SelectCategoryViewModel by viewModels({ requireParentFragment() })
+    private val viewModel: SelectCategoryViewModel by viewModels({ requireActivity() })
     private lateinit var adapter: CategoryHairstyleAdapter
     private lateinit var shimmerFooter: ShimmerItemFooterAdapter
 

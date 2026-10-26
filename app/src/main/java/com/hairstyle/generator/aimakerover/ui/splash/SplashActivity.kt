@@ -2,15 +2,9 @@ package com.hairstyle.generator.aimakerover.ui.splash
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentSplashBinding
 import com.hairstyle.generator.aimakerover.Advertisement.ADSAppManage
 import com.hairstyle.generator.aimakerover.Advertisement.ADSAppStarting
@@ -21,21 +15,28 @@ import com.hairstyle.generator.aimakerover.Advertisement.ADSUtilitis
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.data.remoteconfig.RemoteConfigManager
 import com.hairstyle.generator.aimakerover.data.repository.VideosRepository
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
+import com.hairstyle.generator.aimakerover.utils.AESDebugHelper
 import com.hairstyle.generator.aimakerover.utils.AppVisitManager
 import com.hairstyle.generator.aimakerover.utils.IntroManager
+import com.hairstyle.generator.aimakerover.utils.InstallReferrerHelper
 import com.hairstyle.generator.aimakerover.utils.LocaleManager
 import com.hairstyle.generator.aimakerover.utils.NavGradientHelper.applyBrandTextGradient
-import com.hairstyle.generator.aimakerover.utils.NetworkMonitor
 import com.hairstyle.generator.aimakerover.utils.PermissionHelper
 import com.hairstyle.generator.aimakerover.utils.SplashAnimationHelper
-import com.hairstyle.generator.aimakerover.utils.VideoTitleKeys
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SplashFragment : Fragment() {
+class SplashActivity : BaseActivity() {
+
+    override val isSplashScreen = true
+    override val useLightStatusBarIcons = false
 
     private var _binding: FragmentSplashBinding? = null
     private val binding get() = _binding!!
@@ -45,9 +46,6 @@ class SplashFragment : Fragment() {
 
     @Inject
     lateinit var videosRepository: VideosRepository
-
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
 
     private var animationReady = false
     private var navigated = false
@@ -62,23 +60,17 @@ class SplashFragment : Fragment() {
         } else {
             PermissionHelper.markDenied(PermissionHelper.PermissionType.NOTIFICATION)
         }
-        // Allow or deny â€” both continue to next screen after Splash.
-        navigateFromSplash()
+        // Allow or deny — both continue to splash ads, then next screen.
+        continueAfterConsent { showSplashAdOrContinue() }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentSplashBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentSplashBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        ADSMainClass.initAppContext(requireContext().applicationContext)
+        ADSMainClass.initAppContext(applicationContext)
         ADSAppManage.FastStart = true
         ADSAppStarting.ADSIsShowing = false
         ADSAppManage.AppStartingScreenOpen = false
@@ -90,7 +82,7 @@ class SplashFragment : Fragment() {
     }
 
     private fun localSplashRawId(): Int {
-        return resources.getIdentifier("splash_video", "raw", requireContext().packageName)
+        return resources.getIdentifier("splash_video", "raw", packageName)
     }
 
     private fun playLocalWebp() {
@@ -108,77 +100,73 @@ class SplashFragment : Fragment() {
     }
 
     /**
-     * 1) Wait until internet is available (no-internet dialog from MainActivity)
-     * 2) Remote Config + videos API
-     * 3) Wait until intro/splash videos are cached (or timeout)
-     * 4) Then consent â†’ ads â†’ notification permission â†’ next screen
+     * 1) Wait until internet is available (no-internet dialog from BaseActivity)
+     * 2) Remote Config + videos API (URLs only)
+     * 3) Start background cache of the 3 intro videos — do not wait
+     * 4) Notification permission → consent → splash ads → next screen
      */
     private fun fetchRemoteConfigCacheVideosThenAds() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Block splash flow until online â€” dialog is shown by MainActivity
+        lifecycleScope.launch {
+            // Block splash flow until online — dialog is shown by BaseActivity
             networkMonitor.awaitOnline()
-            if (!isAdded || navigated) return@launch
+            if (!isScreenAlive() || navigated) return@launch
 
             val startedAt = System.currentTimeMillis()
+            billingManager.refreshEntitlements()
             runCatching {
+                InstallReferrerHelper.awaitFetch(this@SplashActivity)
                 remoteConfigManager.fetchAndSaveAll()
+                AESDebugHelper.logRemoteConfigUrlsFromPrefs()
                 videosRepository.fetchAndSaveAllVideos()
-                // Block next until videos stored in cache (slow net: max 15s)
-                videosRepository.awaitCacheVideos(
-                    videoTitleKeys = listOf(
-                        VideoTitleKeys.SPLASH,
-                        VideoTitleKeys.INTRO_VIDEO_1,
-                        VideoTitleKeys.INTRO_VIDEO_2,
-                        VideoTitleKeys.INTRO_VIDEO_3
-                    ),
-                    timeoutMs = VIDEO_CACHE_WAIT_MS
-                )
+                if (!IntroManager.isIntroCompleted()) {
+                    videosRepository.preloadIntroVideos()
+                }
+                // Await billing sync to ensure correct premium/ad state before consent/ad decisions
+                withTimeoutOrNull(2500L) {
+                    billingManager.isInitialSyncComplete.first { it }
+                }
             }.onFailure {
                 // Log.e(TAG, "Splash fetch/cache failed", it)
             }
-            if (!isAdded || navigated) return@launch
+            if (!isScreenAlive() || navigated) return@launch
 
             val elapsed = System.currentTimeMillis() - startedAt
             if (elapsed < MIN_SPLASH_MS) {
                 delay(MIN_SPLASH_MS - elapsed)
             }
-            if (!isAdded || navigated) return@launch
+            if (!isScreenAlive() || navigated) return@launch
 
-            continueAfterConsent { showSplashAdOrContinue() }
+            requestNotificationThenShowAds()
         }
     }
 
     private fun continueAfterConsent(action: () -> Unit) {
-        val activity = activity ?: run {
-            action()
-            return
-        }
-        if (activity.isFinishing || activity.isDestroyed) {
+        if (isFinishing || isDestroyed) {
             action()
             return
         }
 
-        // No internet â†’ skip consent form, continue next
-        if (!ADSUtilitis.IsNetworkConnected(activity)) {
-//            Log.d(TAG, "No internet â€” skip consent, continue")
+        // No internet → skip consent form, continue next
+        if (!ADSUtilitis.IsNetworkConnected(this)) {
+//            Log.d(TAG, "No internet — skip consent, continue")
             action()
             return
         }
 
         val showFormOnSplash = ADSMainClass.isConsentOnSplash()
-        ADSConsentManager.gatherConsent(activity, showFormOnSplash) { formShown ->
-            if (!isAdded || navigated) return@gatherConsent
-            if (activity.isFinishing || activity.isDestroyed) return@gatherConsent
+        ADSConsentManager.gatherConsent(this, showFormOnSplash) { formShown ->
+            if (!isScreenAlive() || navigated) return@gatherConsent
+            if (isFinishing || isDestroyed) return@gatherConsent
 
             if (showFormOnSplash) {
                 if (formShown) {
                     ADSMainClass.setConsentPendingOnLanguage(false)
-                } else if (ADSConsentManager.shouldRetryConsentOnLanguage(activity)) {
+                } else if (ADSConsentManager.shouldRetryConsentOnLanguage(this)) {
                     ADSMainClass.setConsentPendingOnLanguage(true)
                 }
             }
 
-            proceedAfterConsentGathered(activity, action)
+            proceedAfterConsentGathered(this, action)
         }
     }
 
@@ -186,7 +174,7 @@ class SplashFragment : Fragment() {
         if (ADSConsentManager.canRequestAds(activity) && !ADSMainClass.getAds_Free()) {
             ADSAppManage.initializeMobileAdsIfNeeded(activity.applicationContext) {
                 activity.runOnUiThread {
-                    if (isAdded && !navigated && !activity.isFinishing && !activity.isDestroyed) {
+                    if (isScreenAlive() && !navigated && !activity.isFinishing && !activity.isDestroyed) {
                         preloadNativeAdsIfNeeded(activity)
                         preloadInterstitialAdsIfNeeded(activity)
                         action()
@@ -195,7 +183,7 @@ class SplashFragment : Fragment() {
             }
         } else {
             activity.runOnUiThread {
-                if (isAdded && !navigated) {
+                if (isScreenAlive() && !navigated) {
                     action()
                 }
             }
@@ -204,8 +192,8 @@ class SplashFragment : Fragment() {
 
     /**
      * Ads_Loading_Types:
-     * - Load â†’ native loads on each screen open (onLoad) â€” no splash preload
-     * - PreLoad â†’ preload language/native ad on Splash for faster next screens
+     * - Load → native loads on each screen open (onLoad) — no splash preload
+     * - PreLoad → preload language/native ad on Splash for faster next screens
      */
     private fun preloadNativeAdsIfNeeded(activity: Activity) {
         val loadingType = ADSMainClass.getAdsTypeManage().orEmpty()
@@ -232,8 +220,8 @@ class SplashFragment : Fragment() {
 
     /**
      * inter_ads_load_type:
-     * - PreLoad â†’ cache forward interstitial on Splash
-     * - Show / Load â†’ request when showing (no splash preload)
+     * - PreLoad → cache forward interstitial on Splash
+     * - Show / Load → request when showing (no splash preload)
      */
     private fun preloadInterstitialAdsIfNeeded(activity: Activity) {
         val loadType = ADSMainClass.getInterAdsLoadType().orEmpty()
@@ -254,30 +242,29 @@ class SplashFragment : Fragment() {
     }
 
     private fun showSplashAdOrContinue() {
-        val activity = activity
-        if (activity == null || activity.isFinishing || activity.isDestroyed) {
-            requestNotificationThenNavigate()
+        if (isFinishing || isDestroyed) {
+            navigateFromSplash()
             return
         }
 
-        if (!ADSUtilitis.IsNetworkConnected(activity)) {
-            requestNotificationThenNavigate()
+        if (!ADSUtilitis.IsNetworkConnected(this)) {
+            navigateFromSplash()
             return
         }
 
-        if (!ADSConsentManager.canRequestAds(activity)) {
-            requestNotificationThenNavigate()
+        if (!ADSConsentManager.canRequestAds(this)) {
+            navigateFromSplash()
             return
         }
 
         if (!ADSMainClass.shouldShowSplashAd()) {
             // Log.d(TAG, "Splash ad skipped by after_count / show flag")
-            requestNotificationThenNavigate()
+            navigateFromSplash()
             return
         }
 
         if (ADSMainClass.getAds_Free()) {
-            requestNotificationThenNavigate()
+            navigateFromSplash()
             return
         }
 
@@ -290,57 +277,60 @@ class SplashFragment : Fragment() {
 
         if (shouldShowSplashAd) {
             ADSAppStarting.AdsSplashAppStartingDisplay(
-                activity,
+                this,
                 ADSAppStarting.OnFinishAds {
                     ADSAppManage.FastStart = true
-                    requestNotificationThenNavigate()
+                    navigateFromSplash()
                 }
             )
         } else {
             ADSAppManage.FastStart = true
-            requestNotificationThenNavigate()
+            navigateFromSplash()
         }
     }
 
     /**
-     * After Splash (ads/consent done): ask POST_NOTIFICATIONS on Android 13+,
-     * then go Language / Intro / Home. Deny still continues.
+     * Ask POST_NOTIFICATIONS on Android 13+ before splash ads.
+     * Allow or deny — both continue to consent → ads → next screen.
      */
-    private fun requestNotificationThenNavigate() {
-        if (!isAdded || navigated) return
-        if (notificationPromptStarted) return
+    private fun requestNotificationThenShowAds() {
+        if (!isScreenAlive() || navigated) return
+        if (notificationPromptStarted) {
+            continueAfterConsent { showSplashAdOrContinue() }
+            return
+        }
         notificationPromptStarted = true
 
         if (!PermissionHelper.needsNotificationPermission() ||
-            PermissionHelper.hasNotificationPermission(requireContext())
+            PermissionHelper.hasNotificationPermission(this)
         ) {
-            navigateFromSplash()
+            continueAfterConsent { showSplashAdOrContinue() }
             return
         }
 
         val permission = PermissionHelper.notificationPermissions().firstOrNull()
         if (permission == null) {
-            navigateFromSplash()
+            continueAfterConsent { showSplashAdOrContinue() }
             return
         }
 
-        // Log.d(TAG, "Requesting POST_NOTIFICATIONS before next screen")
         notificationPermissionLauncher.launch(permission)
     }
 
     private fun navigateFromSplash() {
-        if (!isAdded || navigated) return
+        if (!isScreenAlive() || navigated) return
         navigated = true
 
         AppVisitManager.incrementLaunchCount()
         ADSAppManage.AppStartingScreenOpen = true
 
-        val action = when {
-            !LocaleManager.isLanguageOnboardingDone() -> R.id.action_splash_to_language
-            !IntroManager.isIntroCompleted() -> R.id.action_splash_to_intro1
-            else -> R.id.action_splash_to_home
+        when {
+            !LocaleManager.isLanguageOnboardingDone() ->
+                AppNavigator.openLanguage(this, fromSettings = false, finishFrom = true)
+            !IntroManager.isIntroCompleted() ->
+                AppNavigator.openIntro1(this, finishFrom = true)
+            else -> AppNavigator.openHomeClearTask(this)
         }
-        findNavController().navigate(action)
     }
 
     override fun onResume() {
@@ -357,18 +347,17 @@ class SplashFragment : Fragment() {
         super.onPause()
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         _binding?.let { SplashAnimationHelper.release(it.ivSplashAnimation) }
         animationReady = false
         navigated = false
         notificationPromptStarted = false
-        super.onDestroyView()
+        super.onDestroy()
         _binding = null
     }
 
     companion object {
         private const val TAG = "SplashAds"
         private const val MIN_SPLASH_MS = 2000L
-        private const val VIDEO_CACHE_WAIT_MS = 15_000L
     }
 }

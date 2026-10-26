@@ -1,28 +1,28 @@
 package com.hairstyle.generator.aimakerover.ui.category
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentSelectCategoryBinding
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.ui.common.RateAppDialog
 import com.hairstyle.generator.aimakerover.utils.applyStatusBarPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class SelectCategoryFragment : Fragment() {
+class SelectCategoryActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentSelectCategoryBinding? = null
     private val binding get() = _binding!!
@@ -30,17 +30,11 @@ class SelectCategoryFragment : Fragment() {
     private val viewModel: SelectCategoryViewModel by viewModels()
     private var tabMediator: TabLayoutMediator? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentSelectCategoryBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentSelectCategoryBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
         binding.root.applyStatusBarPadding()
         binding.toolbar.setNavigationOnClickListener {
@@ -51,14 +45,14 @@ class SelectCategoryFragment : Fragment() {
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.selectImage())
         RateAppDialog.showIfNeededForAppOpen(this)
 
-        val initialTab = arguments?.getInt(ARG_TAB, 0) ?: 0
+        val initialTab = intent.getIntExtra(ARG_TAB, 0)
         setupViewPager(initialTab)
 
         binding.btnGenerateHairstyle.setOnClickListener {
             val activeTab = viewModel.activeTab.value
             val selected = viewModel.selectedForTab(activeTab).value ?: return@setOnClickListener
             val photoAlreadySelected =
-                arguments?.getBoolean(ARG_PHOTO_ALREADY_SELECTED, false) == true
+                intent.getBooleanExtra(ARG_PHOTO_ALREADY_SELECTED, false)
             HairColorBottomSheet.newInstance(
                 previewImageUrl = selected.imageUrl,
                 hairstyleTitle = selected.title,
@@ -68,7 +62,7 @@ class SelectCategoryFragment : Fragment() {
                 } else {
                     HairColorBottomSheet.Source.SELECT_CATEGORY
                 }
-            ).show(childFragmentManager, HairColorBottomSheet.TAG)
+            ).show(supportFragmentManager, HairColorBottomSheet.TAG)
         }
 
         observeSelection()
@@ -99,8 +93,8 @@ class SelectCategoryFragment : Fragment() {
     }
 
     private fun observeSelection() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.activeTab.collect { activeTab ->
                         val selected = viewModel.selectedForTab(activeTab).value
@@ -126,15 +120,24 @@ class SelectCategoryFragment : Fragment() {
             viewModel.selectedForTab(activeTab).value != null
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         tabMediator?.detach()
         tabMediator = null
-        super.onDestroyView()
         _binding = null
+        super.onDestroy()
     }
 
     companion object {
         const val ARG_TAB = "initial_tab"
         const val ARG_PHOTO_ALREADY_SELECTED = "photo_already_selected"
+
+        fun createIntent(
+            context: Context,
+            tab: Int = 0,
+            photoAlreadySelected: Boolean = false
+        ): Intent = Intent(context, SelectCategoryActivity::class.java).apply {
+            putExtra(ARG_TAB, tab)
+            putExtra(ARG_PHOTO_ALREADY_SELECTED, photoAlreadySelected)
+        }
     }
 }

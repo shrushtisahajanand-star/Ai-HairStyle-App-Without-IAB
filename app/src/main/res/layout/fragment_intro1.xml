@@ -64,7 +64,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/_20sdp"
             android:paddingTop="@dimen/_16sdp"
-            android:paddingBottom="@dimen/_24sdp">
+            android:paddingBottom="@dimen/_14sdp">
 
             <com.hairstyle.generator.aimakerover.ui.intro.IntroDotsIndicator
                 android:id="@+id/dotsIndicator"
@@ -110,7 +110,7 @@
                 android:id="@+id/btnContinue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_50sdp"
+                android:layout_marginTop="@dimen/_36sdp"
                 android:fontFamily="@font/saans_medium"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"

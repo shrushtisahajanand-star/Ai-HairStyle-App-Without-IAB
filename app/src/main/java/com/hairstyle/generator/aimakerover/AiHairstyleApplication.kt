@@ -45,11 +45,11 @@ class AiHairstyleApplication : Application(), ImageLoaderFactory {
         // Ads_Free is persisted; re-derive it from the real plan state so a stale
         // "true" (e.g. left over from a billing test) can never keep ads off.
         // Must run after bind() — ADSMainClass prefs need the app context.
-        runCatching { PremiumPlanManager.syncAdsFreeFlag() }
+        runCatching { PremiumPlanManager.refreshLocalExpiryOnLaunch() }
         NotificationHelper.ensureChannel(this)
         FcmTokenHelper.init()
         // Block screenshots + screen recording on every Activity window.
-        registerActivityLifecycleCallbacks(SecureWindowCallbacks())
+//        registerActivityLifecycleCallbacks(SecureWindowCallbacks())
     }
 
     private fun configureRevenueCat() {

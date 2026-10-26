@@ -2,26 +2,27 @@ package com.hairstyle.generator.aimakerover.ui.home
 
 import android.graphics.Color
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.os.Handler
+import android.os.Looper
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.OnBackPressedCallback
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentHomePageBinding
 import com.hairstyle.generator.aimakerover.Advertisement.ADSMainClass
+import com.hairstyle.generator.aimakerover.Advertisement.ADSNativeDisplay
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenInterAds
-import com.hairstyle.generator.aimakerover.billing.BillingManager
+import com.hairstyle.generator.aimakerover.data.repository.VideosRepository
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.ui.common.RateAppDialog
 import com.hairstyle.generator.aimakerover.ui.home.beard.BeardFragment
 import com.hairstyle.generator.aimakerover.ui.home.`fun`.FunFragment
@@ -35,34 +36,34 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class HomePageFragment : Fragment() {
+class HomePageActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentHomePageBinding? = null
     private val binding get() = _binding!!
 
-    @Inject lateinit var billingManager: BillingManager
+    @Inject
+    lateinit var videosRepository: VideosRepository
 
     private enum class Tab { HOME, FUN, BEARD }
 
     private var currentTab = Tab.HOME
     private var homeHeaderHidden = false
+    private val homeNativeReloadHandler = Handler(Looper.getMainLooper())
+    private val homeNativeReloadRunnable = Runnable { reloadHomeBottomNativeIfVisible() }
 
     private val headerLayoutListener =
         View.OnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
             if (bottom - top != oldBottom - oldTop) syncContentInsets()
         }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentHomePageBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentHomePageBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding.homeHeader.applyStatusBarPadding()
         binding.homeHeader.addOnLayoutChangeListener(headerLayoutListener)
         setupBottomNavigation()
@@ -74,23 +75,28 @@ class HomePageFragment : Fragment() {
         selectTab(currentTab)
         binding.btnSettings.setOnClickListener {
             InterstitialNavHelper.showOnClick(this, ScreenInterAds.settingIcon()) {
-                findNavController().navigate(R.id.action_homePage_to_setting)
+                AppNavigator.openSettings(this)
             }
         }
         binding.btnPro.setOnClickListener {
-            findNavController().navigate(R.id.action_homePage_to_premium)
+            AppNavigator.openPremium(this)
         }
         updateProButtonVisibility()
         observePremiumEntitlement()
+        applyHomeNativeAdsBackground()
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.home())
-        InterstitialNavHelper.preload(activity)
+        applyHomeNativeAdsBackground()
+        InterstitialNavHelper.preload(this)
+        videosRepository.preloadHomeVideos()
     }
 
     private fun observePremiumEntitlement() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 billingManager.entitlementRevision.collect {
+                    PremiumPlanManager.syncAdsFreeFlag()
                     updateProButtonVisibility()
+                    applyHomeNativeAdsBackground()
                 }
             }
         }
@@ -99,7 +105,7 @@ class HomePageFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         // Re-check Play subscriptions (expired Internal-test subs drop off here).
-        billingManager.startConnection()
+        billingManager.refreshEntitlements()
         updateProButtonVisibility()
         // Fullscreen inter/app-open leave the window with collapsed system-bar insets.
         _binding?.let { ViewCompat.requestApplyInsets(it.root) }
@@ -107,6 +113,75 @@ class HomePageFragment : Fragment() {
             showHomeHeaderImmediate()
         }
         syncContentInsets()
+        applyHomeNativeAdsBackground()
+        scheduleHomeBottomNativeReload()
+    }
+
+    override fun onPause() {
+        stopHomeBottomNativeReload()
+        super.onPause()
+    }
+
+    private fun scheduleHomeBottomNativeReload() {
+        stopHomeBottomNativeReload()
+        if (!ADSMainClass.getNativeAdsReloading()) return
+        val seconds = ADSMainClass.getNativeAdsReloadSeconds()
+        if (seconds <= 0) return
+        if (normalizeHomeAdsType() != "native") return
+        homeNativeReloadHandler.postDelayed(homeNativeReloadRunnable, seconds * 1000L)
+    }
+
+    private fun stopHomeBottomNativeReload() {
+        homeNativeReloadHandler.removeCallbacks(homeNativeReloadRunnable)
+    }
+
+    private fun reloadHomeBottomNativeIfVisible() {
+        if (!isScreenAlive() || _binding == null) return
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+        // Load (shimmer) → Show when ready → then start next N-second timer
+        ScreenAdsHelper.reloadHomeBottomNative(this, binding.root) {
+            if (!isScreenAlive()) return@reloadHomeBottomNative
+            if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@reloadHomeBottomNative
+            scheduleHomeBottomNativeReload()
+        }
+    }
+
+    private fun normalizeHomeAdsType(): String {
+        return when (ADSMainClass.getHomeScreenAdsType().trim().lowercase()) {
+            "banner" -> "banner"
+            else -> "native"
+        }
+    }
+
+    /** Home only: #4E4C4C on bar + CardView + Native body + shimmer (when Native is active). */
+    private fun applyHomeNativeAdsBackground() {
+        if (_binding == null) return
+        val adsVisible = binding.root.findViewById<View>(R.id.screenAdContainer)
+            ?.isVisible == true
+        val useNativeBg = adsVisible && normalizeHomeAdsType() == "native"
+        if (useNativeBg) {
+            val bg = ContextCompat.getColor(this, R.color.home_native_ads_background)
+            val shimmer = ContextCompat.getColor(this, R.color.home_native_ads_shimmer)
+            ADSNativeDisplay.setHomeNativeBackgroundOverride(bg, shimmer)
+            binding.homeBottomAdsBar.setBackgroundColor(bg)
+            binding.root.findViewById<View>(R.id.screenAdContainer)?.setBackgroundColor(bg)
+            binding.root.findViewById<androidx.cardview.widget.CardView>(R.id.cardNativeAd)?.apply {
+                setCardBackgroundColor(bg)
+                // Avoid a darker “floating” card on the same strip.
+                radius = 0f
+            }
+            binding.root.findViewById<com.facebook.shimmer.ShimmerFrameLayout>(R.id.shimmerScreenAd)
+                ?.setBackgroundColor(bg)
+        } else {
+            ADSNativeDisplay.setHomeNativeBackgroundOverride(null, null)
+            val fallback = ContextCompat.getColor(this, R.color.nav_bar_background)
+            binding.homeBottomAdsBar.setBackgroundColor(fallback)
+            binding.root.findViewById<View>(R.id.screenAdContainer)?.setBackgroundColor(Color.TRANSPARENT)
+            binding.root.findViewById<androidx.cardview.widget.CardView>(R.id.cardNativeAd)?.apply {
+                setCardBackgroundColor(fallback)
+                radius = resources.getDimension(com.intuit.sdp.R.dimen._12sdp)
+            }
+        }
     }
 
     private fun updateProButtonVisibility() {
@@ -157,9 +232,9 @@ class HomePageFragment : Fragment() {
     }
 
     internal fun showSecondVisitPromo(promo: PromoSheetContent) {
-        if (!isAdded) return
+        if (!isScreenAlive()) return
         if (PremiumPlanManager.isPremiumActive()) return
-        if (childFragmentManager.findFragmentByTag(SecondVisitPromoBottomSheet.TAG) != null) return
+        if (supportFragmentManager.findFragmentByTag(SecondVisitPromoBottomSheet.TAG) != null) return
 
         SecondVisitPromoBottomSheet.newInstance(
             imageUrl = promo.imageUrl,
@@ -167,7 +242,7 @@ class HomePageFragment : Fragment() {
             title = promo.title,
             subtitle = promo.subtitle,
             startOnPremium = false
-        ).show(childFragmentManager, SecondVisitPromoBottomSheet.TAG)
+        ).show(supportFragmentManager, SecondVisitPromoBottomSheet.TAG)
     }
 
     /** After promo sheet closes — no rate here; rate is shown before promo. */
@@ -175,9 +250,8 @@ class HomePageFragment : Fragment() {
 
     /** Fun / Beard / Home tab became visible — show pending rate prompt on first eligible screen. */
     internal fun maybeShowRateAppPrompt() {
-        if (!isAdded) return
-        val host = childFragmentManager.findFragmentByTag(tagFor(currentTab)) ?: return
-        RateAppDialog.showIfNeededForAppOpen(host)
+        if (!isScreenAlive()) return
+        RateAppDialog.showIfNeededForAppOpen(this)
     }
 
     internal fun openBeardTab() {
@@ -201,8 +275,8 @@ class HomePageFragment : Fragment() {
 
     /** System / gesture back — no interstitial ads. */
     private fun setupBackPress() {
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        onBackPressedDispatcher.addCallback(
+            this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     when (currentTab) {
@@ -221,30 +295,30 @@ class HomePageFragment : Fragment() {
     private fun handleHomeBackExit() {
         if (ADSMainClass.getExitAds()) {
             ExitAppDialog.show(this) {
-                requireActivity().finishAffinity()
+                finishAffinity()
             }
         } else {
-            requireActivity().finishAffinity()
+            finishAffinity()
         }
     }
 
     private fun onBottomNavClick(tab: Tab) {
-        if (currentTab == tab && childFragmentManager.findFragmentByTag(tagFor(tab))?.isVisible == true) {
+        if (currentTab == tab && supportFragmentManager.findFragmentByTag(tagFor(tab))?.isVisible == true) {
             return
         }
         InterstitialNavHelper.showOnBottomNav(this) {
             // After fullscreen ad, wait one frame so header can lay out before insets.
-            if (!isAdded || _binding == null) return@showOnBottomNav
-            view?.post {
-                if (!isAdded || _binding == null) return@post
+            if (!isScreenAlive() || _binding == null) return@showOnBottomNav
+            binding.root.post {
+                if (!isScreenAlive() || _binding == null) return@post
                 selectTab(tab)
             }
         }
     }
 
     private fun selectTab(tab: Tab) {
-        if (_binding == null || !isAdded) return
-        if (currentTab == tab && childFragmentManager.findFragmentByTag(tagFor(tab))?.isVisible == true) {
+        if (_binding == null || !isScreenAlive()) return
+        if (currentTab == tab && supportFragmentManager.findFragmentByTag(tagFor(tab))?.isVisible == true) {
             // Still re-apply insets (e.g. returning from inter with same tab race).
             if (tab != Tab.HOME) {
                 showHomeHeaderImmediate()
@@ -264,15 +338,15 @@ class HomePageFragment : Fragment() {
         syncContentInsets()
 
         val targetTag = tagFor(tab)
-        val transaction = childFragmentManager.beginTransaction()
-        // Only toggle tab fragments — don't hide dialogs/bottom sheets in child FM.
+        val transaction = supportFragmentManager.beginTransaction()
+        // Only toggle tab fragments — don't hide dialogs/bottom sheets in FM.
         listOf(TAG_HOME, TAG_FUN, TAG_BEARD).forEach { tag ->
-            childFragmentManager.findFragmentByTag(tag)?.let { fragment ->
+            supportFragmentManager.findFragmentByTag(tag)?.let { fragment ->
                 if (fragment.isAdded) transaction.hide(fragment)
             }
         }
 
-        var fragment = childFragmentManager.findFragmentByTag(targetTag)
+        var fragment = supportFragmentManager.findFragmentByTag(targetTag)
         if (fragment == null) {
             fragment = when (tab) {
                 Tab.HOME -> HomeFragment()
@@ -284,9 +358,9 @@ class HomePageFragment : Fragment() {
             transaction.show(fragment)
         }
         // Interstitial dismiss often lands after onSaveInstanceState.
-        if (childFragmentManager.isStateSaved) {
+        if (supportFragmentManager.isStateSaved) {
             transaction.commitAllowingStateLoss()
-            childFragmentManager.executePendingTransactions()
+            supportFragmentManager.executePendingTransactions()
         } else {
             transaction.commitNow()
         }
@@ -304,7 +378,7 @@ class HomePageFragment : Fragment() {
             if (tab == Tab.HOME) {
                 Color.TRANSPARENT
             } else {
-                ContextCompat.getColor(requireContext(), R.color.background)
+                ContextCompat.getColor(this, R.color.background)
             }
         )
     }
@@ -348,11 +422,13 @@ class HomePageFragment : Fragment() {
         binding.tvBeard.setNavLabel(currentTab == Tab.BEARD)
     }
 
-    override fun onDestroyView() {
-        binding.homeHeader.animate().cancel()
-        binding.homeHeader.removeOnLayoutChangeListener(headerLayoutListener)
-        super.onDestroyView()
+    override fun onDestroy() {
+        stopHomeBottomNativeReload()
+        ADSNativeDisplay.setHomeNativeBackgroundOverride(null, null)
+        _binding?.homeHeader?.animate()?.cancel()
+        _binding?.homeHeader?.removeOnLayoutChangeListener(headerLayoutListener)
         _binding = null
+        super.onDestroy()
     }
 
     companion object {

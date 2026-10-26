@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">E-postanızı Girin</string>
     <string name="feedback_email_invalid">Lütfen geçerli bir e-posta adresi girin.</string>
     <string name="beard_fade_haircut_styles">Sakal, Fade &amp; Saç Kesim Stilleri</string>
+    <string name="daily_quota_finished_title">Günlük Limit Doldu</string>
+    <string name="daily_quota_finished_message">Günlük görsel limitiniz doldu. Daha fazla oluşturma için yarın tekrar gelin.</string>
+    <string name="premium_subscription_expired">Premium aboneliğiniz sona erdi. Oluşturmaya devam etmek için yenileyin.</string>
 </resources>

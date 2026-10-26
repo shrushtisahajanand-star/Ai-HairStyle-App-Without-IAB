@@ -1,11 +1,12 @@
 package com.hairstyle.generator.aimakerover.ui.category
 
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class SelectCategoryPagerAdapter(
-    fragment: Fragment
-) : FragmentStateAdapter(fragment) {
+    activity: FragmentActivity
+) : FragmentStateAdapter(activity) {
 
     override fun getItemCount(): Int = TAB_COUNT
 

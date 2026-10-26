@@ -1,20 +1,16 @@
 package com.hairstyle.generator.aimakerover.ui.gallery
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.core.os.bundleOf
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentGalleryPhotoSelectionBinding
@@ -22,10 +18,13 @@ import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
 import com.hairstyle.generator.aimakerover.data.repository.FreeLimitCheckResult
 import com.hairstyle.generator.aimakerover.data.repository.FreeLimitRepository
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
 import com.hairstyle.generator.aimakerover.ui.category.GridSpacingItemDecoration
-import com.hairstyle.generator.aimakerover.ui.category.SelectCategoryFragment
+import com.hairstyle.generator.aimakerover.ui.common.DailyQuotaFinishedDialog
 import com.hairstyle.generator.aimakerover.ui.premium.PremiumBottomSheet
 import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModel
+import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModelOwner
 import com.hairstyle.generator.aimakerover.utils.FaceDetectionHelper
 import com.hairstyle.generator.aimakerover.utils.FileUtils
 import com.hairstyle.generator.aimakerover.utils.ImageCompressor
@@ -36,13 +35,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class GalleryPhotoSelectionFragment : Fragment() {
+class GalleryPhotoSelectionActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentGalleryPhotoSelectionBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: GalleryPhotoSelectionViewModel by viewModels()
-    private val generationViewModel: GenerationViewModel by activityViewModels()
+    private val generationViewModel: GenerationViewModel by sharedViewModels({ GenerationViewModelOwner })
 
     @Inject
     lateinit var freeLimitRepository: FreeLimitRepository
@@ -55,17 +56,12 @@ class GalleryPhotoSelectionFragment : Fragment() {
         override fun handleOnBackPressed() = Unit
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentGalleryPhotoSelectionBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentGalleryPhotoSelectionBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding.root.applyStatusBarPadding()
 
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.galleryPhotos())
@@ -74,7 +70,7 @@ class GalleryPhotoSelectionFragment : Fragment() {
             viewModel.selectPhoto(photo.id)
         }
 
-        val gridLayoutManager = GridLayoutManager(requireContext(), GRID_SPAN_COUNT)
+        val gridLayoutManager = GridLayoutManager(this, GRID_SPAN_COUNT)
         binding.rvGalleryPhotos.layoutManager = gridLayoutManager
         val spacingPx = (4 * resources.displayMetrics.density).toInt()
         if (binding.rvGalleryPhotos.itemDecorationCount == 0) {
@@ -90,8 +86,8 @@ class GalleryPhotoSelectionFragment : Fragment() {
         }
         InterstitialNavHelper.installSystemBackInter(this)
         // Registered after the back-inter callback so it wins while processing.
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
+        onBackPressedDispatcher.addCallback(
+            this,
             blockBackWhileProcessing
         )
 
@@ -103,8 +99,8 @@ class GalleryPhotoSelectionFragment : Fragment() {
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     binding.progressBar.isVisible = state.isLoading
                     binding.tvAlbumName.text = state.selectedAlbumName
@@ -138,19 +134,33 @@ class GalleryPhotoSelectionFragment : Fragment() {
 
     private fun processSelectedImage(uri: Uri) {
         if (isProcessingPhoto) return
-        val appContext = requireContext().applicationContext
-        viewLifecycleOwner.lifecycleScope.launch {
+        val appContext = applicationContext
+        lifecycleScope.launch {
             setPhotoProcessingUi(true)
             try {
-                when (freeLimitRepository.checkBeforeFaceDetection()) {
-                    FreeLimitCheckResult.LimitReached -> {
-                        if (isAdded) showFreeLimitPremiumSheet()
+                when (val limitResult = freeLimitRepository.checkBeforeFaceDetection()) {
+                    FreeLimitCheckResult.Allowed -> Unit
+                    FreeLimitCheckResult.FreeLimitReached,
+                    FreeLimitCheckResult.PremiumExpired -> {
+                        if (isScreenAlive()) {
+                            if (limitResult is FreeLimitCheckResult.PremiumExpired) {
+                                Toast.makeText(
+                                    this@GalleryPhotoSelectionActivity,
+                                    getString(R.string.premium_subscription_expired),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            showFreeLimitPremiumSheet()
+                        }
                         return@launch
                     }
-                    FreeLimitCheckResult.Allowed -> Unit
+                    FreeLimitCheckResult.DailyLimitReached -> {
+                        if (isScreenAlive()) DailyQuotaFinishedDialog.show(this@GalleryPhotoSelectionActivity)
+                        return@launch
+                    }
                 }
                 if (!FaceDetectionHelper.hasDetectableFace(appContext, uri)) {
-                    if (isAdded) showFaceDetectionFailedDialog()
+                    if (isScreenAlive()) showFaceDetectionFailedDialog()
                     return@launch
                 }
                 val compressed = ImageCompressor.compress(
@@ -158,11 +168,11 @@ class GalleryPhotoSelectionFragment : Fragment() {
                     uri,
                     FileUtils.getCacheDir(appContext, "compressed")
                 )
-                if (!isAdded || _binding == null) return@launch
+                if (!isScreenAlive() || _binding == null) return@launch
                 generationViewModel.setOriginalImage(uri, compressed.absolutePath)
                 navigateAfterPhotoReady()
             } catch (e: Exception) {
-                if (isAdded && _binding != null) {
+                if (isScreenAlive() && _binding != null) {
                     showSnackbar(e.message ?: getString(R.string.error_image_processing))
                 }
             } finally {
@@ -181,29 +191,26 @@ class GalleryPhotoSelectionFragment : Fragment() {
     }
 
     private fun isPhotoFirstFlow(): Boolean =
-        arguments?.getBoolean(PhotoSelectFragment.ARG_PHOTO_FIRST_FLOW, false) == true
+        intent.getBooleanExtra(ARG_PHOTO_FIRST_FLOW, false)
 
     private fun navigateAfterPhotoReady() {
         if (isPhotoFirstFlow()) {
-            findNavController().navigate(
-                R.id.action_galleryPhotoSelection_to_selectCategory,
-                bundleOf(SelectCategoryFragment.ARG_PHOTO_ALREADY_SELECTED to true)
-            )
+            AppNavigator.openSelectCategory(this, photoAlreadySelected = true)
         } else {
-            findNavController().navigate(R.id.action_galleryPhotoSelection_to_progress)
+            AppNavigator.openProgress(this)
         }
     }
 
     private fun showFreeLimitPremiumSheet() {
-        if (childFragmentManager.findFragmentByTag(PremiumBottomSheet.TAG) != null) return
+        if (supportFragmentManager.findFragmentByTag(PremiumBottomSheet.TAG) != null) return
         PremiumBottomSheet.newInstance(
             onCancelClick = {
-                findNavController().navigate(R.id.action_galleryPhotoSelection_to_home)
+                AppNavigator.openHomeClearTask(this)
             },
             onPremiumClick = {
-                findNavController().navigate(R.id.action_galleryPhotoSelection_to_premium)
+                AppNavigator.openPremium(this)
             }
-        ).show(childFragmentManager, PremiumBottomSheet.TAG)
+        ).show(supportFragmentManager, PremiumBottomSheet.TAG)
     }
 
     private fun showFaceDetectionFailedDialog() {
@@ -215,12 +222,18 @@ class GalleryPhotoSelectionFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
         _binding = null
+        super.onDestroy()
     }
 
     companion object {
         private const val GRID_SPAN_COUNT = 3
+        const val ARG_PHOTO_FIRST_FLOW = "photo_first_flow"
+
+        fun createIntent(context: Context, photoFirstFlow: Boolean = false): Intent =
+            Intent(context, GalleryPhotoSelectionActivity::class.java).apply {
+                putExtra(ARG_PHOTO_FIRST_FLOW, photoFirstFlow)
+            }
     }
 }

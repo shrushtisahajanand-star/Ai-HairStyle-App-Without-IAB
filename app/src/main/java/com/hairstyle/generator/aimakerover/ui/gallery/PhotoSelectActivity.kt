@@ -1,18 +1,15 @@
 package com.hairstyle.generator.aimakerover.ui.gallery
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.FragmentPhotoSelectBinding
 import com.hairstyle.generator.aimakerover.data.repository.FreeLimitCheckResult
@@ -20,9 +17,12 @@ import com.hairstyle.generator.aimakerover.data.repository.FreeLimitRepository
 import com.hairstyle.generator.aimakerover.Advertisement.ADSAppManage
 import com.hairstyle.generator.aimakerover.Advertisement.InterstitialNavHelper
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
-import com.hairstyle.generator.aimakerover.ui.category.SelectCategoryFragment
+import com.hairstyle.generator.aimakerover.ui.AppNavigator
+import com.hairstyle.generator.aimakerover.ui.BaseActivity
+import com.hairstyle.generator.aimakerover.ui.common.DailyQuotaFinishedDialog
 import com.hairstyle.generator.aimakerover.ui.premium.PremiumBottomSheet
 import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModel
+import com.hairstyle.generator.aimakerover.ui.viewmodel.GenerationViewModelOwner
 import com.hairstyle.generator.aimakerover.utils.FaceDetectionHelper
 import com.hairstyle.generator.aimakerover.utils.FileUtils
 import com.hairstyle.generator.aimakerover.utils.ImageCompressor
@@ -35,12 +35,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PhotoSelectFragment : Fragment() {
+class PhotoSelectActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
 
     private var _binding: FragmentPhotoSelectBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: GenerationViewModel by activityViewModels()
+    private val viewModel: GenerationViewModel by sharedViewModels({ GenerationViewModelOwner })
 
     @Inject
     lateinit var freeLimitRepository: FreeLimitRepository
@@ -51,6 +53,8 @@ class PhotoSelectFragment : Fragment() {
     private var isProcessingPhoto = false
     private var rationaleBeforeRequest = false
     private var permissionRequestStartedAt = 0L
+    /** Last source used to pick a photo — drives Face Detection retry actions. */
+    private var lastPhotoSource: PhotoAction = PhotoAction.GALLERY
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -58,10 +62,12 @@ class PhotoSelectFragment : Fragment() {
         handlePermissionResult(PermissionHelper.PermissionType.CAMERA, result)
     }
 
-    private val storagePermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        handlePermissionResult(PermissionHelper.PermissionType.STORAGE, result)
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            processSelectedImage(uri)
+        }
     }
 
     private val takePictureLauncher = registerForActivityResult(
@@ -69,22 +75,17 @@ class PhotoSelectFragment : Fragment() {
     ) { success ->
         if (success) {
             cameraOutputFile?.let { file ->
-                processSelectedImage(FileUtils.getUriForFile(requireContext(), file))
+                processSelectedImage(FileUtils.getUriForFile(this, file))
             }
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentPhotoSelectBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentPhotoSelectBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding.root.applyStatusBarPadding()
         setupClickListeners()
         setupPhotoGuideResultListener()
@@ -98,16 +99,18 @@ class PhotoSelectFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (!awaitingSettingsReturn) return
-        val action = pendingAction ?: return
-        val type = when (action) {
-            PhotoAction.CAMERA -> PermissionHelper.PermissionType.CAMERA
-            PhotoAction.GALLERY -> PermissionHelper.PermissionType.STORAGE
+        if (pendingAction != PhotoAction.CAMERA) return
+        if (!PermissionHelper.hasPermissions(
+                this,
+                PermissionHelper.permissionsFor(PermissionHelper.PermissionType.CAMERA)
+            )
+        ) {
+            return
         }
-        if (!PermissionHelper.hasPermissions(this, PermissionHelper.permissionsFor(type))) return
 
         awaitingSettingsReturn = false
-        PermissionHelper.clearDeniedFlag(type)
-        onPermissionGranted(action)
+        PermissionHelper.clearDeniedFlag(PermissionHelper.PermissionType.CAMERA)
+        onPermissionGranted(PhotoAction.CAMERA)
     }
 
     private fun setupClickListeners() {
@@ -121,9 +124,9 @@ class PhotoSelectFragment : Fragment() {
     }
 
     private fun setupPhotoGuideResultListener() {
-        childFragmentManager.setFragmentResultListener(
+        supportFragmentManager.setFragmentResultListener(
             PhotoGuideBottomSheet.RESULT_KEY,
-            viewLifecycleOwner
+            this
         ) { _, bundle ->
             val actionName = bundle.getString(PhotoGuideBottomSheet.ARG_ACTION).orEmpty()
             val action = runCatching { PhotoAction.valueOf(actionName) }
@@ -135,14 +138,18 @@ class PhotoSelectFragment : Fragment() {
     private fun requestPhotoAction(action: PhotoAction) {
         pendingAction = action
         awaitingSettingsReturn = false
-        val type = when (action) {
-            PhotoAction.CAMERA -> PermissionHelper.PermissionType.CAMERA
-            PhotoAction.GALLERY -> PermissionHelper.PermissionType.STORAGE
+        when (action) {
+            // System Photo Picker — no storage permission required.
+            PhotoAction.GALLERY -> onPermissionGranted(action)
+            PhotoAction.CAMERA -> requestCameraPermission()
         }
-        val permissions = PermissionHelper.permissionsFor(type)
+    }
 
+    private fun requestCameraPermission() {
+        val type = PermissionHelper.PermissionType.CAMERA
+        val permissions = PermissionHelper.permissionsFor(type)
         when {
-            PermissionHelper.hasPermissions(this, permissions) -> onPermissionGranted(action)
+            PermissionHelper.hasPermissions(this, permissions) -> onPermissionGranted(PhotoAction.CAMERA)
             PermissionHelper.isPermanentlyDenied(this, type) ->
                 showPermissionDialog(type, openSettings = true)
             else -> launchPermissionRequest(type)
@@ -156,7 +163,7 @@ class PhotoSelectFragment : Fragment() {
         permissionRequestStartedAt = SystemClock.elapsedRealtime()
         when (type) {
             PermissionHelper.PermissionType.CAMERA -> cameraPermissionLauncher.launch(permissions)
-            PermissionHelper.PermissionType.STORAGE -> storagePermissionLauncher.launch(permissions)
+            PermissionHelper.PermissionType.STORAGE -> Unit // system Photo Picker — no storage permission
             PermissionHelper.PermissionType.NOTIFICATION -> Unit
         }
     }
@@ -167,7 +174,7 @@ class PhotoSelectFragment : Fragment() {
     ) {
         val action = pendingAction ?: return
         val outcome = PermissionHelper.evaluateResult(
-            fragment = this,
+            this,
             type = type,
             result = result,
             rationaleBefore = rationaleBeforeRequest,
@@ -184,7 +191,6 @@ class PhotoSelectFragment : Fragment() {
         awaitingSettingsReturn = false
 
         if (outcome == PermissionHelper.PermissionOutcome.PERMANENTLY_DENIED) {
-            // Next tap opens the settings dialog; otherwise the system dialog is reused.
             PermissionHelper.markDenied(type)
         } else {
             PermissionHelper.clearDeniedFlag(type)
@@ -198,30 +204,19 @@ class PhotoSelectFragment : Fragment() {
         if (openSettings) awaitingSettingsReturn = true
 
         val message = if (openSettings) {
-            when (type) {
-                PermissionHelper.PermissionType.CAMERA ->
-                    getString(R.string.permission_camera_settings_message)
-                PermissionHelper.PermissionType.STORAGE ->
-                    getString(R.string.permission_storage_settings_message)
-                PermissionHelper.PermissionType.NOTIFICATION ->
-                    getString(R.string.permission_required_message)
-            }
+            getString(R.string.permission_camera_settings_message)
         } else {
             getString(R.string.permission_required_message)
         }
 
         PermissionSettingsDialog.show(
-            fragment = this,
+            this,
             message = message,
             onAllow = {
                 if (openSettings) {
-                    PermissionHelper.openAppSettings(requireContext())
+                    PermissionHelper.openAppSettings(this)
                 } else {
-                    pendingAction = when (type) {
-                        PermissionHelper.PermissionType.CAMERA -> PhotoAction.CAMERA
-                        PermissionHelper.PermissionType.STORAGE -> PhotoAction.GALLERY
-                        PermissionHelper.PermissionType.NOTIFICATION -> null
-                    }
+                    pendingAction = PhotoAction.CAMERA
                     launchPermissionRequest(type)
                 }
             },
@@ -243,9 +238,9 @@ class PhotoSelectFragment : Fragment() {
     }
 
     private fun showPhotoGuideBottomSheet(action: PhotoAction) {
-        if (childFragmentManager.findFragmentByTag(PhotoGuideBottomSheet.TAG) != null) return
+        if (supportFragmentManager.findFragmentByTag(PhotoGuideBottomSheet.TAG) != null) return
         PhotoGuideBottomSheet.newInstance(action)
-            .show(childFragmentManager, PhotoGuideBottomSheet.TAG)
+            .show(supportFragmentManager, PhotoGuideBottomSheet.TAG)
     }
 
     private fun proceedAfterGuide(action: PhotoAction) {
@@ -253,50 +248,67 @@ class PhotoSelectFragment : Fragment() {
         awaitingSettingsReturn = false
         when (action) {
             PhotoAction.CAMERA -> launchCamera()
-            PhotoAction.GALLERY -> findNavController().navigate(
-                R.id.action_photoSelect_to_galleryPhotoSelection,
-                bundleOf(ARG_PHOTO_FIRST_FLOW to isPhotoFirstFlow())
-            )
+            PhotoAction.GALLERY -> launchGalleryPicker()
         }
     }
 
     private fun isPhotoFirstFlow(): Boolean =
-        arguments?.getBoolean(ARG_PHOTO_FIRST_FLOW, false) == true
+        intent.getBooleanExtra(ARG_PHOTO_FIRST_FLOW, false)
 
     private fun navigateAfterPhotoReady() {
         if (isPhotoFirstFlow()) {
-            findNavController().navigate(
-                R.id.action_photoSelect_to_selectCategory,
-                bundleOf(SelectCategoryFragment.ARG_PHOTO_ALREADY_SELECTED to true)
-            )
+            AppNavigator.openSelectCategory(this, photoAlreadySelected = true)
         } else {
-            findNavController().navigate(R.id.action_photoSelect_to_progress)
+            AppNavigator.openProgress(this)
         }
     }
 
-    private fun launchCamera() {
+    private fun launchGalleryPicker() {
+        lastPhotoSource = PhotoAction.GALLERY
         ADSAppManage.skipNextAppOpenAd()
-        val file = FileUtils.createCameraImageFile(requireContext())
+        pickImageLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
+
+    private fun launchCamera() {
+        lastPhotoSource = PhotoAction.CAMERA
+        ADSAppManage.skipNextAppOpenAd()
+        val file = FileUtils.createCameraImageFile(this)
         cameraOutputFile = file
-        val uri = FileUtils.getUriForFile(requireContext(), file)
+        val uri = FileUtils.getUriForFile(this, file)
         takePictureLauncher.launch(uri)
     }
 
     private fun processSelectedImage(uri: Uri) {
         if (isProcessingPhoto) return
-        val appContext = requireContext().applicationContext
-        viewLifecycleOwner.lifecycleScope.launch {
+        val appContext = applicationContext
+        lifecycleScope.launch {
             setPhotoProcessingUi(true)
             try {
-                when (freeLimitRepository.checkBeforeFaceDetection()) {
-                    FreeLimitCheckResult.LimitReached -> {
-                        if (isAdded) showFreeLimitPremiumSheet()
+                when (val limitResult = freeLimitRepository.checkBeforeFaceDetection()) {
+                    FreeLimitCheckResult.Allowed -> Unit
+                    FreeLimitCheckResult.FreeLimitReached,
+                    FreeLimitCheckResult.PremiumExpired -> {
+                        if (isScreenAlive()) {
+                            if (limitResult is FreeLimitCheckResult.PremiumExpired) {
+                                Toast.makeText(
+                                    this@PhotoSelectActivity,
+                                    getString(R.string.premium_subscription_expired),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            showFreeLimitPremiumSheet()
+                        }
                         return@launch
                     }
-                    FreeLimitCheckResult.Allowed -> Unit
+                    FreeLimitCheckResult.DailyLimitReached -> {
+                        if (isScreenAlive()) DailyQuotaFinishedDialog.show(this@PhotoSelectActivity)
+                        return@launch
+                    }
                 }
                 if (!FaceDetectionHelper.hasDetectableFace(appContext, uri)) {
-                    if (isAdded) showFaceDetectionFailedDialog()
+                    if (isScreenAlive()) showFaceDetectionFailedDialog()
                     return@launch
                 }
                 val compressed = ImageCompressor.compress(
@@ -304,30 +316,29 @@ class PhotoSelectFragment : Fragment() {
                     uri,
                     FileUtils.getCacheDir(appContext, "compressed")
                 )
-                if (!isAdded || _binding == null) return@launch
+                if (!isScreenAlive() || _binding == null) return@launch
                 viewModel.setOriginalImage(uri, compressed.absolutePath)
                 navigateAfterPhotoReady()
             } catch (e: Exception) {
-                if (isAdded && _binding != null) {
+                if (isScreenAlive() && _binding != null) {
                     showSnackbar(e.message ?: getString(R.string.error_image_processing))
                 }
             } finally {
-                // Runs on cancellation too — the view may already be gone.
                 setPhotoProcessingUi(false)
             }
         }
     }
 
     private fun showFreeLimitPremiumSheet() {
-        if (childFragmentManager.findFragmentByTag(PremiumBottomSheet.TAG) != null) return
+        if (supportFragmentManager.findFragmentByTag(PremiumBottomSheet.TAG) != null) return
         PremiumBottomSheet.newInstance(
             onCancelClick = {
-                findNavController().navigate(R.id.action_photoSelect_to_home)
+                AppNavigator.openHomeClearTask(this)
             },
             onPremiumClick = {
-                findNavController().navigate(R.id.action_photoSelect_to_premium)
+                AppNavigator.openPremium(this)
             }
-        ).show(childFragmentManager, PremiumBottomSheet.TAG)
+        ).show(supportFragmentManager, PremiumBottomSheet.TAG)
     }
 
     private fun setPhotoProcessingUi(isProcessing: Boolean) {
@@ -342,18 +353,30 @@ class PhotoSelectFragment : Fragment() {
     private fun showFaceDetectionFailedDialog() {
         FaceDetectionFailedDialog.show(this) { action ->
             when (action) {
-                FaceDetectionFailedDialog.Action.CHOOSE_ANOTHER -> Unit
-                FaceDetectionFailedDialog.Action.TRY_AGAIN -> launchCamera()
+                FaceDetectionFailedDialog.Action.CHOOSE_ANOTHER -> launchGalleryPicker()
+                FaceDetectionFailedDialog.Action.TRY_AGAIN -> retryLastPhotoSource()
             }
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    private fun retryLastPhotoSource() {
+        when (lastPhotoSource) {
+            PhotoAction.GALLERY -> launchGalleryPicker()
+            PhotoAction.CAMERA -> launchCamera()
+        }
+    }
+
+    override fun onDestroy() {
         _binding = null
+        super.onDestroy()
     }
 
     companion object {
         const val ARG_PHOTO_FIRST_FLOW = "photo_first_flow"
+
+        fun createIntent(context: Context, photoFirstFlow: Boolean = false): Intent =
+            Intent(context, PhotoSelectActivity::class.java).apply {
+                putExtra(ARG_PHOTO_FIRST_FLOW, photoFirstFlow)
+            }
     }
 }

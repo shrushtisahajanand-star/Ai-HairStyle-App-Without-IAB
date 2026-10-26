@@ -5,13 +5,14 @@ import com.google.gson.annotations.SerializedName
 /**
  * POST /api/check-free-limit
  *
- * Example:
  * ```json
  * {
  *   "success": true,
- *   "expired": false,
- *   "free_limit": 1,
- *   "used": 0
+ *   "data": {
+ *     "image_generation": true,
+ *     "subscription_expired": false,
+ *     "subscription": { ... }
+ *   }
  * }
  * ```
  */
@@ -20,26 +21,49 @@ data class CheckFreeLimitResponse(
     @SerializedName("expired") val expired: Boolean? = null,
     @SerializedName("free_limit") val freeLimit: Int? = null,
     @SerializedName("used") val used: Int? = null,
+    @SerializedName("image_generation") val imageGeneration: Boolean? = null,
+    @SerializedName("subscription_expired") val subscriptionExpired: Boolean? = null,
     @SerializedName("data") val data: CheckFreeLimitData? = null
 ) {
-    private val effectiveExpired: Boolean? get() = expired ?: data?.expired
-    private val effectiveFreeLimit: Int? get() = freeLimit ?: data?.freeLimit
-    private val effectiveUsed: Int? get() = used ?: data?.used
+    fun effectiveImageGeneration(): Boolean? =
+        imageGeneration ?: data?.imageGeneration ?: data?.subscription?.imageGeneration
 
-    /**
-     * Prefer server [expired] when present.
-     * Otherwise treat limit as reached when used >= free_limit.
-     */
-    fun isLimitReached(): Boolean {
-        effectiveExpired?.let { return it }
-        val limit = effectiveFreeLimit ?: return false
-        if (limit <= 0) return true
-        return (effectiveUsed ?: 0) >= limit
-    }
+    fun effectiveSubscriptionExpired(): Boolean =
+        subscriptionExpired == true ||
+            data?.subscriptionExpired == true ||
+            data?.subscription?.expired == true
+
+    fun subscription(): FreeLimitSubscription? = data?.subscription
 }
 
 data class CheckFreeLimitData(
+    @SerializedName("device_id") val deviceId: String? = null,
     @SerializedName("expired") val expired: Boolean? = null,
     @SerializedName("free_limit") val freeLimit: Int? = null,
-    @SerializedName("used") val used: Int? = null
+    @SerializedName("used") val used: Int? = null,
+    @SerializedName("remaining") val remaining: Int? = null,
+    @SerializedName("total_available_images") val totalAvailableImages: Int? = null,
+    @SerializedName("image_generation") val imageGeneration: Boolean? = null,
+    @SerializedName("subscription_expired") val subscriptionExpired: Boolean? = null,
+    @SerializedName("message") val message: String? = null,
+    @SerializedName("purchase_id") val purchaseId: String? = null,
+    @SerializedName("subscription") val subscription: FreeLimitSubscription? = null
+)
+
+data class FreeLimitSubscription(
+    @SerializedName("plan_type") val planType: String? = null,
+    @SerializedName("status") val status: String? = null,
+    @SerializedName("total_quota") val totalQuota: Int? = null,
+    @SerializedName("remaining_quota") val remainingQuota: Int? = null,
+    @SerializedName("today_allocated") val todayAllocated: Int? = null,
+    @SerializedName("today_used") val todayUsed: Int? = null,
+    @SerializedName("today_remaining") val todayRemaining: Int? = null,
+    @SerializedName("total_days") val totalDays: Int? = null,
+    @SerializedName("current_day") val currentDay: Int? = null,
+    @SerializedName("purchase_date") val purchaseDate: String? = null,
+    @SerializedName("expiry_date") val expiryDate: String? = null,
+    @SerializedName("expired") val expired: Boolean? = null,
+    @SerializedName("image_generation") val imageGeneration: Boolean? = null,
+    @SerializedName("message") val message: String? = null,
+    @SerializedName("renewal_required") val renewalRequired: Boolean? = null
 )

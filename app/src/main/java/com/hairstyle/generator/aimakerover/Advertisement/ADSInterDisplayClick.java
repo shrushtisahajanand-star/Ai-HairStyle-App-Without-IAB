@@ -19,6 +19,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 /**
  * Click / back / bottom-nav interstitial with Firebase counter +
  * {@code inter_ads_load_type}: {@code PreLoad} | {@code Show}.
+ * {@code inter_ads_show_type}: {@code Click} (count) | {@code Time} (since last show).
  *
  * <p>Click = 3 → show on the 3rd click (after click 1, 2, 3).
  * <ul>
@@ -45,6 +46,8 @@ public class ADSInterDisplayClick {
     @Nullable
     private static InterstitialAd showingInterstitial;
     public static boolean LoadingCheck = true;
+    /** Last time an interstitial was closed. 0 = never (first eligible trigger can show). */
+    private static long lastInterstitialClosedAtMs = 0L;
 
 
     public static void ADSInterstitialShowing(Activity context, String adsId, OnFinishAds onFinishAd, boolean... doShowAds) {
@@ -110,10 +113,14 @@ public class ADSInterDisplayClick {
     }
 
     /**
-     * {@code inter_ads_click}/{@code inter_back_ads_click} = 3 → show on click 3
-     * (counts 1, 2, then show). Threshold {@code <= 0} → every click.
+     * {@code inter_ads_show_type = Click}: {@code inter_ads_click}/{@code inter_back_ads_click}
+     * = 3 → show on click 3 (counts 1, 2, then show). Threshold {@code <= 0} → every click.
+     * {@code Time}: shared interval for forward + back + bottom-nav; timer starts after ad close.
      */
     private static boolean hitClickThreshold(boolean forward) {
+        if (ADSMainClass.isInterAdsTimeMode()) {
+            return hasInterAdsTimeElapsed();
+        }
         int threshold = forward ? ADSMainClass.getAdsClick() : ADSMainClass.getAdsBackClick();
         if (forward) {
             ADSClick++;
@@ -131,6 +138,17 @@ public class ADSInterDisplayClick {
         return false;
     }
 
+    private static boolean hasInterAdsTimeElapsed() {
+        int seconds = ADSMainClass.getInterAdsTimeSeconds();
+        if (seconds <= 0) {
+            return true;
+        }
+        if (lastInterstitialClosedAtMs <= 0L) {
+            return true;
+        }
+        return System.currentTimeMillis() - lastInterstitialClosedAtMs >= seconds * 1000L;
+    }
+
     /**
      * {@code intro_inter_ads_click_count} = 1 → every intro Continue; = 3 → every 3rd intro click.
      * Shared across Intro1 / 1b / 1c / 1d / 2 / 3 only.
@@ -146,6 +164,9 @@ public class ADSInterDisplayClick {
     }
 
     private static boolean hitBottomNavThreshold() {
+        if (ADSMainClass.isInterAdsTimeMode()) {
+            return hasInterAdsTimeElapsed();
+        }
         int threshold = ADSMainClass.getBottomNavigationClick();
         BottomNavADClick++;
         if (threshold <= 0 || BottomNavADClick >= threshold) {
@@ -289,6 +310,7 @@ public class ADSInterDisplayClick {
 
             @Override
             public void onAdDismissedFullScreenContent() {
+                lastInterstitialClosedAtMs = System.currentTimeMillis();
                 AdsDisplayCheck(true);
                 if (context instanceof Activity) {
                     FullscreenAdWindowHelper.restore((Activity) context);

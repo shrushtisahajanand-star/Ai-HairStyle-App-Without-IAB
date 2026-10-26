@@ -9,7 +9,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.hairstyle.generator.aimakeover.R
-import com.hairstyle.generator.aimakerover.ui.MainActivity
+import com.hairstyle.generator.aimakerover.ui.splash.SplashActivity
 
 object NotificationHelper {
 
@@ -38,7 +38,7 @@ object NotificationHelper {
     ) {
         ensureChannel(context)
 
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = Intent(context, SplashActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             data.forEach { (key, value) -> putExtra(key, value) }
         }

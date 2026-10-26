@@ -237,6 +237,13 @@ class PromoPremiumPaywallController(
         binding.tvFooter.setOnClickListener {
             AppLinkHelper.openPrivacyPolicy(fragment.requireContext())
         }
+        val terms = "Terms & Conditions"
+        binding.termsAndConditions.text = SpannableString(terms).apply {
+            setSpan(UnderlineSpan(), 0, terms.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        binding.termsAndConditions.setOnClickListener {
+            AppLinkHelper.openTermsOfService(fragment.requireContext())
+        }
     }
 
     private fun setPurchaseLoading(loading: Boolean) {

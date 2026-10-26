@@ -258,4 +258,7 @@
     <string name="feedback_email_hint">输入您的电子邮件</string>
     <string name="feedback_email_invalid">请输入有效的电子邮件地址。</string>
     <string name="beard_fade_haircut_styles">胡须、渐变 &amp; 发型</string>
+    <string name="daily_quota_finished_title">日限额已用完</string>
+    <string name="daily_quota_finished_message">您的每日图片限额已用完。明天再来生成更多内容吧。</string>
+    <string name="premium_subscription_expired">您的高级订阅已到期。续订以继续生成。</string>
 </resources>

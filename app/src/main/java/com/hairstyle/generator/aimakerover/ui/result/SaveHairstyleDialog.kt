@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.core.view.isVisible
+import android.app.Activity
 import androidx.fragment.app.Fragment
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.DialogSaveHairstyleBinding
@@ -24,10 +25,20 @@ object SaveHairstyleDialog {
         onFreeAdClick: () -> Unit = {},
         onPremiumClick: () -> Unit = {}
     ) {
+        val activity = fragment.activity ?: return
         if (!fragment.isAdded) return
+        show(activity, mode, onFreeAdClick, onPremiumClick)
+    }
 
-        val context = fragment.requireContext()
-        val binding = DialogSaveHairstyleBinding.inflate(fragment.layoutInflater)
+    fun show(
+        activity: Activity,
+        mode: Mode,
+        onFreeAdClick: () -> Unit = {},
+        onPremiumClick: () -> Unit = {}
+    ) {
+        if (activity.isFinishing || activity.isDestroyed) return
+
+        val binding = DialogSaveHairstyleBinding.inflate(activity.layoutInflater)
 
         // Firebase free limit (e.g. image_access = 3):
         // After last free generate, remaining == 0 → hide Watch Ad & Save.
@@ -52,13 +63,13 @@ object SaveHairstyleDialog {
         binding.btnUpgradePremium.layoutParams =
             (binding.btnUpgradePremium.layoutParams as ViewGroup.MarginLayoutParams).apply {
                 topMargin = if (showWatchAdSave) {
-                    context.resources.getDimensionPixelSize(com.intuit.sdp.R.dimen._10sdp)
+                    activity.resources.getDimensionPixelSize(com.intuit.sdp.R.dimen._10sdp)
                 } else {
                     0
                 }
             }
 
-        val dialog = Dialog(context, R.style.ThemeOverlay_AIHairstyleStudio_PermissionDialog).apply {
+        val dialog = Dialog(activity, R.style.ThemeOverlay_AIHairstyleStudio_PermissionDialog).apply {
             setContentView(binding.root)
             setCancelable(true)
             setCanceledOnTouchOutside(true)
@@ -78,7 +89,7 @@ object SaveHairstyleDialog {
 
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            val width = (context.resources.displayMetrics.widthPixels * 0.88f).toInt()
+            val width = (activity.resources.displayMetrics.widthPixels * 0.88f).toInt()
             setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
             addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         }

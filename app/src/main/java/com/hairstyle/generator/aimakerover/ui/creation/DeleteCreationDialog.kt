@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.app.Activity
 import androidx.fragment.app.Fragment
 import com.hairstyle.generator.aimakeover.R
 import com.hairstyle.generator.aimakeover.databinding.DialogDeleteCreationBinding
@@ -15,12 +16,20 @@ object DeleteCreationDialog {
         fragment: Fragment,
         onConfirm: () -> Unit
     ) {
+        val activity = fragment.activity ?: return
         if (!fragment.isAdded) return
+        show(activity, onConfirm)
+    }
 
-        val context = fragment.requireContext()
-        val binding = DialogDeleteCreationBinding.inflate(fragment.layoutInflater)
+    fun show(
+        activity: Activity,
+        onConfirm: () -> Unit
+    ) {
+        if (activity.isFinishing || activity.isDestroyed) return
 
-        val dialog = Dialog(context, R.style.ThemeOverlay_AIHairstyleStudio_PermissionDialog).apply {
+        val binding = DialogDeleteCreationBinding.inflate(activity.layoutInflater)
+
+        val dialog = Dialog(activity, R.style.ThemeOverlay_AIHairstyleStudio_PermissionDialog).apply {
             setContentView(binding.root)
             setCancelable(true)
             setCanceledOnTouchOutside(true)
@@ -37,7 +46,7 @@ object DeleteCreationDialog {
 
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            val width = (context.resources.displayMetrics.widthPixels * 0.88f).toInt()
+            val width = (activity.resources.displayMetrics.widthPixels * 0.88f).toInt()
             setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
             addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         }

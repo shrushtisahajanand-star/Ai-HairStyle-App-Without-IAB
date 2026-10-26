@@ -1,7 +1,7 @@
 package com.hairstyle.generator.aimakerover.ui.intro
 
 import android.view.View
-import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.hairstyle.generator.aimakeover.databinding.FragmentIntroVideoBinding
 import com.hairstyle.generator.aimakerover.Advertisement.ScreenAdsHelper
@@ -9,11 +9,12 @@ import com.hairstyle.generator.aimakerover.data.repository.VideosRepository
 import com.hairstyle.generator.aimakerover.utils.IntroVideoHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 
-/** Shared binder for intro video screens 1 / 2 / 3 (separate Fragment classes). */
+/** Shared binder for intro video screens 1 / 2 / 3 (separate Activity classes). */
 internal class IntroVideoScreenBinder(
-    private val fragment: Fragment,
+    private val activity: AppCompatActivity,
     private val binding: FragmentIntroVideoBinding,
     private val page: Intro1Page.VideoPage,
     private val pageIndex: Int,
@@ -25,8 +26,8 @@ internal class IntroVideoScreenBinder(
     private var videoPrepared = false
 
     fun setup() {
-        fragment.setupSystemBackNavigation()
-        ScreenAdsHelper.load(fragment, binding.root, adsConfig)
+        activity.setupSystemBackNavigation()
+        ScreenAdsHelper.load(activity, binding.root, adsConfig)
 
         binding.dotsIndicator.setDotCount(Intro1Data.TOTAL_FLOW_DOTS)
         binding.dotsIndicator.setSelectedIndex(pageIndex)
@@ -41,17 +42,17 @@ internal class IntroVideoScreenBinder(
         binding.ivVideoPlaceholder.visibility = View.VISIBLE
         binding.shimmerIntroVideo.visibility = View.GONE
 
-        // Splash already cached intro videos; play right away from disk/URL
+        // Splash already started intro cache; play cache-first, then wait for THIS page file.
         binding.ivVideoPlaceholder.post { playVideo() }
 
-        // Refresh URLs / top-up cache in background (do not block play)
-        fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            runCatching { videosRepository.fetchAndSaveAllVideos() }
-            IntroVideoHelper.preload(
-                fragment.requireContext().applicationContext,
-                okHttpClient,
-                page.videoKey
-            )
+        activity.lifecycleScope.launch(Dispatchers.IO) {
+            videosRepository.ensureCached(page.videoKey)
+            withContext(Dispatchers.Main) {
+                if (!activity.isFinishing && !activity.isDestroyed && !videoPrepared) {
+                    playVideo()
+                }
+            }
+            videosRepository.preloadIntroVideos()
         }
     }
 
@@ -71,7 +72,7 @@ internal class IntroVideoScreenBinder(
     }
 
     private fun playVideo() {
-        if (!fragment.isAdded || fragment.view == null) return
+        if (activity.isFinishing || activity.isDestroyed) return
         binding.ivSplashVector.visibility = View.VISIBLE
         if (videoPrepared) {
             IntroVideoHelper.resume(binding.ivVideoPlaceholder)

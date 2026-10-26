@@ -16,26 +16,29 @@ object PromoImageManager {
     private val gson = Gson()
 
     fun getRandomPromoContent(): PromoSheetContent? {
-        val isMale = UserGenderManager.isMale()
-        val items = loadPromoImages().filter { item ->
-            if (isMale) {
+        val allItems = loadPromoImages()
+        if (allItems.isEmpty()) return null
+
+        val items = if (UserGenderManager.isMale()) {
+            allItems.filter { item ->
                 item.title.lowercase().startsWith(VideoTitleKeys.MALE_IMAGE_PREFIX)
-            } else {
-                item.title.lowercase().startsWith(VideoTitleKeys.FEMALE_IMAGE_PREFIX)
-            }
+            }.ifEmpty { allItems }
+        } else {
+            allItems
         }
-        if (items.isEmpty()) return null
 
         val selected = items.random()
+        val selectedIsMale = selected.title.lowercase()
+            .startsWith(VideoTitleKeys.MALE_IMAGE_PREFIX)
         return PromoSheetContent(
             imageUrl = selected.imageUrl,
-            badgeRes = if (isMale) {
+            badgeRes = if (selectedIsMale) {
                 R.string.promo_sheet_badge_male
             } else {
                 R.string.promo_sheet_badge_female
             },
             title = selected.header.ifBlank {
-                if (isMale) "Modern Fade Cut" else "Sleek High Ponytail"
+                if (selectedIsMale) "Modern Fade Cut" else "Sleek High Ponytail"
             },
             subtitle = selected.description.ifBlank {
                 "Explore modern haircut styles before your next look"

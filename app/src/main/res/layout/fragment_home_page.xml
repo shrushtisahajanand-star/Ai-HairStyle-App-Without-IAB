@@ -197,9 +197,16 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <include
-            layout="@layout/include_screen_bottom_ads"
+        <LinearLayout
+            android:id="@+id/homeBottomAdsBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="@color/nav_bar_background">
+
+            <include
+                layout="@layout/include_screen_bottom_ads"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

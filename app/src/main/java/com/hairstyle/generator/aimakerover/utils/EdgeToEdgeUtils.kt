@@ -37,12 +37,6 @@ fun Activity.setupEdgeToEdge(contentView: View) {
         systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
         isAppearanceLightNavigationBars = true
     }
-
-    ViewCompat.setOnApplyWindowInsetsListener(contentView) { view, insets ->
-        view.updatePadding(bottom = insets.stableNavigationBarBottom())
-        insets
-    }
-    ViewCompat.requestApplyInsets(contentView)
 }
 
 /**
@@ -59,8 +53,24 @@ fun WindowInsetsCompat.stableStatusBarTop(): Int =
 fun WindowInsetsCompat.stableNavigationBarBottom(): Int =
     maxOf(
         getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
-        getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom
+        getInsetsIgnoringVisibility(WindowInsetsCompat.Type.navigationBars()).bottom,
+        getInsets(WindowInsetsCompat.Type.systemBars()).bottom,
+        getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()).bottom,
+        getInsets(WindowInsetsCompat.Type.tappableElement()).bottom
     )
+
+fun WindowInsetsCompat.contentBottomInset(): Int =
+    maxOf(getInsets(WindowInsetsCompat.Type.ime()).bottom, stableNavigationBarBottom())
+
+fun View.fallbackNavigationBarHeight(): Int {
+    val resId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+    return if (resId != 0) resources.getDimensionPixelSize(resId) else 0
+}
+
+fun WindowInsetsCompat.contentBottomInsetOrFallback(view: View): Int {
+    val inset = contentBottomInset()
+    return if (inset > 0) inset else view.fallbackNavigationBarHeight()
+}
 
 fun Activity.setStatusBarLightIcons(lightIcons: Boolean) {
     WindowCompat.getInsetsController(window, window.decorView).apply {
@@ -71,7 +81,17 @@ fun Activity.setStatusBarLightIcons(lightIcons: Boolean) {
 /** Use on headers/toolbars over hero images so content clears the status bar. */
 fun View.applyStatusBarPadding() {
     ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
-        view.updatePadding(top = insets.stableStatusBarTop())
+        val lpHeight = view.layoutParams?.height
+        val isScreenRoot = lpHeight == ViewGroup.LayoutParams.MATCH_PARENT ||
+            lpHeight == 0
+        view.updatePadding(
+            top = insets.stableStatusBarTop(),
+            bottom = if (isScreenRoot) {
+                insets.contentBottomInsetOrFallback(view)
+            } else {
+                view.paddingBottom
+            }
+        )
         insets
     }
     ViewCompat.requestApplyInsets(this)

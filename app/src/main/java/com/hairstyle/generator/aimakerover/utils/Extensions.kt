@@ -1,5 +1,6 @@
 package com.hairstyle.generator.aimakerover.utils
 
+import android.app.Activity
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
@@ -14,6 +15,10 @@ fun View.showSnackbar(message: String, actionLabel: String? = null, action: (() 
 
 fun Fragment.showSnackbar(message: String, actionLabel: String? = null, action: (() -> Unit)? = null) {
     view?.showSnackbar(message, actionLabel, action)
+}
+
+fun Activity.showSnackbar(message: String, actionLabel: String? = null, action: (() -> Unit)? = null) {
+    findViewById<View>(android.R.id.content)?.showSnackbar(message, actionLabel, action)
 }
 
 fun Long.formatGenerationTime(): String {

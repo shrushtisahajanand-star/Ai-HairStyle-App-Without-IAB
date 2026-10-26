@@ -59,6 +59,7 @@
             android:id="@+id/btnUpgradePremium"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_46sdp"
+            android:visibility="gone"
             android:background="@drawable/bg_create"
             android:clickable="true"
             android:focusable="true"

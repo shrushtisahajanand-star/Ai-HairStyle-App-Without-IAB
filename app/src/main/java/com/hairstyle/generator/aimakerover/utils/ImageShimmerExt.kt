@@ -1,10 +1,12 @@
 package com.hairstyle.generator.aimakerover.utils
 
+import android.util.Log
 import android.widget.ImageView
 import androidx.core.view.isVisible
 import coil.dispose
 import coil.load
 import com.facebook.shimmer.ShimmerFrameLayout
+import com.hairstyle.generator.aimakerover.data.repository.CategoryImagesLogger
 
 /**
  * Fun / Beard style: keep shimmer visible until Coil actually paints the image.
@@ -16,6 +18,7 @@ fun ImageView.loadWithShimmer(
     dispose()
 
     if (url.isNullOrBlank()) {
+        Log.w("CategoryImages", "[Coil] blank url — image not loaded")
         setImageDrawable(null)
         shimmer.hideImageShimmer()
         return
@@ -26,9 +29,16 @@ fun ImageView.loadWithShimmer(
     load(url) {
         crossfade(true)
         listener(
-            onSuccess = { _, _ -> shimmer.hideImageShimmer() },
-            onError = { _, _ ->
-                // Keep shimmer placeholder rather than blank card
+            onSuccess = { _, _ ->
+                CategoryImagesLogger.coilLoad(url, success = true)
+                shimmer.hideImageShimmer()
+            },
+            onError = { _, result ->
+                CategoryImagesLogger.coilLoad(
+                    url,
+                    success = false,
+                    error = result.throwable.message
+                )
                 shimmer.showImageShimmer()
             }
         )
