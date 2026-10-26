@@ -75,7 +75,7 @@ class SplashActivity : BaseActivity() {
         ADSAppStarting.ADSIsShowing = false
         ADSAppManage.AppStartingScreenOpen = false
 
-        binding.hairCutTryOn.applyBrandTextGradient()
+        binding.hairCutTryOn.applyBrandTextGradient(useOriginalColors = true)
         // Local splash first so UI is never blank while we fetch+cache
         playLocalWebp()
         fetchRemoteConfigCacheVideosThenAds()

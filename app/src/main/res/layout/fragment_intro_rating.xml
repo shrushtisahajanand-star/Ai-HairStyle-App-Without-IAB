@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/orig_background"
     tools:context="com.hairstyle.generator.aimakerover.ui.intro.Intro1dFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -101,7 +101,7 @@
                 android:maxLines="2"
                 android:minLines="2"
                 android:textAlignment="center"
-                android:textColor="@color/nav_inactive"
+                android:textColor="@color/orig_nav_inactive"
                 android:textSize="@dimen/_11ssp"
                 tools:text="See what people are saying" />
 

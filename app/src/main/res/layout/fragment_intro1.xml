@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/orig_background"
     android:keepScreenOn="true"
     tools:context="com.hairstyle.generator.aimakerover.ui.intro.Intro1Fragment">
 
@@ -25,7 +25,7 @@
         android:layout_height="match_parent"
         app:shimmer_auto_start="true"
         app:shimmer_base_alpha="1"
-        app:shimmer_base_color="@color/shimmer_base"
+        app:shimmer_base_color="@color/orig_shimmer_base"
         app:shimmer_duration="1100"
         app:shimmer_highlight_alpha="0.6"
         app:shimmer_highlight_color="@color/shimmer_highlight"
@@ -34,7 +34,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/bg_shimmer_placeholder" />
+            android:background="@drawable/bg_shimmer_placeholder_orig" />
 
     </com.facebook.shimmer.ShimmerFrameLayout>
 
@@ -102,7 +102,7 @@
                 android:maxLines="2"
                 android:minLines="2"
                 android:textAlignment="center"
-                android:textColor="@color/nav_inactive"
+                android:textColor="@color/orig_nav_inactive"
                 android:textSize="@dimen/_11ssp"
                 tools:text="Discover trendy hairstyles tailored to your look. Find your perfect hairstyle with AI" />
 

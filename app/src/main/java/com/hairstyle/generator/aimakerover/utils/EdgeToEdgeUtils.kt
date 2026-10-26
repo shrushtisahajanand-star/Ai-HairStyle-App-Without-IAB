@@ -21,7 +21,11 @@ fun Activity.setupEdgeToEdge(contentView: View) {
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
     window.statusBarColor = Color.TRANSPARENT
-    window.navigationBarColor = getColor(R.color.background)
+    val navBarAttr = android.util.TypedValue()
+    window.navigationBarColor =
+        if (theme.resolveAttribute(android.R.attr.navigationBarColor, navBarAttr, true) &&
+            navBarAttr.type in android.util.TypedValue.TYPE_FIRST_COLOR_INT..android.util.TypedValue.TYPE_LAST_COLOR_INT
+        ) navBarAttr.data else getColor(R.color.background)
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         window.isNavigationBarContrastEnforced = false

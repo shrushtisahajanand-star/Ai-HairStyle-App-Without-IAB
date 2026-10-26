@@ -20,7 +20,7 @@
       android:strokeColor="#ffffff"/>
   <path
       android:pathData="M49,19L59,19A1,1 0,0 1,60 20L60,20A1,1 0,0 1,59 21L49,21A1,1 0,0 1,48 20L48,20A1,1 0,0 1,49 19z"
-      android:fillColor="#2E2E2E"/>
+      android:fillColor="#33201F"/>
   <path
       android:pathData="M54,42m-11,0a11,11 0,1 1,22 0a11,11 0,1 1,-22 0"
       android:strokeAlpha="0.05"
@@ -75,9 +75,9 @@
           android:endX="109.08"
           android:endY="68.79"
           android:type="linear">
-        <item android:offset="0" android:color="#FFA96EEC"/>
-        <item android:offset="0.5" android:color="#FFFF80A1"/>
-        <item android:offset="1" android:color="#FFFFA971"/>
+        <item android:offset="0" android:color="#FFFF8A4C"/>
+        <item android:offset="0.5" android:color="#FFF06268"/>
+        <item android:offset="1" android:color="#FFE6338A"/>
       </gradient>
     </aapt:attr>
   </path>

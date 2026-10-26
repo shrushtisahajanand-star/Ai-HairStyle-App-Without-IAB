@@ -52,37 +52,37 @@
             android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1Activity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
+            android:theme="@style/Theme.AIHairstyleStudio.Intro"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1bActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
+            android:theme="@style/Theme.AIHairstyleStudio.Intro"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1cActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
+            android:theme="@style/Theme.AIHairstyleStudio.Intro"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro1dActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
+            android:theme="@style/Theme.AIHairstyleStudio.Intro"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro2Activity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
+            android:theme="@style/Theme.AIHairstyleStudio.Intro"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name="com.hairstyle.generator.aimakerover.ui.intro.Intro3Activity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
+            android:theme="@style/Theme.AIHairstyleStudio.Intro"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name="com.hairstyle.generator.aimakerover.ui.premium.PremiumActivity"

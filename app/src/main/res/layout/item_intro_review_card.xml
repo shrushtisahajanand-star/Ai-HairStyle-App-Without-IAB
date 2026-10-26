@@ -5,13 +5,13 @@
     android:layout_width="@dimen/_240sdp"
     android:layout_height="match_parent"
     android:layout_marginHorizontal="@dimen/_8sdp"
-    android:background="@drawable/bg_upload_photo_button"
+    android:background="@drawable/bg_upload_photo_button_orig"
     android:padding="@dimen/_2sdp">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:cardBackgroundColor="@color/nav_bar_background"
+        app:cardBackgroundColor="@color/orig_nav_bar_background"
         app:cardCornerRadius="@dimen/_22sdp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
@@ -65,7 +65,7 @@
                 android:includeFontPadding="false"
                 android:lineSpacingExtra="@dimen/_2sdp"
                 android:maxLines="5"
-                android:textColor="@color/nav_inactive"
+                android:textColor="@color/orig_nav_inactive"
                 android:textSize="@dimen/_10ssp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/ivFlag"

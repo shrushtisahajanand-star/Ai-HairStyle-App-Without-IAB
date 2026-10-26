@@ -70,7 +70,7 @@ object NavGradientHelper {
         }
     }
 
-    fun TextView.applyBrandTextGradient() {
+    fun TextView.applyBrandTextGradient(useOriginalColors: Boolean = false) {
         post {
             val width = width.toFloat().takeIf { it > 0f }
                 ?: paint.measureText(text.toString())
@@ -79,7 +79,11 @@ object NavGradientHelper {
                 0f,
                 width,
                 0f,
-                intArrayOf(
+                if (useOriginalColors) intArrayOf(
+                    ContextCompat.getColor(context, R.color.orig_nav_gradient_start),
+                    ContextCompat.getColor(context, R.color.orig_nav_gradient_center),
+                    ContextCompat.getColor(context, R.color.orig_nav_gradient_end)
+                ) else intArrayOf(
                     activeStartColor(this),
                     activeCenterColor(this),
                     activeEndColor(this)
