@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "402020855369",
-    "project_id": "ai-hairstyle-generator",
-    "storage_bucket": "ai-hairstyle-generator.firebasestorage.app"
+    "project_number": "701511656995",
+    "project_id": "hairstyle-changer-aitryon-13",
+    "storage_bucket": "hairstyle-changer-aitryon-13.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:402020855369:android:59b5b2782b0b620f319998",
+        "mobilesdk_app_id": "1:701511656995:android:3b90167b93d6aacd60f396",
         "android_client_info": {
-          "package_name": "com.hairstyle.generator.aimakeover"
+          "package_name": "com.hairstyle.changer.aitryon"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAqugLQSNKJrjKn_umoxw0O51nDX7P2SHs"
+          "current_key": "AIzaSyBeSUXYtBsjiO6osGRiLqycV7Gan1vRtPE"
         }
       ],
       "services": {

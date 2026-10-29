@@ -8,15 +8,16 @@ plugins {
 }
 
 android {
-    namespace = "com.hairstyle.generator.aimakeover"
+//    namespace = "com.hairstyle.generator.aimakeover"
+    namespace = "com.hairstyle.changer.aitryon"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.hairstyle.generator.aimakeover"
+        applicationId = "com.hairstyle.changer.aitryon"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.4"
+        versionCode = 1
+        versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Old ailabapi key — unused; generate uses Firebase URL via LocalHairstyleRepository.
 //        buildConfigField(
@@ -29,12 +30,6 @@ android {
 //            "String",
 //            "BASE_URL",
 //            "\"https://www.ailabapi.com/\""
-//        )
-        // RevenueCat key → SecureConfig (XOR). Original: goog_zlhOECUqwLaybFjrQgGCnDAwyHA
-//        buildConfigField(
-//            "String",
-//            "REVENUECAT_API_KEY",
-//            "\"goog_zlhOECUqwLaybFjrQgGCnDAwyHA\""
 //        )
     }
 
@@ -125,7 +120,7 @@ dependencies {
     implementation(libs.firebase.messaging)
 
     implementation(libs.shimmer)
-    implementation(libs.revenuecat.purchases)
+    implementation(libs.play.billing)
     implementation("com.intuit.sdp:sdp-android:1.0.3")
     implementation("com.intuit.ssp:ssp-android:1.1.1")
     implementation("com.google.mlkit:face-detection:16.1.7")

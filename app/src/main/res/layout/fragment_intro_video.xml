@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/orig_background"
     android:keepScreenOn="true"
-    tools:context="com.hairstyle.generator.aimakerover.ui.intro.Intro1Fragment">
+    tools:context="com.hairstyle.changer.aitryon.ui.intro.Intro1Fragment">
 
     <!-- Shimmer under video so image/fallback is never covered -->
     <com.facebook.shimmer.ShimmerFrameLayout
@@ -63,7 +63,7 @@
             android:paddingTop="@dimen/_16sdp"
             android:paddingBottom="@dimen/_24sdp">
 
-            <com.hairstyle.generator.aimakerover.ui.intro.IntroDotsIndicator
+            <com.hairstyle.changer.aitryon.ui.intro.IntroDotsIndicator
                 android:id="@+id/dotsIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

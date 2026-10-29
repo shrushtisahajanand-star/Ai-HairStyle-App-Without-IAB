@@ -67,7 +67,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <com.hairstyle.generator.aimakerover.ui.components.BeforeAfterSliderView
+                    <com.hairstyle.changer.aitryon.ui.components.BeforeAfterSliderView
                         android:id="@+id/beforeAfterView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/orig_background"
     android:keepScreenOn="true"
-    tools:context="com.hairstyle.generator.aimakerover.ui.splash.SplashFragment">
+    tools:context="com.hairstyle.changer.aitryon.ui.splash.SplashFragment">
 
     <ImageView
         android:id="@+id/ivSplashAnimation"

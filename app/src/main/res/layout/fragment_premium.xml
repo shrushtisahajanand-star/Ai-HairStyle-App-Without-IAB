@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    tools:context="com.hairstyle.generator.aimakerover.ui.premium.PremiumFragment">
+    tools:context="com.hairstyle.changer.aitryon.ui.premium.PremiumFragment">
 
     <ImageView
         android:id="@+id/ivPremiumVideo"
@@ -490,7 +490,7 @@
             android:clipToPadding="false"
             android:paddingVertical="@dimen/_6sdp">
 
-            <com.hairstyle.generator.aimakerover.ui.premium.RotatingGlowBorderView
+            <com.hairstyle.changer.aitryon.ui.premium.RotatingGlowBorderView
                 android:id="@+id/continueGlowBorder"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_52sdp"

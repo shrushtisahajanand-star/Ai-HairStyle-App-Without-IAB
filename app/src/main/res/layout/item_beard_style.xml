@@ -81,7 +81,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <com.hairstyle.generator.aimakerover.utils.TopCropImageView
+            <com.hairstyle.changer.aitryon.utils.TopCropImageView
                 android:id="@+id/ivBefore"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -141,7 +141,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <com.hairstyle.generator.aimakerover.utils.TopCropImageView
+            <com.hairstyle.changer.aitryon.utils.TopCropImageView
                 android:id="@+id/ivAfter"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

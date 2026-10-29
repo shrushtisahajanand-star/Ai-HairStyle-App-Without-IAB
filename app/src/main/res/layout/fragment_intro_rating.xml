@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/orig_background"
-    tools:context="com.hairstyle.generator.aimakerover.ui.intro.Intro1dFragment">
+    tools:context="com.hairstyle.changer.aitryon.ui.intro.Intro1dFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -65,7 +65,7 @@
             android:paddingTop="@dimen/_16sdp"
             android:paddingBottom="@dimen/_24sdp">
 
-            <com.hairstyle.generator.aimakerover.ui.intro.IntroDotsIndicator
+            <com.hairstyle.changer.aitryon.ui.intro.IntroDotsIndicator
                 android:id="@+id/dotsIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

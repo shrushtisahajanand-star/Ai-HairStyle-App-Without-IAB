@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    tools:context="com.hairstyle.generator.aimakerover.ui.setting.ActiveSubscriptionFragment">
+    tools:context="com.hairstyle.changer.aitryon.ui.setting.ActiveSubscriptionFragment">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"

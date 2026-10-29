@@ -1,0 +1,9 @@
+package com.hairstyle.changer.aitryon.domain.model
+
+interface BeforeAfterItem {
+    val id: Int
+    val title: String
+    val description: String
+    val beforeImageUrl: String
+    val afterImageUrl: String
+}

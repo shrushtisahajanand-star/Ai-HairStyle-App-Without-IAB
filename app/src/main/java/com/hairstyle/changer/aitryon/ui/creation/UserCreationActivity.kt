@@ -1,0 +1,90 @@
+package com.hairstyle.changer.aitryon.ui.creation
+
+import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.GridLayoutManager
+import com.hairstyle.changer.aitryon.databinding.FragmentUserCreationBinding
+import com.hairstyle.changer.aitryon.Ads.InterstitialNavHelper
+import com.hairstyle.changer.aitryon.Ads.ScreenAdsHelper
+import com.hairstyle.changer.aitryon.ui.AppNavigator
+import com.hairstyle.changer.aitryon.ui.BaseActivity
+import com.hairstyle.changer.aitryon.ui.category.GridSpacingItemDecoration
+import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+
+@AndroidEntryPoint
+class UserCreationActivity : BaseActivity() {
+
+    override val useLightStatusBarIcons: Boolean = false
+
+    private var _binding: FragmentUserCreationBinding? = null
+    private val binding get() = _binding!!
+
+    private val viewModel: UserCreationViewModel by viewModels()
+    private lateinit var adapter: UserCreationAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = FragmentUserCreationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setupWindow(binding.root)
+
+        binding.root.applyStatusBarPadding()
+        binding.toolbar.setNavigationOnClickListener {
+            InterstitialNavHelper.navigateUpWithBackInter(this)
+        }
+        InterstitialNavHelper.installSystemBackInter(this)
+
+        ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.userCreation())
+
+        adapter = UserCreationAdapter { creation ->
+            openPreview(creation.id)
+        }
+        val spacingPx = (8 * resources.displayMetrics.density).toInt()
+        binding.rvCreations.layoutManager = GridLayoutManager(this, GRID_SPAN_COUNT)
+        if (binding.rvCreations.itemDecorationCount == 0) {
+            binding.rvCreations.addItemDecoration(
+                GridSpacingItemDecoration(GRID_SPAN_COUNT, spacingPx)
+            )
+        }
+        binding.rvCreations.adapter = adapter
+
+        observeCreations()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadCreations()
+    }
+
+    private fun observeCreations() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    adapter.submitList(state.items)
+                    val showEmpty = !state.isLoading && state.items.isEmpty()
+                    binding.tvEmpty.isVisible = showEmpty
+                    binding.rvCreations.isVisible = !showEmpty
+                }
+            }
+        }
+    }
+
+    private fun openPreview(creationId: String) {
+        AppNavigator.openUserCreationPreview(this, creationId)
+    }
+
+    override fun onDestroy() {
+        _binding = null
+        super.onDestroy()
+    }
+
+    companion object {
+        private const val GRID_SPAN_COUNT = 3
+    }
+}

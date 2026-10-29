@@ -19,7 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.hairstyle.generator.aimakerover.utils.TopCropImageView
+        <com.hairstyle.changer.aitryon.utils.TopCropImageView
             android:id="@+id/ivPremiumSheetVideo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

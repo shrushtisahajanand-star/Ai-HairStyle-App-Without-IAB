@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    tools:context="com.hairstyle.generator.aimakerover.ui.creation.UserCreationPreviewFragment">
+    tools:context="com.hairstyle.changer.aitryon.ui.creation.UserCreationPreviewFragment">
 
     <ImageView
         android:id="@+id/ivPreview"

@@ -8,7 +8,7 @@
     android:clipChildren="true"
     android:clipToOutline="true">
 
-    <com.hairstyle.generator.aimakerover.utils.TopCropImageView
+    <com.hairstyle.changer.aitryon.utils.TopCropImageView
         android:id="@+id/ivPromoImage"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -139,4 +139,4 @@
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
+
