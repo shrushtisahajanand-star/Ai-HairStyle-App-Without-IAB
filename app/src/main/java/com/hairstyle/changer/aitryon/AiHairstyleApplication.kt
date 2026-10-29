@@ -19,7 +19,6 @@ import com.hairstyle.changer.aitryon.di.fcm.NotificationHelper
 import com.hairstyle.changer.aitryon.utils.LocaleManager
 import com.hairstyle.changer.aitryon.utils.PermissionHelper
 import com.hairstyle.changer.aitryon.utils.PrefManager
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -36,10 +35,6 @@ class AiHairstyleApplication : Application(), ImageLoaderFactory {
         PermissionHelper.resetStaleDeniedFlags()
         LocaleManager.applyStoredLocale()
         ADSAppManage.bind(this)
-        // Ads_Free is persisted; re-derive it from the real plan state so a stale
-        // "true" (e.g. left over from a billing test) can never keep ads off.
-        // Must run after bind() — ADSMainClass prefs need the app context.
-        runCatching { PremiumPlanManager.refreshLocalExpiryOnLaunch() }
         NotificationHelper.ensureChannel(this)
         FcmTokenHelper.init()
         // Block screenshots + screen recording on every Activity window.

@@ -107,11 +107,6 @@
                             tools:text="Long Wavy" />
                     </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="@dimen/_26sdp"
-                        android:layout_height="@dimen/_26sdp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_result_pro_icon" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -195,7 +190,7 @@
                     android:textColor="@color/nav_inactive"
                     android:textSize="@dimen/_11ssp"
                     android:visibility="gone"
-                    tools:text="@string/premium_daily_limit_reached"
+                    tools:text="Today's image limit is reached."
                     tools:visibility="visible" />
 
                 <LinearLayout
@@ -227,37 +222,6 @@
                         android:singleLine="true"
                         android:text="@string/generate_with_free_ad"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/_13ssp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/btnUpgradePremium"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_42sdp"
-                    android:paddingHorizontal="@dimen/_12sdp"
-                    android:layout_marginTop="@dimen/_8sdp"
-                    android:background="@drawable/bg_upgrade_card"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackgroundBorderless"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_upgrade_icon" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_8sdp"
-                        android:fontFamily="@font/saans_semibold"
-                        android:includeFontPadding="false"
-                        android:singleLine="true"
-                        android:text="@string/upgrade_to_premium"
-                        android:textColor="@color/white"
                         android:textSize="@dimen/_13ssp" />
                 </LinearLayout>
             </LinearLayout>

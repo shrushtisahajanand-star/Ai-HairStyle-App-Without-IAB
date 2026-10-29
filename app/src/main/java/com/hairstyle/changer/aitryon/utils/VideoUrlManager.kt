@@ -1,17 +1,13 @@
 package com.hairstyle.changer.aitryon.utils
 
 /**
- * Reads encrypted video URLs from SharedPreferences (keyed by API title) and decrypts them.
+ * Reads video URLs from SharedPreferences (keyed by API title).
  */
 object VideoUrlManager {
 
     fun getVideoUrl(title: String): String? {
         if (title.isBlank()) return null
-        val encrypted = PrefManager.getVideoUrlEncrypted(title)
-        if (encrypted.isBlank()) return null
-        return runCatching { AESHelper.decrypt(encrypted) }
-            .getOrNull()
-            ?.takeIf { it.isNotBlank() }
+        return PrefManager.getVideoUrl(title).takeIf { it.startsWith("http", ignoreCase = true) }
     }
 
     fun hasVideoUrl(title: String): Boolean = !getVideoUrl(title).isNullOrBlank()

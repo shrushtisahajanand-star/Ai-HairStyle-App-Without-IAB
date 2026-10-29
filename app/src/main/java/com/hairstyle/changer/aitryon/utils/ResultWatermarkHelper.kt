@@ -23,15 +23,11 @@ object ResultWatermarkHelper {
     private const val GAP_RATIO = 0.012f
     private const val LABEL_GAP_PX = 2f
 
-    fun shouldShowWatermark(): Boolean = !PremiumPlanManager.isPremiumActive()
-
     /**
-     * Returns a new bitmap with watermark, or [source] unchanged when premium / no drawable.
+     * Returns a new bitmap with the watermark drawn on, or [source] unchanged if it cannot be copied.
      * Caller must recycle the returned bitmap when it is different from [source].
      */
-    fun applyIfNeeded(context: Context, source: Bitmap): Bitmap {
-        if (!shouldShowWatermark()) return source
-
+    fun applyWatermark(context: Context, source: Bitmap): Bitmap {
         val mutable = source.copy(Bitmap.Config.ARGB_8888, true) ?: return source
         val canvas = Canvas(mutable)
         val alpha = (WATERMARK_ALPHA * 255).roundToInt().coerceIn(0, 255)

@@ -85,13 +85,6 @@
             android:theme="@style/Theme.AIHairstyleStudio.Intro"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".ui.premium.PremiumActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="LockedOrientationActivity" />
-        <activity
             android:name=".ui.home.HomePageActivity"
             android:exported="false"
             android:screenOrientation="portrait"
@@ -100,12 +93,6 @@
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".ui.setting.SettingActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
-            tools:ignore="LockedOrientationActivity" />
-        <activity
-            android:name=".ui.setting.ActiveSubscriptionActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AIHairstyleStudio"

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="upload_your_photo">Загрузите свое фото</string>
-    <string name="try_premium">Попробуйте премиум-стили</string>
     <string name="men_hairstyles">Мужские прически</string>
     <string name="women_hairstyles">Женские прически</string>
     <string name="children_hairstyles">Детские прически</string>
@@ -19,25 +18,7 @@
     <string name="generate_with_free_ad">Создать с бесплатной рекламой</string>
     <string name="watch_ads_and_save_images">Посмотрите рекламу и сохраните изображение</string>
     <string name="generate_now">Создать сейчас</string>
-    <string name="premium_image_limit_reached">Лимит изображений по вашему премиум-плану полностью использован.</string>
-    <string name="premium_daily_limit_reached">Дневной лимит изображений достигнут. Вернитесь завтра для получения новых изображений.</string>
-    <string name="free_image_limit_reached">Бесплатный лимит изображений достигнут. Обновитесь до премиум для большего.</string>
-    <string name="billing_purchase_success">Премиум успешно активирован!</string>
-    <string name="billing_restore_success">Премиум успешно восстановлен!</string>
-    <string name="billing_nothing_to_restore">Для этой учетной записи Google не найдена активная премиум-подписка.</string>
-    <string name="billing_purchase_failed">Покупка не удалась. Пожалуйста, попробуйте снова.</string>
-    <string name="billing_purchase_cancelled">Покупка отменена.</string>
-    <string name="premium_restore">Восстановить</string>
-    <string name="billing_product_not_available">Продукт Play Store \"%1$s\" не найден. Создайте эту подписку в Google Play Console и установите приложение из Internal Testing.</string>
-    <string name="billing_no_offer_available">Нет активного предложения для \"%1$s\". Добавьте базовый план и активируйте его в Play Console.</string>
-    <string name="premium_selected_summary">%1$s · %2$s · %3$s</string>
-    <string name="premium_continue_with_price">Продолжить · %1$s</string>
-    <string name="premium_plan_features">%1$d изображений · %2$s</string>
-    <string name="premium_no_ads">Без рекламы</string>
-    <string name="premium_with_ads">С рекламой</string>
-    <string name="upgrade_to_premium">Обновиться до премиум</string>
     <string name="save_hairstyle_title">Сохраните свою прическу</string>
-    <string name="save_hairstyle_subtitle">Посмотрите короткую рекламу, чтобы сохранить в галерею, или обновитесь для мгновенного сохранения.</string>
     <string name="image_not_saved_title">Изображение не сохранено!</string>
     <string name="image_not_saved_message">Ваша созданная прическа еще не сохранена. Вы уверены, что хотите выйти?</string>
     <string name="save">Сохранить</string>
@@ -53,25 +34,8 @@
     <string name="setting_title">Настройка</string>
     <string name="unlock_the_full">Разблокируйте полную</string>
     <string name="unlock">Разблокировать</string>
-    <string name="upgrade_feature_ad_free">Без рекламы</string>
-    <string name="upgrade_feature_unlimited_stickers">Безлимитные стикеры</string>
-    <string name="upgrade_feature_text_styles">Разблокируйте стили текста</string>
-    <string name="upgrade">Обновить</string>
     <string name="settings_general">Общие</string>
     <string name="settings_about">О приложении</string>
-    <string name="active_subscription">Активная подписка</string>
-    <string name="active_subscription_subtitle">Ваша подписка активна</string>
-    <string name="current_plan">Текущий план</string>
-    <string name="current_plan_label">ТЕКУЩИЙ ПЛАН</string>
-    <string name="plan_active_badge">Активен</string>
-    <string name="plan_started_on">Начато</string>
-    <string name="plan_expires_on">Истекает</string>
-    <string name="plan_remaining">Осталось</string>
-    <string name="plan_status">Статус</string>
-    <string name="plan_name_yearly">Годовой план</string>
-    <string name="plan_name_monthly">Месячный план</string>
-    <string name="plan_name_weekly">Недельный план</string>
-    <string name="plan_remaining_days">%1$d дней</string>
     <string name="user_creations">Мои творения</string>
     <string name="user_creations_subtitle">Ваши сохраненные правки и AI-портреты</string>
     <string name="user_creations_empty">Изображения не найдены</string>
@@ -179,15 +143,6 @@
     <string name="intro3_male">Мужской</string>
     <string name="intro3_female">Женский</string>
     <string name="intro_ai_photo">AI-фото</string>
-    <string name="premium_subtitle">Создавайте неограниченные AI-правки с более быстрой обработкой и экспортом без водяных знаков.</string>
-    <string name="premium_feature_unlimited">Попробуйте неограниченные прически</string>
-    <string name="premium_feature_hd">HD AI-результаты и загрузки</string>
-    <string name="premium_feature_no_watermark">Без водяных знаков</string>
-    <string name="premium_plan_yearly">Годовой</string>
-    <string name="premium_best_offer">Лучшее предложение</string>
-    <string name="premium_just_per_week">Всего %1$s / неделя</string>
-    <string name="premium_plan_weekly">Недельный</string>
-    <string name="premium_privacy_policy">Политика конфиденциальности</string>
     <string name="choose_hairstyle">Выберите прическу</string>
     <string name="choose_hair_color">Выберите цвет волос</string>
     <string name="generate">Создать</string>
@@ -253,14 +208,12 @@
     <string name="rate_dialog_select_stars">Пожалуйста, выберите оценку в звёздах</string>
     <string name="terms_of_service">Условия использования</string>
     <string name="terms_of_service_subtitle">Условия использования приложения</string>
-    <string name="save_hairstyle_subtitle_upgrade">Обновитесь до Premium, чтобы мгновенно сохранить эту прическу в галерею.</string>
     <string name="feedback_email_label">Электронная почта (необязательно)</string>
     <string name="feedback_email_hint">Введите ваш email</string>
     <string name="feedback_email_invalid">Пожалуйста, введите действительный адрес электронной почты.</string>
     <string name="beard_fade_haircut_styles">Борода, Фейд &amp; Стрижки</string>
     <string name="daily_quota_finished_title">Дневной лимит исчерпан</string>
     <string name="daily_quota_finished_message">Ваш дневной лимит изображений исчерпан. Вернитесь завтра для новых генераций.</string>
-    <string name="premium_subscription_expired">Ваша премиум-подписка закончилась. Продлите её, чтобы продолжить генерацию.</string>
 </resources>
 
 

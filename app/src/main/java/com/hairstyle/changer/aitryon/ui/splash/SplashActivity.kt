@@ -17,7 +17,6 @@ import com.hairstyle.changer.aitryon.remoteconfig.RemoteConfigManager
 import com.hairstyle.changer.aitryon.repository.VideosRepository
 import com.hairstyle.changer.aitryon.ui.AppNavigator
 import com.hairstyle.changer.aitryon.ui.BaseActivity
-import com.hairstyle.changer.aitryon.utils.AESDebugHelper
 import com.hairstyle.changer.aitryon.utils.AppVisitManager
 import com.hairstyle.changer.aitryon.utils.IntroManager
 import com.hairstyle.changer.aitryon.utils.InstallReferrerHelper
@@ -27,9 +26,7 @@ import com.hairstyle.changer.aitryon.utils.PermissionHelper
 import com.hairstyle.changer.aitryon.utils.SplashAnimationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -112,18 +109,12 @@ class SplashActivity : BaseActivity() {
             if (!isScreenAlive() || navigated) return@launch
 
             val startedAt = System.currentTimeMillis()
-            billingManager.refreshEntitlements()
             runCatching {
                 InstallReferrerHelper.awaitFetch(this@SplashActivity)
                 remoteConfigManager.fetchAndSaveAll()
-                AESDebugHelper.logRemoteConfigUrlsFromPrefs()
                 videosRepository.fetchAndSaveAllVideos()
                 if (!IntroManager.isIntroCompleted()) {
                     videosRepository.preloadIntroVideos()
-                }
-                // Await billing sync to ensure correct premium/ad state before consent/ad decisions
-                withTimeoutOrNull(2500L) {
-                    billingManager.isInitialSyncComplete.first { it }
                 }
             }.onFailure {
                 // Log.e(TAG, "Splash fetch/cache failed", it)

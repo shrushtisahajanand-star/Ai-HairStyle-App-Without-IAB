@@ -18,13 +18,11 @@ import androidx.lifecycle.ViewModelLazy
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.hairstyle.changer.aitryon.di.billing.BillingManager
 import com.hairstyle.changer.aitryon.ui.common.NoInternetDialogController
 import com.hairstyle.changer.aitryon.utils.DeviceIdProvider
 import com.hairstyle.changer.aitryon.utils.LocaleManager
 import com.hairstyle.changer.aitryon.utils.NetworkMonitor
 import com.hairstyle.changer.aitryon.utils.PrefManager
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
 import com.hairstyle.changer.aitryon.utils.contentBottomInsetOrFallback
 import com.hairstyle.changer.aitryon.utils.setStatusBarLightIcons
 import com.hairstyle.changer.aitryon.utils.setupEdgeToEdge
@@ -32,9 +30,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 abstract class BaseActivity : AppCompatActivity() {
-
-    @Inject
-    lateinit var billingManager: BillingManager
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
@@ -57,8 +52,6 @@ abstract class BaseActivity : AppCompatActivity() {
 //        Log.d(TAG, "device_id    = $deviceId")
 
         super.onCreate(savedInstanceState)
-        billingManager.startConnection()
-        observePremiumEntitlement()
         noInternetDialog = NoInternetDialogController(this, networkMonitor)
         networkMonitor.start()
         observeNetwork()
@@ -76,16 +69,6 @@ abstract class BaseActivity : AppCompatActivity() {
         }
         ViewCompat.requestApplyInsets(contentView)
         setStatusBarLightIcons(useLightStatusBarIcons)
-    }
-
-    private fun observePremiumEntitlement() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                billingManager.entitlementRevision.collect {
-                    PremiumPlanManager.syncAdsFreeFlag()
-                }
-            }
-        }
     }
 
     private fun observeNetwork() {
@@ -117,7 +100,6 @@ abstract class BaseActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        billingManager.refreshEntitlements()
         networkMonitor.start()
         networkMonitor.refresh()
         noInternetDialog?.onConnectivityChanged(networkMonitor.isOnline.value)

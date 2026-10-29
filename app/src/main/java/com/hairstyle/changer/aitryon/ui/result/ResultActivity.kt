@@ -20,7 +20,6 @@ import com.hairstyle.changer.aitryon.ui.BaseActivity
 import com.hairstyle.changer.aitryon.ui.common.RateAppDialog
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModel
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModelOwner
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
 import com.hairstyle.changer.aitryon.utils.ResultImageHelper
 import com.hairstyle.changer.aitryon.utils.ResultWatermarkHelper
 import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
@@ -77,14 +76,10 @@ class ResultActivity : BaseActivity() {
         binding.btnShare.setOnClickListener { shareImage() }
     }
 
-    /** Premium → save directly (no dialog). Free + save_photo_show_ads false → save photo with no dialog. */
+    /** save_photo_show_ads false → save directly; otherwise show the Save dialog (watch ad to save). */
     private fun onSaveClicked(highQuality: Boolean) {
-        if (PremiumPlanManager.isPremiumActive()) {
-            saveImage(highQuality = true)
-            return
-        }
-        if (!highQuality && !shouldShowSavePhotoAds()) {
-            saveImage(highQuality = false)
+        if (!shouldShowSavePhotoAds()) {
+            saveImage(highQuality = highQuality)
             return
         }
         showSaveDialog(
@@ -122,9 +117,7 @@ class ResultActivity : BaseActivity() {
 
         ImageNotSavedBottomSheet.newInstance(
             onSaveClick = {
-                if (PremiumPlanManager.isPremiumActive()) {
-                    saveImage(highQuality = true)
-                } else if (!shouldShowSavePhotoAds()) {
+                if (!shouldShowSavePhotoAds()) {
                     saveImage(highQuality = false)
                 } else {
                     showSaveDialog(SaveHairstyleDialog.Mode.SAVE_PHOTO)
@@ -156,8 +149,7 @@ class ResultActivity : BaseActivity() {
                     },
                     onFailedOrSkipped = { /* stay on result — no save */ }
                 )
-            },
-            onPremiumClick = { AppNavigator.openPremium(this) }
+            }
         )
     }
 
@@ -214,7 +206,7 @@ class ResultActivity : BaseActivity() {
 
     private fun updateWatermarkVisibility() {
         if (_binding == null) return
-        binding.watermarkBadge.isVisible = ResultWatermarkHelper.shouldShowWatermark()
+        binding.watermarkBadge.isVisible = true
     }
 
     private fun setActionButtonsEnabled(enabled: Boolean) {

@@ -12,7 +12,6 @@ data class VideosApiData(
     @SerializedName("HomeVideo") val homeVideo: List<VideoItemDto>? = null,
     @SerializedName("IntroImages") val introImages: List<VideoItemDto>? = null,
     @SerializedName("IntroVideo") val introVideo: List<VideoItemDto>? = null,
-    @SerializedName("PremiumVideo") val premiumVideo: List<VideoItemDto>? = null,
     @SerializedName("FemaleImages") val femaleImages: List<VideoItemDto>? = null,
     @SerializedName("MaleImages") val maleImages: List<VideoItemDto>? = null
 )

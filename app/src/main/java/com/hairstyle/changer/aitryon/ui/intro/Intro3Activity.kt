@@ -36,7 +36,7 @@ class Intro3Activity : BaseActivity() {
         adapter = IntroOptionAdapter { option ->
             UserGenderManager.setGenderFromIntroOptionId(option.id)
             InterstitialNavHelper.showOnIntroClick(this, ScreenInterAds.intro3()) {
-                navigateIntroToPremiumOrHome()
+                completeIntroAndGoHome()
             }
         }
         binding.rvOptions.adapter = adapter

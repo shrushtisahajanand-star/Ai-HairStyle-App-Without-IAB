@@ -44,36 +44,6 @@
                 android:textColor="@color/white"
                 android:textSize="@dimen/_17sdp" />
 
-            <LinearLayout
-                android:id="@+id/btnPro"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/_26sdp"
-                android:layout_marginEnd="@dimen/_3sdp"
-                android:background="@drawable/bg_pro_button"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/_12sdp">
-
-                <ImageView
-                    android:layout_width="@dimen/_12sdp"
-                    android:layout_height="@dimen/_12sdp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_pro_icon" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_6sdp"
-                    android:fontFamily="@font/saans_semibold"
-                    android:includeFontPadding="false"
-                    android:text="@string/pro"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_11sdp" />
-            </LinearLayout>
-
             <ImageView
                 android:id="@+id/btnSettings"
                 android:layout_width="@dimen/_30sdp"

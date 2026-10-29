@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="upload_your_photo">Laden Sie Ihr Foto hoch</string>
-    <string name="try_premium">Probieren Sie Premium-Stile</string>
     <string name="men_hairstyles">Herren-Frisuren</string>
     <string name="women_hairstyles">Damen-Frisuren</string>
     <string name="children_hairstyles">Kinder-Frisuren</string>
@@ -19,25 +18,7 @@
     <string name="generate_with_free_ad">Mit kostenloser Werbung generieren</string>
     <string name="watch_ads_and_save_images">Werbeanzeige ansehen und Bild speichern</string>
     <string name="generate_now">Jetzt generieren</string>
-    <string name="premium_image_limit_reached">Ihr Premium-Bildkontingent ist vollständig aufgebraucht.</string>
-    <string name="premium_daily_limit_reached">Das tägliche Bildkontingent wurde erreicht. Kommen Sie morgen wieder für weitere Bilder.</string>
-    <string name="free_image_limit_reached">Kostenloses Bildkontingent erreicht. Upgraden Sie auf Premium für mehr.</string>
-    <string name="billing_purchase_success">Premium erfolgreich aktiviert!</string>
-    <string name="billing_restore_success">Premium erfolgreich wiederhergestellt!</string>
-    <string name="billing_nothing_to_restore">Kein aktives Premium-Abonnement für dieses Google-Konto gefunden.</string>
-    <string name="billing_purchase_failed">Kauf fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
-    <string name="billing_purchase_cancelled">Kauf abgebrochen.</string>
-    <string name="premium_restore">Wiederherstellen</string>
-    <string name="billing_product_not_available">Play Store-Produkt \"%1$s\" nicht gefunden. Erstellen Sie dieses Abonnement in der Google Play Console und installieren Sie die App über Internal Testing.</string>
-    <string name="billing_no_offer_available">Kein aktives Angebot für \"%1$s\". Fügen Sie einen Basisplan hinzu und aktivieren Sie ihn in der Play Console.</string>
-    <string name="premium_selected_summary">%1$s · %2$s · %3$s</string>
-    <string name="premium_continue_with_price">Fortfahren · %1$s</string>
-    <string name="premium_plan_features">%1$d Bilder · %2$s</string>
-    <string name="premium_no_ads">Keine Werbung</string>
-    <string name="premium_with_ads">Mit Werbung</string>
-    <string name="upgrade_to_premium">Auf Premium upgraden</string>
     <string name="save_hairstyle_title">Speichern Sie Ihre Frisur</string>
-    <string name="save_hairstyle_subtitle">Schauen Sie sich eine kurze Werbung an, um in Ihrer Galerie zu speichern, oder upgraden Sie für sofortiges Speichern.</string>
     <string name="image_not_saved_title">Bild nicht gespeichert!</string>
     <string name="image_not_saved_message">Ihre generierte Frisur wurde noch nicht gespeichert. Sind Sie sicher, dass Sie verlassen möchten?</string>
     <string name="save">Speichern</string>
@@ -53,25 +34,8 @@
     <string name="setting_title">Einstellung</string>
     <string name="unlock_the_full">Schalten Sie das volle</string>
     <string name="unlock">Freischalten</string>
-    <string name="upgrade_feature_ad_free">Werbefreies Erlebnis</string>
-    <string name="upgrade_feature_unlimited_stickers">Unbegrenzte Sticker</string>
-    <string name="upgrade_feature_text_styles">Textstile freischalten</string>
-    <string name="upgrade">Upgraden</string>
     <string name="settings_general">Allgemein</string>
     <string name="settings_about">Über</string>
-    <string name="active_subscription">Aktives Abonnement</string>
-    <string name="active_subscription_subtitle">Ihr Abonnement ist aktiv</string>
-    <string name="current_plan">Aktueller Plan</string>
-    <string name="current_plan_label">AKTUELLER PLAN</string>
-    <string name="plan_active_badge">Aktiv</string>
-    <string name="plan_started_on">Begonnen am</string>
-    <string name="plan_expires_on">Läuft ab am</string>
-    <string name="plan_remaining">Verbleibend</string>
-    <string name="plan_status">Status</string>
-    <string name="plan_name_yearly">Jahresplan</string>
-    <string name="plan_name_monthly">Monatsplan</string>
-    <string name="plan_name_weekly">Wochenplan</string>
-    <string name="plan_remaining_days">%1$d Tage</string>
     <string name="user_creations">Meine Kreationen</string>
     <string name="user_creations_subtitle">Ihre gespeicherten Bearbeitungen und KI-Porträts</string>
     <string name="user_creations_empty">Kein Bild gefunden</string>
@@ -179,15 +143,6 @@
     <string name="intro3_male">Männlich</string>
     <string name="intro3_female">Weiblich</string>
     <string name="intro_ai_photo">KI-Foto</string>
-    <string name="premium_subtitle">Erstellen Sie unbegrenzte KI-Bearbeitungen mit schnellerer Verarbeitung und wasserzeichenfreiem Export.</string>
-    <string name="premium_feature_unlimited">Unbegrenzte Frisuren ausprobieren</string>
-    <string name="premium_feature_hd">HD-KI-Ergebnisse und Downloads</string>
-    <string name="premium_feature_no_watermark">Keine Wasserzeichen</string>
-    <string name="premium_plan_yearly">Jährlich</string>
-    <string name="premium_best_offer">Bestes Angebot</string>
-    <string name="premium_just_per_week">Nur %1$s / Woche</string>
-    <string name="premium_plan_weekly">Wöchentlich</string>
-    <string name="premium_privacy_policy">Datenschutzrichtlinie</string>
     <string name="choose_hairstyle">Frisur auswählen</string>
     <string name="choose_hair_color">Haarfarbe auswählen</string>
     <string name="generate">Generieren</string>
@@ -253,13 +208,11 @@
     <string name="rate_dialog_select_stars">Bitte wählen Sie eine Sternebewertung</string>
     <string name="terms_of_service">Nutzungsbedingungen</string>
     <string name="terms_of_service_subtitle">Allgemeine Geschäftsbedingungen für die Nutzung der App</string>
-    <string name="save_hairstyle_subtitle_upgrade">Upgraden Sie auf Premium, um diese Frisur sofort in Ihrer Galerie zu speichern.</string>
     <string name="feedback_email_label">E-Mail (Optional)</string>
     <string name="feedback_email_hint">Geben Sie Ihre E-Mail ein</string>
     <string name="feedback_email_invalid">Bitte geben Sie eine gültige E-Mail-Adresse ein.</string>
     <string name="beard_fade_haircut_styles">Bart, Fade &amp; Haarschnitt-Stile</string>
     <string name="daily_quota_finished_title">Tägliches Limit erreicht</string>
     <string name="daily_quota_finished_message">Ihr tägliches Bildlimit ist erreicht. Kommen Sie morgen wieder für weitere Generierungen.</string>
-    <string name="premium_subscription_expired">Ihr Premium-Abonnement ist abgelaufen. Verlängern Sie es, um weiter zu generieren.</string>
 </resources>
 

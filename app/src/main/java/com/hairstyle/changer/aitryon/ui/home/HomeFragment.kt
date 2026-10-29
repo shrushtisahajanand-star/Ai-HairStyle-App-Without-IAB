@@ -16,8 +16,6 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import coil.imageLoader
-import coil.request.ImageRequest
 import com.hairstyle.changer.aitryon.R
 import com.hairstyle.changer.aitryon.databinding.FragmentHomeBinding
 import com.hairstyle.changer.aitryon.domain.model.CategoryHairstyle
@@ -31,11 +29,8 @@ import com.hairstyle.changer.aitryon.ui.category.HairColorBottomSheet
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.hairstyle.changer.aitryon.ui.common.RateAppDialog
 import com.hairstyle.changer.aitryon.ui.common.ShimmerItemFooterAdapter
-import com.hairstyle.changer.aitryon.utils.AppVisitManager
 import com.hairstyle.changer.aitryon.utils.HomeCategoryVideoHelper
 import com.hairstyle.changer.aitryon.utils.InAppUpdateHelper
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
-import com.hairstyle.changer.aitryon.utils.PromoImageManager
 import com.hairstyle.changer.aitryon.utils.VideoTitleKeys
 import com.hairstyle.changer.aitryon.utils.bindListLoading
 import com.hairstyle.changer.aitryon.utils.showListShimmer
@@ -78,9 +73,7 @@ class HomeFragment : Fragment() {
             resultCode = result.resultCode,
             config = cachedUpdateConfig,
             onFinished = {
-                RateAppDialog.showIfNeededForAppOpen(this) {
-                    maybeShowPromoOnAppOpen()
-                }
+                RateAppDialog.showIfNeededForAppOpen(this)
             }
         )
     }
@@ -213,7 +206,7 @@ class HomeFragment : Fragment() {
         refreshVisibleImages()
         if (!isHidden) {
             playCategoryVideos()
-            maybeShowUpdateThenPromo()
+            maybeShowUpdate()
         }
     }
 
@@ -223,7 +216,7 @@ class HomeFragment : Fragment() {
             viewModel.loadHeroSlides()
             refreshVisibleImages()
             playCategoryVideos()
-            maybeShowUpdateThenPromo()
+            maybeShowUpdate()
             // Returning to Home: sync header with current scroll (no blink).
             if (_binding != null) {
                 (activity as? HomePageActivity)?.setHomeHeaderCollapsed(
@@ -431,10 +424,9 @@ class HomeFragment : Fragment() {
     }
 
     /**
-     * In-app update (Firebase-gated) first; SecondVisitPromo only after update UI settles
-     * (or when update is off / unavailable / Flexible daily limit hit).
+     * In-app update (Firebase-gated), then the app-open rate prompt once the update UI settles.
      */
-    private fun maybeShowUpdateThenPromo() {
+    private fun maybeShowUpdate() {
         if (_binding == null || isHidden || !isAdded) return
         cachedUpdateConfig = remoteConfigManager.getInAppUpdateConfig()
         InAppUpdateHelper.checkAndMaybeStart(
@@ -442,38 +434,9 @@ class HomeFragment : Fragment() {
             updateLauncher = inAppUpdateLauncher,
             config = cachedUpdateConfig,
             onFinished = {
-                // Rate dialog first on 4th/8th/12th open — don't wait behind promo.
-                RateAppDialog.showIfNeededForAppOpen(this) {
-                    maybeShowPromoOnAppOpen()
-                }
+                RateAppDialog.showIfNeededForAppOpen(this)
             }
         )
-    }
-
-    private fun maybeShowPromoOnAppOpen() {
-        if (_binding == null || isHidden || !isAdded) return
-        if (PremiumPlanManager.isPremiumActive()) return
-        if (!AppVisitManager.shouldShowPromoOnAppOpen()) return
-        val promo = PromoImageManager.getRandomPromoContent() ?: return
-        val homePage = activity as? HomePageActivity ?: return
-        if (homePage.supportFragmentManager.findFragmentByTag(SecondVisitPromoBottomSheet.TAG) != null) {
-            return
-        }
-
-        AppVisitManager.markPromoShownThisSession()
-
-        val request = ImageRequest.Builder(requireContext())
-            .data(promo.imageUrl)
-            .listener(
-                onSuccess = { _, _ ->
-                    if (!isAdded || isHidden) return@listener
-                    if (PremiumPlanManager.isPremiumActive()) return@listener
-                    homePage.showSecondVisitPromo(promo)
-                },
-                onError = { _, _ -> Unit }
-            )
-            .build()
-        requireContext().imageLoader.enqueue(request)
     }
 
     private fun onHairstyleSelected(item: CategoryHairstyle) {

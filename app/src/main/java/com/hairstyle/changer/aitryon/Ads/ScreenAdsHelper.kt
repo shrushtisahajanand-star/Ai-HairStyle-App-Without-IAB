@@ -89,7 +89,7 @@ object ScreenAdsHelper {
 //                TAG,
 //                "Ads blocked → show=${config.show} adsFree=$adsFree " +
 //                    "ads_blocked=${ADSMainClass.getAdsBlocked()} " +
-//                    "canRequestAds=$canRequestAds premium=${PremiumPlanManager.isPremiumActive()} " +
+//                    "canRequestAds=$canRequestAds " +
 //                    "type=${config.adsType} nativeId=${config.nativeId} bannerId=${config.bannerId}"
 //            )
             container.visibility = View.GONE

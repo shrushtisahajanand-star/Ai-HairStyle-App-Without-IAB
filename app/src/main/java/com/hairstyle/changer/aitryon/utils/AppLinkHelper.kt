@@ -49,8 +49,6 @@ object AppLinkHelper {
         val stored = PrefManager.getPrivacyPolicyUrl().trim()
         if (stored.isNotBlank()) {
             if (stored.startsWith("http", ignoreCase = true)) return stored
-            val decrypted = runCatching { AESHelper.decrypt(stored).trim() }.getOrDefault("")
-            if (decrypted.isNotBlank()) return decrypted
         }
         return context.getString(R.string.privacy_policy_url).trim()
     }
@@ -65,8 +63,6 @@ object AppLinkHelper {
         val stored = PrefManager.getTermsUrl().trim()
         if (stored.isNotBlank()) {
             if (stored.startsWith("http", ignoreCase = true)) return stored
-            val decrypted = runCatching { AESHelper.decrypt(stored).trim() }.getOrDefault("")
-            if (decrypted.isNotBlank()) return decrypted
         }
         // Default fallback terms URL
         return "https://sites.google.com/view/aihairstylehaircuttryon-d01g/home"

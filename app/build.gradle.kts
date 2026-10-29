@@ -120,7 +120,6 @@ dependencies {
     implementation(libs.firebase.messaging)
 
     implementation(libs.shimmer)
-    implementation(libs.play.billing)
     implementation("com.intuit.sdp:sdp-android:1.0.3")
     implementation("com.intuit.ssp:ssp-android:1.1.1")
     implementation("com.google.mlkit:face-detection:16.1.7")

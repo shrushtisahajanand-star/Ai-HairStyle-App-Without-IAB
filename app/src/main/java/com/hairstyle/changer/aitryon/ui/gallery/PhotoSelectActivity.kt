@@ -20,7 +20,6 @@ import com.hairstyle.changer.aitryon.Ads.ScreenAdsHelper
 import com.hairstyle.changer.aitryon.ui.AppNavigator
 import com.hairstyle.changer.aitryon.ui.BaseActivity
 import com.hairstyle.changer.aitryon.ui.common.DailyQuotaFinishedDialog
-import com.hairstyle.changer.aitryon.ui.premium.PremiumBottomSheet
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModel
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModelOwner
 import com.hairstyle.changer.aitryon.utils.FaceDetectionHelper
@@ -286,22 +285,8 @@ class PhotoSelectActivity : BaseActivity() {
         lifecycleScope.launch {
             setPhotoProcessingUi(true)
             try {
-                when (val limitResult = freeLimitRepository.checkBeforeFaceDetection()) {
+                when (freeLimitRepository.checkBeforeFaceDetection()) {
                     FreeLimitCheckResult.Allowed -> Unit
-                    FreeLimitCheckResult.FreeLimitReached,
-                    FreeLimitCheckResult.PremiumExpired -> {
-                        if (isScreenAlive()) {
-                            if (limitResult is FreeLimitCheckResult.PremiumExpired) {
-                                Toast.makeText(
-                                    this@PhotoSelectActivity,
-                                    getString(R.string.premium_subscription_expired),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                            showFreeLimitPremiumSheet()
-                        }
-                        return@launch
-                    }
                     FreeLimitCheckResult.DailyLimitReached -> {
                         if (isScreenAlive()) DailyQuotaFinishedDialog.show(this@PhotoSelectActivity)
                         return@launch
@@ -327,18 +312,6 @@ class PhotoSelectActivity : BaseActivity() {
                 setPhotoProcessingUi(false)
             }
         }
-    }
-
-    private fun showFreeLimitPremiumSheet() {
-        if (supportFragmentManager.findFragmentByTag(PremiumBottomSheet.TAG) != null) return
-        PremiumBottomSheet.newInstance(
-            onCancelClick = {
-                AppNavigator.openHomeClearTask(this)
-            },
-            onPremiumClick = {
-                AppNavigator.openPremium(this)
-            }
-        ).show(supportFragmentManager, PremiumBottomSheet.TAG)
     }
 
     private fun setPhotoProcessingUi(isProcessing: Boolean) {

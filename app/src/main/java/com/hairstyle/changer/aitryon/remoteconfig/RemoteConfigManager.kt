@@ -7,11 +7,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import com.hairstyle.changer.aitryon.Ads.ADSMainClass
-import com.hairstyle.changer.aitryon.model.PremiumPlanDetailsRoot
 import com.hairstyle.changer.aitryon.remote.FeedbackApiConfig
 import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
-import com.hairstyle.changer.aitryon.utils.AESHelper
-import com.hairstyle.changer.aitryon.utils.InstallReferrerHelper
 import com.hairstyle.changer.aitryon.utils.PrefManager
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -25,10 +22,6 @@ class RemoteConfigManager @Inject constructor(
 
     companion object {
         private const val TAG = "UserSegment"
-        private val PREMIUM_JSON_KEYS = listOf(
-            RemoteConfigKeys.PREMIUM_PLAN_DETAILS,
-            "premium_plan_details"
-        )
     }
 
     suspend fun fetchAndSaveAll() {
@@ -47,17 +40,14 @@ class RemoteConfigManager @Inject constructor(
         if (json.isNotBlank()) {
             runCatching {
                 val root = gson.fromJson(json, RemoteConfigApiRoot::class.java)
-                PrefManager.setImagesBaseUrl(root.api?.baseUrl.orEmpty())
-                PrefManager.setVideosApiUrl(root.api?.videosUrl.orEmpty())
-                PrefManager.setGenerateBaseUrl(root.api?.generateBaseUrl.orEmpty())
                 PrefManager.setPrivacyPolicyUrl(root.api?.privacyPolicyUrl.orEmpty())
                 PrefManager.setTermsUrl(root.api?.termsUrl.orEmpty())
+                PrefManager.setBaseUrl(root.api?.baseUrl.orEmpty())
                 PrefManager.setFeedbackUrl(root.api?.feedbackUrl.orEmpty())
                 PrefManager.setImagesPageLimit(
                     root.api?.pageLimit ?: RemoteConfigKeys.DEFAULT_PAGE_LIMIT
                 )
             }
-            savePremiumPlanDetailsFromJson(json)
             saveUpdateAppFromJson(json)
             AdsConfigApplier.applyFromRemoteJson(json, gson)
         }
@@ -82,29 +72,13 @@ class RemoteConfigManager @Inject constructor(
             else -> null
         } ?: return raw
 
-        if (!root.has(ADSMainClass.NORMAL_USER) && !root.has(ADSMainClass.PAID_USER)) {
+        if (!root.has(ADSMainClass.NORMAL_USER)) {
             return raw
         }
 
-        val preferredKey = if (InstallReferrerHelper.isPaidMarketingReferrer()) {
-            Log.d(TAG, "resolveUserSegmentJson: using paid_user")
-            ADSMainClass.PAID_USER
-        } else {
-            Log.d(TAG, "resolveUserSegmentJson: using normal_user")
-            ADSMainClass.NORMAL_USER
-        }
-
-        val fallbackKey = if (preferredKey == ADSMainClass.PAID_USER) {
-            ADSMainClass.NORMAL_USER
-        } else {
-            ADSMainClass.PAID_USER
-        }
-        val block = root.get(preferredKey)?.takeIf { it.isJsonObject }
-            ?: root.get(fallbackKey)?.takeIf { it.isJsonObject }
+        val block = root.get(ADSMainClass.NORMAL_USER)?.takeIf { it.isJsonObject }
         if (block == null) {
-            Log.w(TAG, "resolveUserSegmentJson: missing paid_user and normal_user blocks")
-        } else if (block !== root.get(preferredKey)) {
-            Log.w(TAG, "resolveUserSegmentJson: fallback to $fallbackKey ($preferredKey missing)")
+            Log.w(TAG, "resolveUserSegmentJson: missing normal_user block")
         }
         return block?.asJsonObject?.toString() ?: raw
     }
@@ -127,79 +101,14 @@ class RemoteConfigManager @Inject constructor(
         }.getOrDefault(InAppUpdateConfig.DISABLED)
     }
 
-    private fun savePremiumPlanDetailsFromJson(json: String) {
-        runCatching {
-            val jsonObject = JsonParser.parseString(json).asJsonObject
-            val key = PREMIUM_JSON_KEYS.firstOrNull { jsonObject.has(it) }
-            if (key != null) {
-                PrefManager.setPremiumPlanDetailsJson(jsonObject.get(key).toString())
-                return
-            }
-        }
-        runCatching {
-            val root = gson.fromJson(json, RemoteConfigApiRoot::class.java)
-            root.premiumPlanDetails?.let { details ->
-                PrefManager.setPremiumPlanDetailsJson(gson.toJson(details))
-            }
-        }
-    }
-
-    fun getPremiumPlanDetails(): PremiumPlanDetailsRoot {
-        val json = PrefManager.getPremiumPlanDetailsJson()
-        if (json.isBlank()) return PremiumPlanDetailsRoot()
-        return runCatching {
-            gson.fromJson(json, PremiumPlanDetailsRoot::class.java)
-        }.getOrDefault(PremiumPlanDetailsRoot())
-    }
-
-    fun getImagesBaseUrl(): String {
-        val encrypted = PrefManager.getImagesBaseUrl()
-        require(encrypted.isNotBlank()) {
-            "base_url not found in prefs. Remote Config must load on Splash."
-        }
-        return AESHelper.decrypt(encrypted)
-    }
-
     fun getPageLimit(): Int {
         return PrefManager.getImagesPageLimit(RemoteConfigKeys.DEFAULT_PAGE_LIMIT)
-    }
-
-    fun getVideosApiUrl(): String {
-        val encrypted = PrefManager.getVideosApiUrl()
-        require(encrypted.isNotBlank()) {
-            "videos_url not found in prefs. Remote Config must load on Splash."
-        }
-        return AESHelper.decrypt(encrypted)
-    }
-
-    fun getGenerateBaseUrl(): String {
-        val stored = PrefManager.getGenerateBaseUrl().trim()
-        val resolved = when {
-            stored.isBlank() -> GenerateApiConfig.DEFAULT_BASE_URL
-            stored.startsWith("http", ignoreCase = true) -> stored
-            else -> runCatching { AESHelper.decrypt(stored) }
-                .getOrDefault(GenerateApiConfig.DEFAULT_BASE_URL)
-        }
-        return normalizeGenerateBaseUrl(resolved)
-    }
-
-    private fun normalizeGenerateBaseUrl(url: String): String {
-        var base = url.trim().trimEnd('/')
-        if (base.endsWith("/api/hairstyle", ignoreCase = true)) {
-            base = base.dropLast("/api/hairstyle".length).trimEnd('/')
-        }
-        return base.ifBlank { GenerateApiConfig.DEFAULT_BASE_URL }
-    }
-
-    fun buildGenerateApiUrl(endpoint: String): String {
-        return GenerateApiConfig.buildUrl(getGenerateBaseUrl(), endpoint)
     }
 
     fun getPrivacyPolicyUrl(): String {
         val stored = PrefManager.getPrivacyPolicyUrl().trim()
         if (stored.isBlank()) return ""
-        if (stored.startsWith("http", ignoreCase = true)) return stored
-        return runCatching { AESHelper.decrypt(stored).trim() }.getOrDefault("").trim()
+        return if (stored.startsWith("http", ignoreCase = true)) stored else ""
     }
 
     fun getFeedbackUrl(): String {
@@ -219,15 +128,11 @@ class RemoteConfigManager @Inject constructor(
 
     data class RemoteConfigApiRoot(
         @SerializedName("APi") val api: ApiSection? = null,
-        @SerializedName(RemoteConfigKeys.PREMIUM_PLAN_DETAILS)
-        val premiumPlanDetails: PremiumPlanDetailsRoot? = null,
         @SerializedName("update_app") val updateApp: InAppUpdateConfig? = null
     )
 
     data class ApiSection(
         @SerializedName("base_url") val baseUrl: String? = null,
-        @SerializedName("videos_url") val videosUrl: String? = null,
-        @SerializedName("generate_base_url") val generateBaseUrl: String? = null,
         @SerializedName("privacy_policy_url") val privacyPolicyUrl: String? = null,
         @SerializedName("terms_url") val termsUrl: String? = null,
         @SerializedName("feedback_url") val feedbackUrl: String? = null,

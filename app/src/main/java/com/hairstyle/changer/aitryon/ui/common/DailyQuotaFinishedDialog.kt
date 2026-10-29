@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import com.hairstyle.changer.aitryon.R
 import com.hairstyle.changer.aitryon.databinding.DialogDailyQuotaFinishedBinding
 
-/** Shown when premium daily quota (`today_remaining`) is exhausted. */
+/** Shown when the server daily free limit is exhausted. */
 object DailyQuotaFinishedDialog {
 
     fun show(fragment: Fragment, onDismiss: (() -> Unit)? = null) {

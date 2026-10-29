@@ -5,7 +5,7 @@
 # Every extra `-keep ... { *; }` both leaks readable names to decompilers
 # (JADX) and blocks shrinking, which grows the APK.
 #
-# Libraries (Firebase, GMS Ads, Play Billing, Coil, Lottie, ML Kit, Play Core,
+# Libraries (Firebase, GMS Ads, Coil, Lottie, ML Kit, Play Core,
 # OkHttp, Gson, Hilt, AndroidX) all ship their own consumer rules inside their
 # AARs — do NOT re-declare blanket keeps for them here.
 # =============================================================================
@@ -153,7 +153,6 @@
 -keep class com.google.mlkit.vision.face.** { *; }
 -keep class com.google.android.gms.vision.** { *; }
 -keep class com.google.android.gms.internal.mlkit_vision_face.** { *; }
--dontwarn com.android.billingclient.**
 -dontwarn com.google.android.play.core.**
 -dontwarn com.yalantis.ucrop.**
 -dontwarn coil.**

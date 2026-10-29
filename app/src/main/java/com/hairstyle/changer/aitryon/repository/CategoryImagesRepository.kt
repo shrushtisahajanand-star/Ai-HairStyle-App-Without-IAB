@@ -8,6 +8,7 @@ import com.hairstyle.changer.aitryon.model.ImageApiCategory
 import com.hairstyle.changer.aitryon.model.PagedBeardStyles
 import com.hairstyle.changer.aitryon.model.PagedCategoryImages
 import com.hairstyle.changer.aitryon.model.PagedFunStyles
+import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
 import com.hairstyle.changer.aitryon.remoteconfig.RemoteConfigManager
 import com.hairstyle.changer.aitryon.domain.model.BeardStyle
 import com.hairstyle.changer.aitryon.domain.model.CategoryHairstyle
@@ -125,7 +126,7 @@ class CategoryImagesRepository @Inject constructor(
         page: Int,
         limit: Int
     ): PagedFunStyles {
-        val baseUrl = remoteConfigManager.getImagesBaseUrl()
+        val baseUrl = GenerateApiConfig.buildUrl(GenerateApiConfig.IMAGES_ENDPOINT)
         val apiUrl = buildImagesApiUrl(baseUrl, imageCategory, page, limit)
         val fetched = fetchImages(label, apiUrl, baseUrl)
         val skipped = mutableMapOf<String, Int>()
@@ -175,7 +176,7 @@ class CategoryImagesRepository @Inject constructor(
         page: Int,
         limit: Int
     ): PagedBeardStyles {
-        val baseUrl = remoteConfigManager.getImagesBaseUrl()
+        val baseUrl = GenerateApiConfig.buildUrl(GenerateApiConfig.IMAGES_ENDPOINT)
         val apiUrl = buildImagesApiUrl(baseUrl, imageCategory, page, limit)
         val fetched = fetchImages(label, apiUrl, baseUrl)
         val skipped = mutableMapOf<String, Int>()
@@ -221,7 +222,7 @@ class CategoryImagesRepository @Inject constructor(
         page: Int,
         limit: Int
     ): PagedCategoryImages {
-        val baseUrl = remoteConfigManager.getImagesBaseUrl()
+        val baseUrl = GenerateApiConfig.buildUrl(GenerateApiConfig.IMAGES_ENDPOINT)
         val apiUrl = buildImagesApiUrl(baseUrl, imageCategory, page, limit)
         val fetched = fetchImages(label, apiUrl, baseUrl)
         val skipped = mutableMapOf<String, Int>()
@@ -280,7 +281,7 @@ class CategoryImagesRepository @Inject constructor(
         limit: Int
     ): String {
         val httpUrl = baseUrl.toHttpUrlOrNull()
-            ?: error("Invalid base_url from Remote Config: $baseUrl")
+            ?: error("Invalid images url: $baseUrl")
 
         val builder = httpUrl.newBuilder()
             .addQueryParameter("category", imageCategory.category)
@@ -288,7 +289,7 @@ class CategoryImagesRepository @Inject constructor(
             .addQueryParameter("limit", limit.toString())
 
         imageCategory.subcategory?.let { subcategory ->
-            builder.addQueryParameter("subcategory", subcategory)
+            builder.addQueryParameter("subCategory", subcategory)
         }
 
         return builder.build().toString()

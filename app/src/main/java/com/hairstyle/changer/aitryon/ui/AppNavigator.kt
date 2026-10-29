@@ -14,10 +14,8 @@ import com.hairstyle.changer.aitryon.ui.intro.Intro1bActivity
 import com.hairstyle.changer.aitryon.ui.intro.Intro1cActivity
 import com.hairstyle.changer.aitryon.ui.intro.Intro1dActivity
 import com.hairstyle.changer.aitryon.ui.language.LanguageActivity
-import com.hairstyle.changer.aitryon.ui.premium.PremiumActivity
 import com.hairstyle.changer.aitryon.ui.progress.ProgressActivity
 import com.hairstyle.changer.aitryon.ui.result.ResultActivity
-import com.hairstyle.changer.aitryon.ui.setting.ActiveSubscriptionActivity
 import com.hairstyle.changer.aitryon.ui.setting.SettingActivity
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModelOwner
 
@@ -45,10 +43,6 @@ object AppNavigator {
         from.startActivity(Intent(from, Intro1dActivity::class.java))
     }
 
-    fun openPremium(from: Activity, fromIntro: Boolean = false) {
-        from.startActivity(PremiumActivity.createIntent(from, fromIntro))
-    }
-
     fun openHomeClearTask(from: Activity) {
         GenerationViewModelOwner.clear()
         from.startActivity(
@@ -64,10 +58,6 @@ object AppNavigator {
 
     fun openFeedback(from: Activity) {
         from.startActivity(Intent(from, FeedbackActivity::class.java))
-    }
-
-    fun openActiveSubscription(from: Activity) {
-        from.startActivity(Intent(from, ActiveSubscriptionActivity::class.java))
     }
 
     fun openUserCreation(from: Activity) {

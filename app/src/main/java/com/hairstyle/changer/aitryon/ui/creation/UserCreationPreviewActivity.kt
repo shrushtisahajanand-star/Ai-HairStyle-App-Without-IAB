@@ -12,11 +12,11 @@ import coil.load
 import com.hairstyle.changer.aitryon.R
 import com.hairstyle.changer.aitryon.databinding.FragmentUserCreationPreviewBinding
 import com.hairstyle.changer.aitryon.Ads.InterstitialNavHelper
-import com.hairstyle.changer.aitryon.ui.AppNavigator
 import com.hairstyle.changer.aitryon.ui.BaseActivity
 import com.hairstyle.changer.aitryon.ui.common.RateAppDialog
 import com.hairstyle.changer.aitryon.ui.result.SaveHairstyleDialog
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
+import com.hairstyle.changer.aitryon.Ads.ADSMainClass
+import com.hairstyle.changer.aitryon.Ads.RewardedAdHelper
 import com.hairstyle.changer.aitryon.utils.ResultImageHelper
 import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
 import com.hairstyle.changer.aitryon.utils.showSnackbar
@@ -94,21 +94,24 @@ class UserCreationPreviewActivity : BaseActivity() {
         }
     }
 
-    /** Premium → save directly. Free → Save dialog with Upgrade to Premium. */
+    /** save_photo_show_ads false → save directly; otherwise Save dialog (watch ad to save). */
     private fun onDownloadClicked() {
         if (resolveImageFile() == null) {
             showSnackbar(getString(R.string.error_no_result))
             return
         }
-        if (PremiumPlanManager.isPremiumActive()) {
+        if (!ADSMainClass.getBooleanValue(ADSMainClass.SAVE_PHOTO_SHOW_ADS, false)) {
             downloadImage()
             return
         }
         SaveHairstyleDialog.show(
             activity = this,
             mode = SaveHairstyleDialog.Mode.SAVE_HD,
-            onPremiumClick = {
-                AppNavigator.openPremium(this)
+            onFreeAdClick = {
+                RewardedAdHelper.showForReward(
+                    activity = this,
+                    onRewardEarned = { downloadImage() }
+                )
             }
         )
     }

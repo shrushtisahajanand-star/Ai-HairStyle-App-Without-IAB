@@ -7,10 +7,10 @@ import com.hairstyle.changer.aitryon.Ads.InterstitialNavHelper
 import com.hairstyle.changer.aitryon.ui.AppNavigator
 
 /**
- * System back on Language / Premium / Intro.
+ * System back on Language / Intro.
  *
  * Intro only: when Firebase `intro_back_send_to_next` is true,
- * back advances to the next intro screen (1 → 1b → 1c → 1d → premium/home).
+ * back advances to the next intro screen (1 → 1b → 1c → 1d → home).
  * When false, normal back (with back interstitial) as before.
  */
 internal fun ComponentActivity.setupSystemBackNavigation() {
@@ -44,11 +44,11 @@ private fun ComponentActivity.navigateIntroBackToNextIfPossible(): Boolean {
             true
         }
         is Intro1dActivity -> {
-            navigateIntroToPremiumOrHome()
+            completeIntroAndGoHome()
             true
         }
         is Intro2Activity, is Intro3Activity -> {
-            navigateIntroToPremiumOrHome()
+            completeIntroAndGoHome()
             true
         }
         else -> false

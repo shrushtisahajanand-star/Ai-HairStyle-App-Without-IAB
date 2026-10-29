@@ -4,10 +4,9 @@ import android.content.Context
 import com.google.gson.Gson
 import com.hairstyle.changer.aitryon.model.VideoItemDto
 import com.hairstyle.changer.aitryon.model.VideosApiResponse
-import com.hairstyle.changer.aitryon.remoteconfig.RemoteConfigManager
 import com.hairstyle.changer.aitryon.domain.model.HomeHeroSlide
 import com.hairstyle.changer.aitryon.domain.model.PromoImageItem
-import com.hairstyle.changer.aitryon.utils.AESHelper
+import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
 import com.hairstyle.changer.aitryon.utils.PrefManager
 import com.hairstyle.changer.aitryon.utils.VideoCacheManager
 import com.hairstyle.changer.aitryon.utils.VideoTitleKeys
@@ -32,7 +31,6 @@ import javax.inject.Singleton
 @Singleton
 class VideosRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val remoteConfigManager: RemoteConfigManager,
     private val okHttpClient: OkHttpClient,
     private val gson: Gson
 ) {
@@ -45,7 +43,7 @@ class VideosRepository @Inject constructor(
 
     /**
      * Fetches the videos API JSON and stores URLs in prefs.
-     * Does not download video files — use [preloadIntroVideos] / [preloadPremiumVideo] /
+     * Does not download video files — use [preloadIntroVideos] /
      * [preloadHomeVideos] so Splash is not blocked by full media cache.
      */
     suspend fun fetchAndSaveAllVideos() = withContext(Dispatchers.IO) {
@@ -57,8 +55,7 @@ class VideosRepository @Inject constructor(
     }
 
     private fun fetchAndSaveCatalogLocked() {
-        val apiUrl = remoteConfigManager.getVideosApiUrl()
-        require(apiUrl.isNotBlank()) { "videos_url missing from Remote Config" }
+        val apiUrl = GenerateApiConfig.buildUrl(GenerateApiConfig.VIDEOS_ENDPOINT)
 
         val request = Request.Builder()
             .url(apiUrl)
@@ -80,7 +77,6 @@ class VideosRepository @Inject constructor(
         val items = buildList {
             parsed.data?.homeVideo?.let(::addAll)
             parsed.data?.introVideo?.let(::addAll)
-            parsed.data?.premiumVideo?.let(::addAll)
         }
 
         items.forEach { item ->
@@ -104,10 +100,6 @@ class VideosRepository @Inject constructor(
             VideoTitleKeys.INTRO_VIDEO_2,
             VideoTitleKeys.INTRO_VIDEO_3
         )
-    }
-
-    fun preloadPremiumVideo() {
-        preloadInBackground(VideoTitleKeys.PREMIUM_SCREEN)
     }
 
     fun preloadHomeVideos() {
@@ -206,7 +198,7 @@ class VideosRepository @Inject constructor(
         if (title.isBlank() || path.isBlank()) return
 
         val fullUrl = resolveFullVideoUrl(apiUrl, path)
-        PrefManager.setVideoUrl(title, AESHelper.encrypt(fullUrl))
+        PrefManager.setVideoUrl(title, fullUrl)
     }
 
     private fun resolveFullVideoUrl(apiUrl: String, path: String): String {
@@ -219,7 +211,7 @@ class VideosRepository @Inject constructor(
         val origin = runCatching {
             val uri = URI(apiUrl)
             "${uri.scheme}://${uri.host}"
-        }.getOrDefault("https://aihair.brainfungames.com")
+        }.getOrDefault(GenerateApiConfig.baseUrl())
 
         return origin.trimEnd('/') + path
     }

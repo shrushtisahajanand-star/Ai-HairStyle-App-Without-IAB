@@ -1,10 +1,6 @@
 package com.hairstyle.changer.aitryon.ui.setting
 
 import android.os.Bundle
-import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.hairstyle.changer.aitryon.R
 import com.hairstyle.changer.aitryon.databinding.FragmentSettingBinding
 import com.hairstyle.changer.aitryon.databinding.ItemSettingsRowBinding
@@ -16,12 +12,10 @@ import com.hairstyle.changer.aitryon.ui.BaseActivity
 import com.hairstyle.changer.aitryon.utils.AppLinkHelper
 import com.hairstyle.changer.aitryon.utils.InAppReviewHelper
 import com.hairstyle.changer.aitryon.utils.LocaleManager
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
 import com.hairstyle.changer.aitryon.utils.RateAppManager
 import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
 import com.hairstyle.changer.aitryon.utils.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SettingActivity : BaseActivity() {
@@ -46,12 +40,6 @@ class SettingActivity : BaseActivity() {
         setupRows()
         setupClicks()
         updateLanguageSubtitle()
-        updatePremiumUi()
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                billingManager.entitlementRevision.collect { updatePremiumUi() }
-            }
-        }
         ScreenAdsHelper.load(this, binding.settingBottomAds, ScreenAdsHelper.settingBottom())
         ScreenAdsHelper.loadSettingCenter(
             this,
@@ -64,19 +52,7 @@ class SettingActivity : BaseActivity() {
         binding.rowLanguage.tvSubtitle.text = LocaleManager.getLanguageSubtitle()
     }
 
-    private fun updatePremiumUi() {
-        val premiumActive = PremiumPlanManager.isPremiumActive()
-        binding.upgradeCard.isVisible = !premiumActive
-        binding.activeSubscriptionContainer.isVisible = premiumActive
-    }
-
     private fun setupRows() {
-        bindRow(
-            binding.rowActiveSubscription,
-            R.drawable.ic_active_subscription,
-            R.string.active_subscription,
-            R.string.active_subscription_subtitle
-        )
         bindRow(
             binding.rowUserCreations,
             R.drawable.ic_user_creation,
@@ -139,12 +115,6 @@ class SettingActivity : BaseActivity() {
     }
 
     private fun setupClicks() {
-        binding.btnUpgrade.setOnClickListener {
-            AppNavigator.openPremium(this)
-        }
-        binding.rowActiveSubscription.root.setOnClickListener {
-            AppNavigator.openActiveSubscription(this)
-        }
         binding.rowUserCreations.root.setOnClickListener {
             InterstitialNavHelper.showOnClick(this, ScreenInterAds.settingRows()) {
                 AppNavigator.openUserCreation(this)
@@ -183,9 +153,7 @@ class SettingActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        billingManager.refreshEntitlements()
         updateLanguageSubtitle()
-        updatePremiumUi()
     }
 
     override fun onDestroy() {

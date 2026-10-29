@@ -134,7 +134,7 @@ class ResultImageHelper @Inject constructor(
 
     /**
      * Saves image to Pictures/AI Hairstyle via MediaStore.
-     * Free users get [ResultWatermarkHelper] baked into the JPEG; premium saves clean.
+     * [ResultWatermarkHelper] is baked into the JPEG.
      */
     suspend fun saveToGallery(sourceFile: File, highQuality: Boolean = false): Uri =
         withContext(Dispatchers.IO) {
@@ -145,7 +145,7 @@ class ResultImageHelper @Inject constructor(
             val decoded = decodeResultBitmap(sourceFile)
                 ?: throw IOException("Cannot read image file")
 
-            val bitmap = ResultWatermarkHelper.applyIfNeeded(context, decoded)
+            val bitmap = ResultWatermarkHelper.applyWatermark(context, decoded)
             val quality = if (highQuality) 100 else 92
             val displayName = "AI_Hairstyle_${System.currentTimeMillis()}.jpg"
 
@@ -164,7 +164,7 @@ class ResultImageHelper @Inject constructor(
         }
 
     /**
-     * Shares the result image. Free users share a watermarked temp copy.
+     * Shares the result image as a watermarked temp copy.
      */
     suspend fun shareImage(sourceFile: File, launchContext: Context = context) =
         withContext(Dispatchers.IO) {
@@ -172,10 +172,10 @@ class ResultImageHelper @Inject constructor(
                 throw IOException("Image file not found")
             }
 
-            val fileToShare = if (ResultWatermarkHelper.shouldShowWatermark()) {
+            val fileToShare = run {
                 val decoded = decodeResultBitmap(sourceFile)
                     ?: throw IOException("Cannot read image file")
-                val watermarked = ResultWatermarkHelper.applyIfNeeded(context, decoded)
+                val watermarked = ResultWatermarkHelper.applyWatermark(context, decoded)
                 try {
                     val out = File(cacheDir, "share_watermarked_${System.currentTimeMillis()}.jpg")
                     FileOutputStream(out).use { stream ->
@@ -188,8 +188,6 @@ class ResultImageHelper @Inject constructor(
                     if (watermarked !== decoded) watermarked.recycle()
                     decoded.recycle()
                 }
-            } else {
-                sourceFile
             }
 
             withContext(Dispatchers.Main) {

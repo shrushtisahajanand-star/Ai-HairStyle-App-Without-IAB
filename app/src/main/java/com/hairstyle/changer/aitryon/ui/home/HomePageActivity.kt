@@ -28,8 +28,6 @@ import com.hairstyle.changer.aitryon.ui.home.beard.BeardFragment
 import com.hairstyle.changer.aitryon.ui.home.`fun`.FunFragment
 import com.hairstyle.changer.aitryon.utils.NavGradientHelper.setNavIcon
 import com.hairstyle.changer.aitryon.utils.NavGradientHelper.setNavLabel
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
-import com.hairstyle.changer.aitryon.utils.PromoSheetContent
 import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -78,11 +76,6 @@ class HomePageActivity : BaseActivity() {
                 AppNavigator.openSettings(this)
             }
         }
-        binding.btnPro.setOnClickListener {
-            AppNavigator.openPremium(this)
-        }
-        updateProButtonVisibility()
-        observePremiumEntitlement()
         applyHomeNativeAdsBackground()
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.home())
         applyHomeNativeAdsBackground()
@@ -90,23 +83,8 @@ class HomePageActivity : BaseActivity() {
         videosRepository.preloadHomeVideos()
     }
 
-    private fun observePremiumEntitlement() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                billingManager.entitlementRevision.collect {
-                    PremiumPlanManager.syncAdsFreeFlag()
-                    updateProButtonVisibility()
-                    applyHomeNativeAdsBackground()
-                }
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
-        // Re-check Play subscriptions (expired Internal-test subs drop off here).
-        billingManager.refreshEntitlements()
-        updateProButtonVisibility()
         // Fullscreen inter/app-open leave the window with collapsed system-bar insets.
         _binding?.let { ViewCompat.requestApplyInsets(it.root) }
         if (currentTab != Tab.HOME) {
@@ -184,10 +162,6 @@ class HomePageActivity : BaseActivity() {
         }
     }
 
-    private fun updateProButtonVisibility() {
-        binding.btnPro.isVisible = !PremiumPlanManager.isPremiumActive()
-    }
-
     /**
      * Home tab only: scroll-driven header hide/show via translation + alpha
      * (no layout height changes → no blink).
@@ -230,23 +204,6 @@ class HomePageActivity : BaseActivity() {
             .withLayer()
             .start()
     }
-
-    internal fun showSecondVisitPromo(promo: PromoSheetContent) {
-        if (!isScreenAlive()) return
-        if (PremiumPlanManager.isPremiumActive()) return
-        if (supportFragmentManager.findFragmentByTag(SecondVisitPromoBottomSheet.TAG) != null) return
-
-        SecondVisitPromoBottomSheet.newInstance(
-            imageUrl = promo.imageUrl,
-            badgeRes = promo.badgeRes,
-            title = promo.title,
-            subtitle = promo.subtitle,
-            startOnPremium = false
-        ).show(supportFragmentManager, SecondVisitPromoBottomSheet.TAG)
-    }
-
-    /** After promo sheet closes — no rate here; rate is shown before promo. */
-    internal fun onSecondVisitPromoDismissed() = Unit
 
     /** Fun / Beard / Home tab became visible — show pending rate prompt on first eligible screen. */
     internal fun maybeShowRateAppPrompt() {

@@ -2,7 +2,6 @@ package com.hairstyle.changer.aitryon.ui.progress
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -26,12 +25,9 @@ import com.hairstyle.changer.aitryon.domain.model.GenerationType
 import com.hairstyle.changer.aitryon.ui.AppNavigator
 import com.hairstyle.changer.aitryon.ui.BaseActivity
 import com.hairstyle.changer.aitryon.ui.common.DailyQuotaFinishedDialog
-import com.hairstyle.changer.aitryon.ui.premium.PremiumBottomSheet
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModel
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModelOwner
 import com.hairstyle.changer.aitryon.utils.PrefManager
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager.ImageAccessBlockReason
 import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
 import com.hairstyle.changer.aitryon.utils.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -118,40 +114,13 @@ class ProgressActivity : BaseActivity() {
     }
 
     private fun setupChoiceButtons() {
-        val isPremium = PremiumPlanManager.isPremiumActive()
-        val showAds = PremiumPlanManager.shouldShowAds()
-        // TEMP: client image_access disabled — always allow generate until free-limit API is ready.
-        val canGenerate = true
-        logQuotaState(isPremium, canGenerate)
-        binding.btnFreeAd.isVisible = canGenerate && (showAds || isPremium)
-        binding.btnUpgradePremium.isVisible = !isPremium
-        binding.ivAdIcon.isVisible = !isPremium
         binding.tvLimitMessage.isVisible = false
-
-        binding.tvFreeAdAction.text = if (isPremium && !showAds) {
-            getString(R.string.generate_now)
-        } else {
-            getString(R.string.generate_with_free_ad)
-        }
+        binding.tvFreeAdAction.text = getString(R.string.generate_with_free_ad)
 
         binding.btnFreeAd.setOnClickListener {
             lifecycleScope.launch {
-                when (val limitResult = freeLimitRepository.checkBeforeFaceDetection()) {
+                when (freeLimitRepository.checkBeforeFaceDetection()) {
                     FreeLimitCheckResult.Allowed -> Unit
-                    FreeLimitCheckResult.FreeLimitReached,
-                    FreeLimitCheckResult.PremiumExpired -> {
-                        if (!isScreenAlive() || _binding == null) return@launch
-                        if (limitResult is FreeLimitCheckResult.PremiumExpired) {
-                            Toast.makeText(
-                                this@ProgressActivity,
-                                getString(R.string.premium_subscription_expired),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            setupChoiceButtons()
-                        }
-                        showProgressPremiumSheet()
-                        return@launch
-                    }
                     FreeLimitCheckResult.DailyLimitReached -> {
                         if (isScreenAlive()) DailyQuotaFinishedDialog.show(this@ProgressActivity)
                         return@launch
@@ -165,15 +134,7 @@ class ProgressActivity : BaseActivity() {
                     return@launch
                 }
 
-                // Premium (no ads) → generate directly
-                val isPremiumUser = PremiumPlanManager.isPremiumActive()
-                val showAdsUser = PremiumPlanManager.shouldShowAds()
-                if (isPremiumUser && !showAdsUser) {
-                    startGenerateAfterReward()
-                    return@launch
-                }
-
-                // Free / ads path → must watch Rewarded Ad completely
+                // Ads path → must watch Rewarded Ad completely
                 RewardedAdHelper.showForReward(
                     activity = this@ProgressActivity,
                     onRewardEarned = { startGenerateAfterReward() },
@@ -184,47 +145,6 @@ class ProgressActivity : BaseActivity() {
                 )
             }
         }
-
-        binding.btnUpgradePremium.setOnClickListener {
-            AppNavigator.openPremium(this)
-        }
-    }
-
-    private fun showProgressPremiumSheet() {
-        if (supportFragmentManager.findFragmentByTag(PremiumBottomSheet.TAG) != null) return
-        PremiumBottomSheet.newInstance(
-            onCancelClick = { /* stay on progress */ },
-            onPremiumClick = {
-                AppNavigator.openPremium(this)
-            }
-        ).show(supportFragmentManager, PremiumBottomSheet.TAG)
-    }
-
-    /** Prints the exact quota inputs so Firebase values can be verified on-device. */
-    @Suppress("UNUSED_PARAMETER")
-    private fun logQuotaState(isPremium: Boolean, canGenerate: Boolean) {
-        PremiumPlanManager.getActivePlans()
-            .joinToString { "${it.planKey}(used=${it.periodImagesUsed})" }
-            .ifBlank { "none" }
-    }
-
-    private fun imageLimitMessageRes(): Int {
-        return when (PremiumPlanManager.getImageAccessBlockReason()) {
-            ImageAccessBlockReason.DAILY_LIMIT -> R.string.premium_daily_limit_reached
-            ImageAccessBlockReason.PERIOD_LIMIT -> {
-                if (PremiumPlanManager.isPremiumActive()) {
-                    R.string.premium_image_limit_reached
-                } else {
-                    R.string.free_image_limit_reached
-                }
-            }
-            ImageAccessBlockReason.NONE -> R.string.premium_image_limit_reached
-        }
-    }
-
-    private fun showImageLimitToast() {
-        Toast.makeText(this, getString(imageLimitMessageRes()), Toast.LENGTH_SHORT)
-            .show()
     }
 
     /** TEMPORARY: skip generate API and open Result with the user's photo as mock output. */
@@ -359,6 +279,16 @@ class ProgressActivity : BaseActivity() {
                  Log.d(TAG, "apiSuccess  = ${response.success}")
                  Log.d(TAG, "apiImageUrl = ${response.image}")
 
+                if (response.isDailyLimitReached()) {
+                    progressJob?.cancel()
+                    generationStarted = false
+                    if (isScreenAlive() && _binding != null) {
+                        showChoiceState()
+                        DailyQuotaFinishedDialog.show(this@ProgressActivity)
+                    }
+                    return@launch
+                }
+
                 require(response.success) {
                     "Generate API returned success=false (${response.failureReason()})"
                 }
@@ -382,14 +312,6 @@ class ProgressActivity : BaseActivity() {
                  Log.e(TAG, "Generate error: ${e.message}", e)
                 progressJob?.cancel()
                 if (!isScreenAlive() || _binding == null) return@launch
-
-                val limitMessage = getString(R.string.premium_image_limit_reached)
-                if (e.message == limitMessage) {
-                    showImageLimitToast()
-                    generationStarted = false
-                    showChoiceState()
-                    return@launch
-                }
 
                 showGenerateFailedDialog()
             }

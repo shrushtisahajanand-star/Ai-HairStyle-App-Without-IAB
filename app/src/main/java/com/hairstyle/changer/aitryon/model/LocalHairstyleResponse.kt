@@ -10,4 +10,8 @@ data class LocalHairstyleResponse(
     val message: String? = null
 ) {
     fun failureReason(): String = message?.takeIf { it.isNotBlank() } ?: "no message from server"
+
+    /** Server rejected the request because the device used up its daily free limit. */
+    fun isDailyLimitReached(): Boolean =
+        !success && message?.contains("limit", ignoreCase = true) == true
 }

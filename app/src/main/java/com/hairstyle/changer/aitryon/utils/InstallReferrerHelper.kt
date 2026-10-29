@@ -15,7 +15,7 @@ import kotlin.coroutines.resume
 
 /**
  * Play Install Referrer → paid vs organic, then Splash picks Firebase
- * [ADSMainClass.PAID_USER] or [ADSMainClass.NORMAL_USER] JSON.
+ * [ADSMainClass.NORMAL_USER] JSON.
  */
 object InstallReferrerHelper {
 

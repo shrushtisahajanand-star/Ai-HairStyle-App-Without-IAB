@@ -6,10 +6,7 @@ import com.google.gson.Gson
 import com.hairstyle.changer.aitryon.model.LocalHairstyleResponse
 import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
 import com.hairstyle.changer.aitryon.remote.GenerateApiFlags
-import com.hairstyle.changer.aitryon.remoteconfig.RemoteConfigManager
 import com.hairstyle.changer.aitryon.utils.DeviceIdProvider
-import com.hairstyle.changer.aitryon.utils.PrefManager
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,10 +16,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,20 +23,19 @@ import javax.inject.Singleton
 class LocalHairstyleRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val okHttpClient: OkHttpClient,
-    private val gson: Gson,
-    private val remoteConfigManager: RemoteConfigManager
+    private val gson: Gson
 ) {
 
     /**
      * POST form-data: image (JPEG), hair_style, color
-     * URL: Firebase generate base + [GenerateApiConfig.HAIRSTYLE_ENDPOINT]
+     * URL: [GenerateApiConfig.baseUrl()] + [GenerateApiConfig.HAIRSTYLE_ENDPOINT]
      */
     suspend fun generate(
         imageFile: File?,
         hairStyle: String,
         color: String
     ): LocalHairstyleResponse = withContext(Dispatchers.IO) {
-        val apiUrl = remoteConfigManager.buildGenerateApiUrl(GenerateApiConfig.HAIRSTYLE_ENDPOINT)
+        val apiUrl = GenerateApiConfig.buildUrl(GenerateApiConfig.HAIRSTYLE_ENDPOINT)
 //        Log.d(TAG, "â”€â”€â”€â”€â”€â”€â”€â”€ REQUEST â”€â”€â”€â”€â”€â”€â”€â”€")
 //        Log.d(TAG, "apiUrl      = $apiUrl")
 //        Log.d(TAG, "hair_style  = $hairStyle")
@@ -54,7 +46,7 @@ class LocalHairstyleRepository @Inject constructor(
             .setType(MultipartBody.FORM)
             .addFormDataPart("hair_style", hairStyle)
             .addFormDataPart("color", color)
-            .also { appendDeviceAndPremiumFields(it) }
+            .also { appendDeviceField(it) }
 
         if (GenerateApiFlags.SEND_IMAGE_FILE) {
             require(imageFile != null && imageFile.exists()) {
@@ -101,13 +93,13 @@ class LocalHairstyleRepository @Inject constructor(
 
     /**
      * POST form-data: image (JPEG), beard_style
-     * URL: Firebase generate base + [GenerateApiConfig.HAIRSTYLE_ENDPOINT]
+     * URL: [GenerateApiConfig.baseUrl()] + [GenerateApiConfig.HAIRSTYLE_ENDPOINT]
      */
     suspend fun generateBeard(
         imageFile: File?,
         beardStyle: String
     ): LocalHairstyleResponse = withContext(Dispatchers.IO) {
-        val apiUrl = remoteConfigManager.buildGenerateApiUrl(GenerateApiConfig.HAIRSTYLE_ENDPOINT)
+        val apiUrl = GenerateApiConfig.buildUrl(GenerateApiConfig.HAIRSTYLE_ENDPOINT)
 //        Log.d(TAG, "â”€â”€â”€â”€â”€â”€â”€â”€ BEARD REQUEST â”€â”€â”€â”€â”€â”€â”€â”€")
 //        Log.d(TAG, "apiUrl       = $apiUrl")
 //        Log.d(TAG, "beard_style  = $beardStyle")
@@ -116,7 +108,7 @@ class LocalHairstyleRepository @Inject constructor(
         val multipart = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("beard_style", beardStyle)
-            .also { appendDeviceAndPremiumFields(it) }
+            .also { appendDeviceField(it) }
 
         if (GenerateApiFlags.SEND_IMAGE_FILE) {
             require(imageFile != null && imageFile.exists()) {
@@ -158,55 +150,10 @@ class LocalHairstyleRepository @Inject constructor(
         }
     }
 
-    private fun appendDeviceAndPremiumFields(builder: MultipartBody.Builder) {
+    private fun appendDeviceField(builder: MultipartBody.Builder) {
         val deviceId = DeviceIdProvider.getDeviceId(context)
-        val isPremium = PremiumPlanManager.isPremiumActive()
         Log.d(TAG, "device_id    = $deviceId")
-//        Log.d(TAG, "is_premium   = $isPremium")
-        builder
-            .addFormDataPart("device_id", deviceId)
-            .addFormDataPart("is_premium", isPremium.toString())
-
-        // Premium-only fields: purchase_id, plan_type, purchase_date, expiry_date
-        if (!isPremium) return
-
-        val active = PremiumPlanManager.getActivePlans().firstOrNull()
-        val planType = active?.planKey.orEmpty()
-        val purchaseId = resolvePurchaseId()
-        val purchaseDate = formatIsoUtc(active?.startedAt ?: 0L)
-        val expiryDate = formatIsoUtc(active?.expiresAt ?: 0L)
-
-        if (purchaseId.isNotBlank()) {
-            builder.addFormDataPart("purchase_id", purchaseId)
-        }
-        if (planType.isNotBlank()) {
-            builder.addFormDataPart("plan_type", planType)
-        }
-        if (purchaseDate.isNotBlank()) {
-            builder.addFormDataPart("purchase_date", purchaseDate)
-        }
-        if (expiryDate.isNotBlank()) {
-            builder.addFormDataPart("expiry_date", expiryDate)
-        }
-
-        //Log.d(TAG, "──────── GENERATE API premium fields ────────")
-//        Log.d(TAG, "purchase_id   = $purchaseId")
-//        Log.d(TAG, "plan_type     = $planType")
-//        Log.d(TAG, "purchase_date = $purchaseDate")
-//        Log.d(TAG, "expiry_date   = $expiryDate")
-    }
-
-    /** Purchase id saved by BillingManager when Play reports an active subscription. */
-    private fun resolvePurchaseId(): String {
-        PrefManager.getPurchaseId().takeIf { it.isNotBlank() }?.let { return it }
-        return ""
-    }
-
-    private fun formatIsoUtc(epochMs: Long): String {
-        if (epochMs <= 0L) return ""
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-        sdf.timeZone = TimeZone.getTimeZone("UTC")
-        return sdf.format(Date(epochMs))
+        builder.addFormDataPart("device_id", deviceId)
     }
 
     /** API response image URL only â€” no fallback to selected style image. */

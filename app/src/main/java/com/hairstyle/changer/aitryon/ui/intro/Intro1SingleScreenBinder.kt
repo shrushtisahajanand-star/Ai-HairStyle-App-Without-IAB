@@ -109,7 +109,7 @@ internal class Intro1SingleScreenBinder(
             binding.viewPager.setCurrentItem(current + 1, true)
             true
         } else {
-            activity.navigateIntroToPremiumOrHome()
+            activity.completeIntroAndGoHome()
             true
         }
     }
@@ -234,7 +234,7 @@ internal class Intro1SingleScreenBinder(
             if (current < Intro1Data.pages.lastIndex) {
                 binding.viewPager.setCurrentItem(current + 1, true)
             } else {
-                activity.navigateIntroToPremiumOrHome()
+                activity.completeIntroAndGoHome()
             }
         }
     }

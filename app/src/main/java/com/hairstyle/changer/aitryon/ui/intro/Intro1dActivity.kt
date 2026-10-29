@@ -38,7 +38,7 @@ class Intro1dActivity : BaseActivity() {
         binding.btnContinue.setText(page.buttonRes)
         binding.btnContinue.setOnClickListener {
             InterstitialNavHelper.showOnIntroClick(this, ScreenInterAds.intro1d()) {
-                navigateIntroToPremiumOrHome()
+                completeIntroAndGoHome()
             }
         }
 

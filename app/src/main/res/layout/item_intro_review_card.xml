@@ -49,7 +49,7 @@
                     android:fontFamily="@font/saans_semibold"
                     android:includeFontPadding="false"
                     android:text="@string/intro_rating_stars"
-                    android:textColor="@color/premium_gold"
+                    android:textColor="@color/star_gold"
                     android:textSize="@dimen/_11ssp" />
 
 

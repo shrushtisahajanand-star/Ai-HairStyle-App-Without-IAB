@@ -10,8 +10,8 @@ import com.hairstyle.changer.aitryon.domain.model.GenerationType
  *
  * Example:
  * ```
- * PrefManager.setImagesBaseUrl(encryptedUrl)
- * PrefManager.getImagesBaseUrl()
+ * PrefManager.setPrivacyPolicyUrl(url)
+ * PrefManager.getPrivacyPolicyUrl()
  * ```
  */
 object PrefManager {
@@ -20,30 +20,12 @@ object PrefManager {
 
     private const val KEY_REMOTE_CONFIG_JSON = "remote_config_json"
     private const val KEY_ADS_CONFIG_JSON = "ads_config_json"
-    private const val KEY_IMAGES_BASE_URL = "images_base_url"
-    private const val KEY_VIDEOS_API_URL = "videos_api_url"
-    private const val KEY_GENERATE_BASE_URL = "generate_base_url"
     private const val KEY_PRIVACY_POLICY_URL = "privacy_policy_url"
     private const val KEY_TERMS_URL = "terms_url"
     private const val KEY_FEEDBACK_URL = "feedback_url"
+    private const val KEY_BASE_URL = "base_url"
     private const val KEY_PAGE_LIMIT = "images_page_limit"
     private const val KEY_REMOTE_CONFIG_FETCHED = "remote_config_fetched"
-    private const val KEY_PREMIUM_PLAN_DETAILS_JSON = "premium_plan_details_json"
-    private const val KEY_ACTIVE_PREMIUM_PLAN = "active_premium_plan"
-    private const val KEY_ACTIVE_PREMIUM_PLANS_JSON = "active_premium_plans_json"
-    private const val KEY_PREMIUM_EXPIRES_AT = "premium_expires_at"
-    private const val KEY_PREMIUM_IMAGES_USED = "premium_images_used"
-    private const val KEY_PREMIUM_IMAGE_ACCESS_LIMIT = "premium_image_access_limit"
-    private const val KEY_PREMIUM_PURCHASE_TOKEN = "premium_purchase_token"
-    private const val KEY_PREMIUM_PRODUCT_ID = "premium_product_id"
-    /** Stable purchase identifier — sent as generate API `purchase_id` when premium. */
-    private const val KEY_RC_ORIGINAL_APP_USER_ID = "rc_original_app_user_id"
-    private const val KEY_FREE_IMAGES_USED = "free_images_used"
-    private const val KEY_YEARLY_LAST_MONTHLY_CREDIT_AT = "yearly_last_monthly_credit_at"
-    private const val KEY_PREMIUM_PLAN_STARTED_AT = "premium_plan_started_at"
-    private const val KEY_PREMIUM_QUOTA_PERIOD_STARTED_AT = "premium_quota_period_started_at"
-    private const val KEY_PREMIUM_PERIOD_IMAGES_USED = "premium_period_images_used"
-    private const val KEY_PREMIUM_CURRENT_DAY_INDEX = "premium_current_day_index"
     private const val KEY_SELECTED_HAIRSTYLE_TITLE = "selected_hairstyle_title"
     private const val KEY_SELECTED_HAIRSTYLE_API = "selected_hairstyle_api"
     private const val KEY_SELECTED_HAIRSTYLE_IMAGE = "selected_hairstyle_image"
@@ -95,31 +77,7 @@ object PrefManager {
 
     // endregion
 
-    // region images base_url (stores encrypted value from RC)
-
-    fun setImagesBaseUrl(value: String) {
-        prefsOrThrow().edit().putString(KEY_IMAGES_BASE_URL, value).apply()
-    }
-
-    fun getImagesBaseUrl(): String {
-        return prefsOrThrow().getString(KEY_IMAGES_BASE_URL, "") ?: ""
-    }
-
-    fun setVideosApiUrl(value: String) {
-        prefsOrThrow().edit().putString(KEY_VIDEOS_API_URL, value).apply()
-    }
-
-    fun getVideosApiUrl(): String {
-        return prefsOrThrow().getString(KEY_VIDEOS_API_URL, "") ?: ""
-    }
-
-    fun setGenerateBaseUrl(value: String) {
-        prefsOrThrow().edit().putString(KEY_GENERATE_BASE_URL, value).apply()
-    }
-
-    fun getGenerateBaseUrl(): String {
-        return prefsOrThrow().getString(KEY_GENERATE_BASE_URL, "") ?: ""
-    }
+    // region API urls and page limit (from Remote Config)
 
     fun setPrivacyPolicyUrl(value: String) {
         prefsOrThrow().edit().putString(KEY_PRIVACY_POLICY_URL, value).apply()
@@ -137,6 +95,15 @@ object PrefManager {
         return prefsOrThrow().getString(KEY_TERMS_URL, "") ?: ""
     }
 
+    /** AES-encrypted API base URL from Firebase `APi.base_url`. */
+    fun setBaseUrl(value: String) {
+        prefsOrThrow().edit().putString(KEY_BASE_URL, value).apply()
+    }
+
+    fun getBaseUrl(): String {
+        return prefsOrThrow().getString(KEY_BASE_URL, "") ?: ""
+    }
+
     /** Plain feedback API base URL from Firebase (no encrypt/decrypt). */
     fun setFeedbackUrl(value: String) {
         prefsOrThrow().edit().putString(KEY_FEEDBACK_URL, value).apply()
@@ -148,14 +115,14 @@ object PrefManager {
 
     private const val VIDEO_URL_PREFIX = "video_url_"
 
-    fun setVideoUrl(title: String, encryptedUrl: String) {
+    fun setVideoUrl(title: String, url: String) {
         if (title.isBlank()) return
         prefsOrThrow().edit()
-            .putString("$VIDEO_URL_PREFIX$title", encryptedUrl)
+            .putString("$VIDEO_URL_PREFIX$title", url)
             .apply()
     }
 
-    fun getVideoUrlEncrypted(title: String): String {
+    fun getVideoUrl(title: String): String {
         if (title.isBlank()) return ""
         return prefsOrThrow().getString("$VIDEO_URL_PREFIX$title", "") ?: ""
     }
@@ -264,130 +231,6 @@ object PrefManager {
 
     fun setInAppUpdateDialogCount(value: Int) {
         prefsOrThrow().edit().putInt(KEY_IN_APP_UPDATE_DIALOG_COUNT, value.coerceAtLeast(0)).apply()
-    }
-
-    // endregion
-
-    // region Premium plan details (from Remote Config)
-
-    fun setPremiumPlanDetailsJson(value: String) {
-        prefsOrThrow().edit().putString(KEY_PREMIUM_PLAN_DETAILS_JSON, value).apply()
-    }
-
-    fun getPremiumPlanDetailsJson(): String {
-        return prefsOrThrow().getString(KEY_PREMIUM_PLAN_DETAILS_JSON, "") ?: ""
-    }
-
-    fun setActivePremiumPlan(value: String) {
-        prefsOrThrow().edit().putString(KEY_ACTIVE_PREMIUM_PLAN, value).apply()
-    }
-
-    fun getActivePremiumPlan(): String {
-        return prefsOrThrow().getString(KEY_ACTIVE_PREMIUM_PLAN, "") ?: ""
-    }
-
-    fun setActivePremiumPlansJson(value: String) {
-        prefsOrThrow().edit().putString(KEY_ACTIVE_PREMIUM_PLANS_JSON, value).apply()
-    }
-
-    fun getActivePremiumPlansJson(): String {
-        return prefsOrThrow().getString(KEY_ACTIVE_PREMIUM_PLANS_JSON, "") ?: ""
-    }
-
-    fun setPremiumExpiresAt(value: Long) {
-        prefsOrThrow().edit().putLong(KEY_PREMIUM_EXPIRES_AT, value).apply()
-    }
-
-    fun getPremiumExpiresAt(): Long {
-        return prefsOrThrow().getLong(KEY_PREMIUM_EXPIRES_AT, 0L)
-    }
-
-    fun setPremiumImagesUsed(value: Int) {
-        prefsOrThrow().edit().putInt(KEY_PREMIUM_IMAGES_USED, value.coerceAtLeast(0)).apply()
-    }
-
-    fun getPremiumImagesUsed(): Int {
-        return prefsOrThrow().getInt(KEY_PREMIUM_IMAGES_USED, 0).coerceAtLeast(0)
-    }
-
-    fun setPremiumImageAccessLimit(value: Int) {
-        prefsOrThrow().edit().putInt(KEY_PREMIUM_IMAGE_ACCESS_LIMIT, value.coerceAtLeast(0)).apply()
-    }
-
-    fun getPremiumImageAccessLimit(): Int {
-        return prefsOrThrow().getInt(KEY_PREMIUM_IMAGE_ACCESS_LIMIT, 0).coerceAtLeast(0)
-    }
-
-    fun setPremiumPurchaseToken(value: String) {
-        prefsOrThrow().edit().putString(KEY_PREMIUM_PURCHASE_TOKEN, value).apply()
-    }
-
-    fun getPremiumPurchaseToken(): String {
-        return prefsOrThrow().getString(KEY_PREMIUM_PURCHASE_TOKEN, "") ?: ""
-    }
-
-    fun setPremiumProductId(value: String) {
-        prefsOrThrow().edit().putString(KEY_PREMIUM_PRODUCT_ID, value).apply()
-    }
-
-    fun getPremiumProductId(): String {
-        return prefsOrThrow().getString(KEY_PREMIUM_PRODUCT_ID, "") ?: ""
-    }
-
-    fun setPurchaseId(value: String) {
-        prefsOrThrow().edit().putString(KEY_RC_ORIGINAL_APP_USER_ID, value.trim()).apply()
-    }
-
-    fun getPurchaseId(): String {
-        return prefsOrThrow().getString(KEY_RC_ORIGINAL_APP_USER_ID, "")?.trim().orEmpty()
-    }
-
-    fun setFreeImagesUsed(value: Int) {
-        prefsOrThrow().edit().putInt(KEY_FREE_IMAGES_USED, value.coerceAtLeast(0)).apply()
-    }
-
-    fun getFreeImagesUsed(): Int {
-        return prefsOrThrow().getInt(KEY_FREE_IMAGES_USED, 0).coerceAtLeast(0)
-    }
-
-    fun setYearlyLastMonthlyCreditAt(value: Long) {
-        prefsOrThrow().edit().putLong(KEY_YEARLY_LAST_MONTHLY_CREDIT_AT, value.coerceAtLeast(0L)).apply()
-    }
-
-    fun getYearlyLastMonthlyCreditAt(): Long {
-        return prefsOrThrow().getLong(KEY_YEARLY_LAST_MONTHLY_CREDIT_AT, 0L).coerceAtLeast(0L)
-    }
-
-    fun setPremiumPlanStartedAt(value: Long) {
-        prefsOrThrow().edit().putLong(KEY_PREMIUM_PLAN_STARTED_AT, value.coerceAtLeast(0L)).apply()
-    }
-
-    fun getPremiumPlanStartedAt(): Long {
-        return prefsOrThrow().getLong(KEY_PREMIUM_PLAN_STARTED_AT, 0L).coerceAtLeast(0L)
-    }
-
-    fun setPremiumQuotaPeriodStartedAt(value: Long) {
-        prefsOrThrow().edit().putLong(KEY_PREMIUM_QUOTA_PERIOD_STARTED_AT, value.coerceAtLeast(0L)).apply()
-    }
-
-    fun getPremiumQuotaPeriodStartedAt(): Long {
-        return prefsOrThrow().getLong(KEY_PREMIUM_QUOTA_PERIOD_STARTED_AT, 0L).coerceAtLeast(0L)
-    }
-
-    fun setPremiumPeriodImagesUsed(value: Int) {
-        prefsOrThrow().edit().putInt(KEY_PREMIUM_PERIOD_IMAGES_USED, value.coerceAtLeast(0)).apply()
-    }
-
-    fun getPremiumPeriodImagesUsed(): Int {
-        return prefsOrThrow().getInt(KEY_PREMIUM_PERIOD_IMAGES_USED, 0).coerceAtLeast(0)
-    }
-
-    fun setPremiumCurrentDayIndex(value: Int) {
-        prefsOrThrow().edit().putInt(KEY_PREMIUM_CURRENT_DAY_INDEX, value).apply()
-    }
-
-    fun getPremiumCurrentDayIndex(): Int {
-        return prefsOrThrow().getInt(KEY_PREMIUM_CURRENT_DAY_INDEX, -1)
     }
 
     // endregion

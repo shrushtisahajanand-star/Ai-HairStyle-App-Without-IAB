@@ -16,7 +16,7 @@
 //public class IPAddressHelper {
 //
 //    private static final String API_URL =
-//            "https://pro.ip-api.com/json/?key=RrtTUs6AdrbN4q0&fields=status,countryCode,city,query,proxy,hosting,regionName,country";
+//            "https://pro.ip-api.com/json/?fields=status,countryCode,city,query,proxy,hosting,regionName,country";
 //    private static final String TAG = "IPAddressHelper";
 //
 //    public interface IPCallback {

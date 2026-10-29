@@ -32,7 +32,6 @@ public class ADSMainClass {
         return null;
     }
 
-    private static final String Ads_Free = "Ads_Free";
     private static final String AdsAdmobInterstitialID = "AdsAdmobInterstitialID";
     private static final String AdsAdmobNativeID = "AdsAdmobNativeID";
     private static final String AdsAdmobNativeIdTwo = "AdsAdmobNativeIdTwo";
@@ -61,7 +60,6 @@ public class ADSMainClass {
     public static final String CONSENT_SCREEN_SPLASH = "splash";
     public static final String CONSENT_SCREEN_LANGUAGE = "language";
     public static final String NORMAL_USER = "normal_user";
-    public static final String PAID_USER = "paid_user";
     private static final String ReferrerUrl = "install_referrer_urls";
     private static final String InstallReferrerFetched = "install_referrer_fetched";
     private static final String FBNativeBannerID = "FBNativeBannerID";
@@ -1704,15 +1702,10 @@ public class ADSMainClass {
     }
 
     /**
-     * Ads are off when Firebase {@code ads_blocked} is true, or when the user is premium
-     * ({@link #setAds_Free} from {@code PremiumPlanManager.syncAdsFreeFlag}).
+     * Ads are off only when Firebase {@code ads_blocked} is true.
      */
     public static boolean getAds_Free() {
-        return getAdsBlocked() || ADSPrefManage().getBoolean(Ads_Free, false);
-    }
-
-    public static void setAds_Free(boolean value) {
-        ADSPrefManage().edit().putBoolean(Ads_Free, value).apply();
+        return getAdsBlocked();
     }
 
     /** Firebase `ads.ads_blocked` — default false (ads allowed). */

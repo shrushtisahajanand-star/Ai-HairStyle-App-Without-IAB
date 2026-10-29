@@ -26,7 +26,6 @@ googleServices = "4.4.2"
 firebaseCrashlyticsPlugin = "3.0.2"
 shimmer = "0.5.0"
 media3 = "1.5.1"
-playBilling = "8.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -70,7 +69,6 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 firebase-config = { group = "com.google.firebase", name = "firebase-config-ktx" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
 shimmer = { group = "com.facebook.shimmer", name = "shimmer", version.ref = "shimmer" }
-play-billing = { group = "com.android.billingclient", name = "billing", version.ref = "playBilling" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 
 [plugins]

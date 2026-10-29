@@ -34,7 +34,7 @@ class Intro2Activity : BaseActivity() {
 
         adapter = IntroOptionAdapter {
             InterstitialNavHelper.showOnIntroClick(this, ScreenInterAds.intro2()) {
-                navigateIntroToPremiumOrHome()
+                completeIntroAndGoHome()
             }
         }
         binding.rvOptions.adapter = adapter

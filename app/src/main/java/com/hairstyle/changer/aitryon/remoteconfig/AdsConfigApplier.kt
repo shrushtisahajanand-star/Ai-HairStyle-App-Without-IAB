@@ -5,7 +5,6 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.hairstyle.changer.aitryon.Ads.ADSMainClass
 import com.hairstyle.changer.aitryon.Ads.ADSNativeDisplay
-import com.hairstyle.changer.aitryon.utils.PremiumPlanManager
 import com.hairstyle.changer.aitryon.utils.PrefManager
 
 /**
@@ -210,10 +209,6 @@ object AdsConfigApplier {
     )
 
     fun applyFromRemoteJson(json: String, gson: Gson) {
-        // Runs even for a blank/failed payload — otherwise a stale Ads_Free=true
-        // would survive and silently disable every ad.
-        runCatching { PremiumPlanManager.syncAdsFreeFlag() }
-
         if (json.isBlank()) {
             applyAdUnitIds()
             return
@@ -264,7 +259,6 @@ object AdsConfigApplier {
         }
 
         applyAdUnitIds()
-        runCatching { PremiumPlanManager.syncAdsFreeFlag() }
     }
 
     /**

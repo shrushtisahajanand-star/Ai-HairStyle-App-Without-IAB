@@ -82,7 +82,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
-            tools:text="Watch a short ad to save to your gallery, or upgrade for instant saving." />
+            tools:text="Watch a short ad to save to your gallery." />
 
         <LinearLayout
             android:id="@+id/buttonsContainer"
@@ -124,36 +124,6 @@
                     android:textSize="@dimen/_14ssp" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/btnUpgradePremium"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_40sdp"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:paddingHorizontal="@dimen/_12sdp"
-                android:background="@drawable/bg_upgrade_card"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_upgrade_icon" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_8sdp"
-                    android:singleLine="true"
-                    android:fontFamily="@font/saans_medium"
-                    android:includeFontPadding="false"
-                    android:text="@string/upgrade_to_premium"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_14ssp" />
-            </LinearLayout>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
