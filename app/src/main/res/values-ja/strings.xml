@@ -163,7 +163,6 @@
     <string name="save_photo">写真を保存</string>
     <string name="hd">HD</string>
     <string name="share">共有</string>
-    <string name="watermark">MagicHair</string>
     <string name="permission_title">アクセスを許可</string>
     <string name="permission_message">AIヘアスタイルスタジオは、AIスタイリングのために画像をキャプチャまたは選択するためにカメラと写真へのアクセスが必要です。</string>
     <string name="allow_permissions">権限を許可</string>

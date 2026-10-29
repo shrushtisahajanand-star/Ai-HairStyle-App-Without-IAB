@@ -134,7 +134,7 @@ class ResultImageHelper @Inject constructor(
 
     /**
      * Saves image to Pictures/AI Hairstyle via MediaStore.
-     * [ResultWatermarkHelper] is baked into the JPEG.
+    
      */
     suspend fun saveToGallery(sourceFile: File, highQuality: Boolean = false): Uri =
         withContext(Dispatchers.IO) {
@@ -145,7 +145,7 @@ class ResultImageHelper @Inject constructor(
             val decoded = decodeResultBitmap(sourceFile)
                 ?: throw IOException("Cannot read image file")
 
-            val bitmap = ResultWatermarkHelper.applyWatermark(context, decoded)
+            val bitmap = decoded
             val quality = if (highQuality) 100 else 92
             val displayName = "AI_Hairstyle_${System.currentTimeMillis()}.jpg"
 
@@ -164,7 +164,7 @@ class ResultImageHelper @Inject constructor(
         }
 
     /**
-     * Shares the result image as a watermarked temp copy.
+     * Shares the result image as a temp copy.
      */
     suspend fun shareImage(sourceFile: File, launchContext: Context = context) =
         withContext(Dispatchers.IO) {
@@ -175,17 +175,15 @@ class ResultImageHelper @Inject constructor(
             val fileToShare = run {
                 val decoded = decodeResultBitmap(sourceFile)
                     ?: throw IOException("Cannot read image file")
-                val watermarked = ResultWatermarkHelper.applyWatermark(context, decoded)
                 try {
-                    val out = File(cacheDir, "share_watermarked_${System.currentTimeMillis()}.jpg")
+                    val out = File(cacheDir, "share_${System.currentTimeMillis()}.jpg")
                     FileOutputStream(out).use { stream ->
-                        if (!watermarked.compress(Bitmap.CompressFormat.JPEG, 92, stream)) {
+                        if (!decoded.compress(Bitmap.CompressFormat.JPEG, 92, stream)) {
                             throw IOException("Failed to compress share image")
                         }
                     }
                     out
                 } finally {
-                    if (watermarked !== decoded) watermarked.recycle()
                     decoded.recycle()
                 }
             }

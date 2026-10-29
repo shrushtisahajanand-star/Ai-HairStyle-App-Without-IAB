@@ -21,7 +21,6 @@ import com.hairstyle.changer.aitryon.ui.common.RateAppDialog
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModel
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModelOwner
 import com.hairstyle.changer.aitryon.utils.ResultImageHelper
-import com.hairstyle.changer.aitryon.utils.ResultWatermarkHelper
 import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
 import com.hairstyle.changer.aitryon.utils.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,12 +52,10 @@ class ResultActivity : BaseActivity() {
 
         binding.root.applyStatusBarPadding()
         setupLeaveHandling()
-        updateWatermarkVisibility()
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.result())
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                updateWatermarkVisibility()
                 viewModel.session.collect { session ->
                     bindBeforeAfter(session)
                     loadResultImage(session)
@@ -204,11 +201,6 @@ class ResultActivity : BaseActivity() {
         }
     }
 
-    private fun updateWatermarkVisibility() {
-        if (_binding == null) return
-        binding.watermarkBadge.isVisible = true
-    }
-
     private fun setActionButtonsEnabled(enabled: Boolean) {
         binding.btnSaveHd.isEnabled = enabled
         binding.btnSavePhoto.isEnabled = enabled
@@ -221,12 +213,9 @@ class ResultActivity : BaseActivity() {
                 val file = getResultFileOrThrow()
                 resultImageHelper.saveToGallery(file, highQuality)
                 imageSavedToGallery = true
-                Toast.makeText(
-                    this@ResultActivity,
-                    R.string.saved_successfully,
-                    Toast.LENGTH_SHORT
-                ).show()
-                RateAppDialog.showAfterSave(this@ResultActivity)
+                ImageSavedDialog.show(this@ResultActivity) {
+                    RateAppDialog.showAfterSave(this@ResultActivity)
+                }
             } catch (e: Exception) {
                 showImageNotSavedBottomSheet()
             }

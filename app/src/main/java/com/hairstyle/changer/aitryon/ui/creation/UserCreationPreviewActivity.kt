@@ -14,6 +14,7 @@ import com.hairstyle.changer.aitryon.databinding.FragmentUserCreationPreviewBind
 import com.hairstyle.changer.aitryon.Ads.InterstitialNavHelper
 import com.hairstyle.changer.aitryon.ui.BaseActivity
 import com.hairstyle.changer.aitryon.ui.common.RateAppDialog
+import com.hairstyle.changer.aitryon.ui.result.ImageSavedDialog
 import com.hairstyle.changer.aitryon.ui.result.SaveHairstyleDialog
 import com.hairstyle.changer.aitryon.Ads.ADSMainClass
 import com.hairstyle.changer.aitryon.Ads.RewardedAdHelper
@@ -125,12 +126,9 @@ class UserCreationPreviewActivity : BaseActivity() {
         lifecycleScope.launch {
             try {
                 resultImageHelper.saveToGallery(file, highQuality = true)
-                Toast.makeText(
-                    this@UserCreationPreviewActivity,
-                    R.string.saved_successfully,
-                    Toast.LENGTH_SHORT
-                ).show()
-                RateAppDialog.showAfterSave(this@UserCreationPreviewActivity)
+                ImageSavedDialog.show(this@UserCreationPreviewActivity) {
+                    RateAppDialog.showAfterSave(this@UserCreationPreviewActivity)
+                }
             } catch (_: Exception) {
                 showSnackbar(getString(R.string.error_no_result))
             }

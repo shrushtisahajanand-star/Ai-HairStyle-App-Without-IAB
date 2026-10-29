@@ -163,7 +163,6 @@
     <string name="save_photo">Fotoğrafı Kaydet</string>
     <string name="hd">HD</string>
     <string name="share">Paylaş</string>
-    <string name="watermark">MagicHair</string>
     <string name="permission_title">Erişime İzin Ver</string>
     <string name="permission_message">AI Hairstyle Studio, yapay zeka stilizasyonu için görselinizi yakalamak veya seçmek üzere kamera ve fotoğraf erişimine ihtiyaç duyar.</string>
     <string name="allow_permissions">İzinlere İzin Ver</string>

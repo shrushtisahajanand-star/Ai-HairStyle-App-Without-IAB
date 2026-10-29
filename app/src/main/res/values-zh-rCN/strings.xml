@@ -163,7 +163,6 @@
     <string name="save_photo">保存照片</string>
     <string name="hd">高清</string>
     <string name="share">分享</string>
-    <string name="watermark">MagicHair</string>
     <string name="permission_title">允许访问</string>
     <string name="permission_message">AI发型工作室需要相机和照片访问权限来捕获或选择您的图像进行AI造型。</string>
     <string name="allow_permissions">允许权限</string>

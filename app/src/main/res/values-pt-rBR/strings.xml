@@ -163,7 +163,6 @@
     <string name="save_photo">Salvar foto</string>
     <string name="hd">HD</string>
     <string name="share">Compartilhar</string>
-    <string name="watermark">MagicHair</string>
     <string name="permission_title">Permitir acesso</string>
     <string name="permission_message">O AI Hairstyle Studio precisa de acesso à câmera e fotos para capturar ou selecionar sua imagem para estilização com IA.</string>
     <string name="allow_permissions">Permitir permissões</string>

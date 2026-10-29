@@ -163,7 +163,6 @@
     <string name="save_photo">Αποθήκευση φωτογραφίας</string>
     <string name="hd">HD</string>
     <string name="share">Κοινοποίηση</string>
-    <string name="watermark">MagicHair</string>
     <string name="permission_title">Επιτρέψτε την πρόσβαση</string>
     <string name="permission_message">Το AI Hairstyle Studio χρειάζεται πρόσβαση στην κάμερα και τις φωτογραφίες για να συλλάβει ή να επιλέξει την εικόνα σας για στυλ με ΤΝ.</string>
     <string name="allow_permissions">Επιτρέψτε τις άδειες</string>

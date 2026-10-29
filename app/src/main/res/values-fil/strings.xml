@@ -163,7 +163,6 @@
     <string name="save_photo">I-save ang Larawan</string>
     <string name="hd">HD</string>
     <string name="share">I-share</string>
-    <string name="watermark">MagicHair</string>
     <string name="permission_title">Payagan ang Access</string>
     <string name="permission_message">Kailangan ng AI Hairstyle Studio ng access sa camera at larawan upang makuha o piliin ang iyong larawan para sa AI styling.</string>
     <string name="allow_permissions">Payagan ang mga Pahintulot</string>

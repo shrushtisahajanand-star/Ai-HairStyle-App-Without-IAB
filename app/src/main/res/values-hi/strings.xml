@@ -163,7 +163,6 @@
     <string name="save_photo">फोटो सेव करें</string>
     <string name="hd">HD</string>
     <string name="share">शेयर करें</string>
-    <string name="watermark">MagicHair</string>
     <string name="permission_title">अनुमति दें</string>
     <string name="permission_message">AI हेयरस्टाइल स्टूडियो को AI स्टाइलिंग के लिए आपकी इमेज कैप्चर करने या चुनने के लिए कैमरा और फोटो एक्सेस की आवश्यकता है।</string>
     <string name="allow_permissions">अनुमतियाँ दें</string>
