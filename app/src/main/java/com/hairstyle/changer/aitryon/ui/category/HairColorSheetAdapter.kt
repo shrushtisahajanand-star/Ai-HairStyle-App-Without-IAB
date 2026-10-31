@@ -7,10 +7,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.hairstyle.changer.aitryon.databinding.ItemHairColorSheetBinding
 import com.hairstyle.changer.aitryon.domain.model.CategoryHairstyle
+import com.hairstyle.changer.aitryon.ui.common.ItemLockGate
 import com.hairstyle.changer.aitryon.utils.hideImageShimmer
 import com.hairstyle.changer.aitryon.utils.loadWithShimmer
 
 class HairColorSheetAdapter(
+    private val lockGate: ItemLockGate? = null,
     private val onItemClick: (CategoryHairstyle) -> Unit
 ) : ListAdapter<CategoryHairstyle, HairColorSheetAdapter.ViewHolder>(DiffCallback()) {
 
@@ -37,7 +39,8 @@ class HairColorSheetAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position), getItem(position).id == selectedId)
+        val item = getItem(position)
+        holder.bind(item, item.id == selectedId, lockGate?.isLocked(position, item.id, item.title) == true)
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
@@ -45,11 +48,18 @@ class HairColorSheetAdapter(
         super.onViewRecycled(holder)
     }
 
+    /** Re-bind one item (its lock badge disappears after it was unlocked). */
+    private fun refreshItem(id: Int) {
+        val index = currentList.indexOfFirst { it.id == id }
+        if (index >= 0) notifyItemChanged(index)
+    }
+
     inner class ViewHolder(
         private val binding: ItemHairColorSheetBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: CategoryHairstyle, selected: Boolean) {
+        fun bind(item: CategoryHairstyle, selected: Boolean, locked: Boolean) {
+            binding.ivLock.visibility = if (locked) android.view.View.VISIBLE else android.view.View.GONE
             binding.tvColorName.text = item.title
             binding.ivColor.loadWithShimmer(item.imageUrl, binding.shimmerColor)
             binding.cardColor.strokeWidth = if (selected) {
@@ -58,8 +68,19 @@ class HairColorSheetAdapter(
                 0
             }
             binding.root.setOnClickListener {
-                setSelectedId(item.id)
-                onItemClick(item)
+                val proceed = {
+                    setSelectedId(item.id)
+                    onItemClick(item)
+                }
+                val gate = lockGate
+                if (gate == null) {
+                    proceed()
+                } else {
+                    gate.run(bindingAdapterPosition, item.id, item.title) {
+                        refreshItem(item.id)
+                        proceed()
+                    }
+                }
             }
         }
 

@@ -164,7 +164,7 @@
     <string name="hd">HD</string>
     <string name="share">Paylaş</string>
     <string name="permission_title">Erişime İzin Ver</string>
-    <string name="permission_message">AI Hairstyle Studio, yapay zeka stilizasyonu için görselinizi yakalamak veya seçmek üzere kamera ve fotoğraf erişimine ihtiyaç duyar.</string>
+    <string name="permission_message">AI Hairstyle Try On: HairGlow, yapay zeka stilizasyonu için görselinizi yakalamak veya seçmek üzere kamera ve fotoğraf erişimine ihtiyaç duyar.</string>
     <string name="allow_permissions">İzinlere İzin Ver</string>
     <string name="skip_for_now">Şimdilik Atla</string>
     <string name="permission_camera_denied">Fotoğraf çekmek için kamera izni gereklidir.</string>

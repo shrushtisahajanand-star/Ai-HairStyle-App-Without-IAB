@@ -62,7 +62,7 @@ class SelectCategoryActivity : BaseActivity() {
                 } else {
                     HairColorBottomSheet.Source.SELECT_CATEGORY
                 }
-            ).show(supportFragmentManager, HairColorBottomSheet.TAG)
+            ).let { HairColorBottomSheet.showOnce(it, supportFragmentManager) }
         }
 
         observeSelection()

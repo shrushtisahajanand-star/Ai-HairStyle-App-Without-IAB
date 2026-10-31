@@ -365,4 +365,127 @@ public class ADSInterDisplayClick {
     public interface OnFinishAds {
         void onFinishAds(boolean b);
     }
+
+    /** Cached interstitial of the unlock ad unit (kept apart from the normal inter cache). */
+    @Nullable
+    private static InterstitialAd unlockInterstitial;
+    @Nullable
+    private static String unlockInterstitialId;
+    private static boolean unlockInterLoading;
+
+    /** Caches the next unlock interstitial for [adsId]; the caller only calls it in PreLoad mode. */
+    public static void preloadForUnlock(@Nullable Activity activity, @Nullable String adsId) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        if (ADSMainClass.getAds_Free()) return;
+        String id = adsId != null ? adsId.trim() : "";
+        if (id.isEmpty() || unlockInterLoading) return;
+        if (unlockInterstitial != null && id.equals(unlockInterstitialId)) return;
+        if (!ADSConsentManager.canRequestAds(activity)) return;
+
+        unlockInterLoading = true;
+        unlockInterstitial = null;
+        InterstitialAd.load(activity.getApplicationContext(), id, new AdRequest.Builder().build(),
+                new InterstitialAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                        unlockInterLoading = false;
+                        unlockInterstitial = interstitialAd;
+                        unlockInterstitialId = id;
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        unlockInterLoading = false;
+                    }
+                });
+    }
+
+    /** Result of an interstitial that must really be shown (unlock ads). */
+    public interface UnlockListener {
+        /** Ad was shown and closed. */
+        void onClosed();
+
+        /** Ad could not be loaded / shown. */
+        void onFailed();
+    }
+
+    /**
+     * Shows an interstitial now, ignoring the click counter and {@code inter_ads_show}.
+     * Load type is decided by the caller (unlock_items.ads_load_type): a cached ad is used when
+     * present, otherwise one is loaded on demand. Reports failure instead of skipping.
+     */
+    public static void showForUnlock(
+            @NonNull Activity activity,
+            @Nullable String adsId,
+            @NonNull UnlockListener listener
+    ) {
+        String id = adsId != null ? adsId.trim() : "";
+        if (id.isEmpty() || activity.isFinishing() || activity.isDestroyed()) {
+            listener.onFailed();
+            return;
+        }
+
+        if (unlockInterstitial != null
+                && id.equals(unlockInterstitialId)) {
+            InterstitialAd cached = unlockInterstitial;
+            unlockInterstitial = null;
+            showUnlockAd(activity, cached, id, listener);
+            return;
+        }
+
+        if (!ADSConsentManager.canRequestAds(activity)) {
+            listener.onFailed();
+            return;
+        }
+
+        ADSUtilitis.MassageBoxFull(activity);
+        InterstitialAd.load(activity, id, new AdRequest.Builder().build(),
+                new InterstitialAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                        ADSUtilitis.MassageBoxFullDismiss();
+                        ADSUtilitis.trackScreen(activity, "Inter_Load");
+                        showUnlockAd(activity, interstitialAd, id, listener);
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        ADSUtilitis.MassageBoxFullDismiss();
+                        ADSUtilitis.trackScreen(activity, "Inter_Fail");
+                        listener.onFailed();
+                    }
+                });
+    }
+
+    private static void showUnlockAd(
+            @NonNull Activity activity,
+            @NonNull InterstitialAd ad,
+            @NonNull String adsId,
+            @NonNull UnlockListener listener
+    ) {
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            listener.onFailed();
+            return;
+        }
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                lastInterstitialClosedAtMs = System.currentTimeMillis();
+                AdsDisplayCheck(true);
+                FullscreenAdWindowHelper.restore(activity);
+                listener.onClosed();
+                preloadForUnlock(activity, adsId);
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                AdsDisplayCheck(true);
+                FullscreenAdWindowHelper.restore(activity);
+                listener.onFailed();
+                preloadForUnlock(activity, adsId);
+            }
+        });
+        AdsDisplayCheck(false);
+        showInterstitial(activity, ad);
+    }
 }

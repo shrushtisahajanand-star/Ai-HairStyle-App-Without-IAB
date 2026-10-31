@@ -15,9 +15,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import androidx.recyclerview.widget.ConcatAdapter
 import com.hairstyle.changer.aitryon.R
+import com.hairstyle.changer.aitryon.ui.common.ItemLockGate
+import com.hairstyle.changer.aitryon.utils.UnlockConfig
 import com.hairstyle.changer.aitryon.databinding.FragmentFunBinding
-import com.hairstyle.changer.aitryon.Ads.InterstitialNavHelper
-import com.hairstyle.changer.aitryon.Ads.ScreenInterAds
 import com.hairstyle.changer.aitryon.domain.model.FunStyle
 import com.hairstyle.changer.aitryon.domain.model.GenerationType
 import com.hairstyle.changer.aitryon.ui.AppNavigator
@@ -55,7 +55,7 @@ class FunFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        funAdapter = BeforeAfterStyleAdapter(::onFunStyleSelected)
+        funAdapter = BeforeAfterStyleAdapter(funLockGate, ::onFunStyleSelected)
         funShimmerPlaceholder = ShimmerItemFooterAdapter(R.layout.item_shimmer_before_after, shimmerItemCount = 3)
         funShimmerFooter = ShimmerItemFooterAdapter(R.layout.item_shimmer_before_after, shimmerItemCount = 1)
         binding.shimmerFunStyles.isVisible = false
@@ -80,8 +80,11 @@ class FunFragment : Fragment() {
         observeFunStyles()
     }
 
+    private val funLockGate = ItemLockGate(UnlockConfig.Group.FUN) { activity }
+
     override fun onResume() {
         super.onResume()
+        funLockGate.preload()
         refreshVisibleImages()
         if (!isHidden) {
             (activity as? HomePageActivity)?.maybeShowRateAppPrompt()
@@ -173,10 +176,9 @@ class FunFragment : Fragment() {
             apiValue = style.hairColorApiValue
         )
 
-        InterstitialNavHelper.showOnClick(this, ScreenInterAds.funBeardTryIt()) {
-            val host = activity ?: return@showOnClick
-            AppNavigator.openPhotoSelect(host)
-        }
+        // Free items go straight on; locked ones already ran the unlock ads in the adapter.
+        val host = activity ?: return
+        AppNavigator.openPhotoSelect(host)
     }
 
     override fun onDestroyView() {

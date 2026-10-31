@@ -164,7 +164,7 @@
     <string name="hd">HD</string>
     <string name="share">Partager</string>
     <string name="permission_title">Autoriser l\'accès</string>
-    <string name="permission_message">AI Hairstyle Studio a besoin de l\'accès à l\'appareil photo et aux photos pour capturer ou sélectionner votre image pour le style IA.</string>
+    <string name="permission_message">AI Hairstyle Try On: HairGlow a besoin de l\'accès à l\'appareil photo et aux photos pour capturer ou sélectionner votre image pour le style IA.</string>
     <string name="allow_permissions">Autoriser les autorisations</string>
     <string name="skip_for_now">Passer pour l\'instant</string>
     <string name="permission_camera_denied">L\'autorisation de l\'appareil photo est requise pour prendre des photos.</string>

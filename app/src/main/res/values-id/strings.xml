@@ -164,7 +164,7 @@
     <string name="hd">HD</string>
     <string name="share">Bagikan</string>
     <string name="permission_title">Izinkan Akses</string>
-    <string name="permission_message">AI Hairstyle Studio memerlukan akses kamera dan foto untuk mengambil atau memilih gambar Anda untuk penataan gaya AI.</string>
+    <string name="permission_message">AI Hairstyle Try On: HairGlow memerlukan akses kamera dan foto untuk mengambil atau memilih gambar Anda untuk penataan gaya AI.</string>
     <string name="allow_permissions">Izinkan Izin</string>
     <string name="skip_for_now">Lewati untuk sekarang</string>
     <string name="permission_camera_denied">Izin kamera diperlukan untuk mengambil foto.</string>

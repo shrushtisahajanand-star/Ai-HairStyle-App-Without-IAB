@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.hairstyle.changer.aitryon.R
 import com.hairstyle.changer.aitryon.databinding.FragmentSelectCategoryTabBinding
 import com.hairstyle.changer.aitryon.ui.common.ShimmerItemFooterAdapter
+import com.hairstyle.changer.aitryon.ui.common.ItemLockGate
+import com.hairstyle.changer.aitryon.utils.UnlockConfig
 import com.hairstyle.changer.aitryon.utils.bindListLoading
 import com.hairstyle.changer.aitryon.utils.showListShimmer
 import com.hairstyle.changer.aitryon.utils.showSnackbar
@@ -46,7 +48,9 @@ class SelectCategoryTabFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = CategoryHairstyleAdapter { item ->
+        val lockGate = ItemLockGate(UnlockConfig.Group.HOME) { activity }
+        lockGate.preload()
+        adapter = CategoryHairstyleAdapter(lockGate) { item ->
             viewModel.selectHairstyle(tabIndex, item)
         }
         shimmerFooter = ShimmerItemFooterAdapter(R.layout.item_shimmer_category, shimmerItemCount = 3)

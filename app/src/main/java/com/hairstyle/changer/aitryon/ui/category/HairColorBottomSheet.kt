@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +18,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.hairstyle.changer.aitryon.R
+import com.hairstyle.changer.aitryon.ui.common.ItemLockGate
+import com.hairstyle.changer.aitryon.utils.UnlockConfig
 import com.hairstyle.changer.aitryon.databinding.BottomSheetHairColorBinding
 import com.hairstyle.changer.aitryon.Ads.InterstitialNavHelper
 import com.hairstyle.changer.aitryon.Ads.ScreenInterAds
@@ -68,7 +71,9 @@ class HairColorBottomSheet : BottomSheetDialogFragment() {
         binding.ivPreview.load(previewImageUrl) { crossfade(true) }
         binding.btnClose.setOnClickListener { dismiss() }
 
-        colorAdapter = HairColorSheetAdapter { }
+        val lockGate = ItemLockGate(UnlockConfig.Group.HAIR_COLOR) { activity }
+        lockGate.preload()
+        colorAdapter = HairColorSheetAdapter(lockGate) { }
         colorShimmerAdapter = ShimmerItemFooterAdapter(
             itemLayoutRes = R.layout.item_shimmer_hair_color_sheet,
             shimmerItemCount = 5,
@@ -179,6 +184,13 @@ class HairColorBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "HairColorBottomSheet"
+
+        /** Shows the sheet unless one is already open (fast double taps must not stack sheets). */
+        fun showOnce(sheet: HairColorBottomSheet, fragmentManager: FragmentManager) {
+            if (fragmentManager.isStateSaved || fragmentManager.findFragmentByTag(TAG) != null) return
+            sheet.show(fragmentManager, TAG)
+            fragmentManager.executePendingTransactions()
+        }
         private const val ARG_PREVIEW_URL = "preview_url"
         private const val ARG_HAIRSTYLE_TITLE = "hairstyle_title"
         private const val ARG_HAIRSTYLE_API = "hairstyle_api"

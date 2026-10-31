@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.hairstyle.changer.aitryon.R
+import com.hairstyle.changer.aitryon.ui.common.ItemLockGate
+import com.hairstyle.changer.aitryon.utils.UnlockConfig
 import com.hairstyle.changer.aitryon.databinding.FragmentHomeBinding
 import com.hairstyle.changer.aitryon.domain.model.CategoryHairstyle
 import com.hairstyle.changer.aitryon.domain.model.HomeHeroSlide
@@ -97,9 +99,9 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        menAdapter = HomeHairstyleAdapter(::onHairstyleSelected)
-        womenAdapter = HomeHairstyleAdapter(::onHairstyleSelected)
-        childrenAdapter = HomeHairstyleAdapter(::onHairstyleSelected)
+        menAdapter = HomeHairstyleAdapter(homeLockGate, ::onHairstyleSelected)
+        womenAdapter = HomeHairstyleAdapter(homeLockGate, ::onHairstyleSelected)
+        childrenAdapter = HomeHairstyleAdapter(homeLockGate, ::onHairstyleSelected)
         menShimmerFooter = ShimmerItemFooterAdapter(R.layout.item_shimmer_home, shimmerItemCount = 2)
         womenShimmerFooter = ShimmerItemFooterAdapter(R.layout.item_shimmer_home, shimmerItemCount = 2)
         childrenShimmerFooter = ShimmerItemFooterAdapter(R.layout.item_shimmer_home, shimmerItemCount = 2)
@@ -200,8 +202,11 @@ class HomeFragment : Fragment() {
         shimmer.showListShimmer()
     }
 
+    private val homeLockGate = ItemLockGate(UnlockConfig.Group.HOME) { activity }
+
     override fun onResume() {
         super.onResume()
+        homeLockGate.preload()
         viewModel.loadHeroSlides()
         refreshVisibleImages()
         if (!isHidden) {
@@ -445,7 +450,7 @@ class HomeFragment : Fragment() {
             hairstyleTitle = item.title,
             hairstyleApiValue = item.apiValue,
             source = HairColorBottomSheet.Source.HOME
-        ).show(parentFragmentManager, HairColorBottomSheet.TAG)
+        ).let { HairColorBottomSheet.showOnce(it, parentFragmentManager) }
     }
 
     private fun openSelectCategory(tab: Int, interEnabled: Boolean) {

@@ -218,7 +218,6 @@ public class ADSMainClass {
     public static String TRYIT_SHOW_INTER = "tryit_show_inter";
     public static String SEEALL_SHOW_INTER = "seeall_show_inter";
     public static String UPLOAD_PHOTO_BUTTON_SHOW_INTER = "uplode_photo_button_show_inter";
-    public static String FUN_BEARD_TRYIT_SHOW_INTER = "fun_beard_tryit_show_inter";
     public static String SETTING_ICON_SHOW_INTER = "setting_icon_show_inter";
 
     /** Setting → User Creation / Language rows. */
@@ -245,6 +244,9 @@ public class ADSMainClass {
     public static String INTER_SECOND_TIME = "inter_second_time";
     public static String INTER_BACK_AD_ID = "inter_back_ad_id";
     public static String REWARD_AD_ID = "reward_ad_id";
+    /** Separate ad units for locked-style unlock ads (Firebase `unlock_items`). */
+    public static String UNLOCK_REWARD_AD_ID = "unlock_reward_ad_id";
+    public static String UNLOCK_INTER_AD_ID = "unlock_inter_ad_id";
     private static final String RewardAdsShow = "RewardAdsShow";
     //    public static String INTER_CALLEND_AD = "inter_callend_ad";
     public static String CALL_END_ADAPTIVE_BANNER = "call_end_adaptive_banner";

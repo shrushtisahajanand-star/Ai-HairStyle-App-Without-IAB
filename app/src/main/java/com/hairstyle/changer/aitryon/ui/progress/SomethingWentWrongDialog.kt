@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import com.hairstyle.changer.aitryon.R
 import com.hairstyle.changer.aitryon.databinding.DialogSomethingWentWrongBinding
@@ -23,10 +24,14 @@ object SomethingWentWrongDialog {
         show(activity, onCancel)
     }
 
-    fun show(activity: Activity, onCancel: () -> Unit) {
+    fun show(activity: Activity, onCancel: () -> Unit) = show(activity, null, onCancel)
+
+    /** [messageRes] replaces the default "couldn't generate your hairstyle" text (e.g. ad failed). */
+    fun show(activity: Activity, @StringRes messageRes: Int?, onCancel: () -> Unit) {
         if (activity.isFinishing || activity.isDestroyed) return
 
         val binding = DialogSomethingWentWrongBinding.inflate(activity.layoutInflater)
+        messageRes?.let { binding.tvMessage.setText(it) }
 
         val dialog = Dialog(activity, R.style.ThemeOverlay_AIHairstyleStudio_PermissionDialog).apply {
             setContentView(binding.root)

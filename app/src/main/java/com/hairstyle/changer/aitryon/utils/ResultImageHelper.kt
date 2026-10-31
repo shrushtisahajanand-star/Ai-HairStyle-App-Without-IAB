@@ -133,7 +133,7 @@ class ResultImageHelper @Inject constructor(
     }
 
     /**
-     * Saves image to Pictures/AI Hairstyle via MediaStore.
+     * Saves image to Pictures/HairGlow via MediaStore.
     
      */
     suspend fun saveToGallery(sourceFile: File, highQuality: Boolean = false): Uri =
@@ -219,7 +219,7 @@ class ResultImageHelper @Inject constructor(
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             put(
                 MediaStore.Images.Media.RELATIVE_PATH,
-                "${Environment.DIRECTORY_PICTURES}/AI Hairstyle"
+                "${Environment.DIRECTORY_PICTURES}/HairGlow"
             )
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
@@ -243,7 +243,7 @@ class ResultImageHelper @Inject constructor(
     @Suppress("DEPRECATION")
     private fun saveViaLegacyStorage(bitmap: Bitmap, displayName: String, quality: Int): Uri {
         val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        val appDir = File(picturesDir, "AI Hairstyle")
+        val appDir = File(picturesDir, "HairGlow")
         if (!appDir.exists()) appDir.mkdirs()
 
         val file = File(appDir, displayName)

@@ -38,7 +38,7 @@ class ImageSaveHelper @Inject constructor(
                 put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
                 put(
                     MediaStore.Images.Media.RELATIVE_PATH,
-                    "${Environment.DIRECTORY_PICTURES}/AI Hairstyle"
+                    "${Environment.DIRECTORY_PICTURES}/HairGlow"
                 )
                 put(MediaStore.Images.Media.IS_PENDING, 1)
             }
@@ -61,7 +61,7 @@ class ImageSaveHelper @Inject constructor(
             val picturesDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES
             )
-            val appDir = File(picturesDir, "AI Hairstyle")
+            val appDir = File(picturesDir, "HairGlow")
             if (!appDir.exists()) appDir.mkdirs()
 
             val file = File(appDir, displayName)

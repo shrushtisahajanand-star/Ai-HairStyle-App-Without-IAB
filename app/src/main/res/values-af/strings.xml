@@ -164,7 +164,7 @@
     <string name="hd">HD</string>
     <string name="share">Deel</string>
     <string name="permission_title">Laat toegang toe</string>
-    <string name="permission_message">AI Hairstyle Studio benodig kamera- en fototoegang om jou beeld vir KI-stylering vas te lê of te kies.</string>
+    <string name="permission_message">AI Hairstyle Try On: HairGlow benodig kamera- en fototoegang om jou beeld vir KI-stylering vas te lê of te kies.</string>
     <string name="allow_permissions">Laat toestemmings toe</string>
     <string name="skip_for_now">Slaan nou oor</string>
     <string name="permission_camera_denied">Kameratoestemming word vereis om foto\'s te neem.</string>

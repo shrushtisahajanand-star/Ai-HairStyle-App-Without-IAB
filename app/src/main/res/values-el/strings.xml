@@ -164,7 +164,7 @@
     <string name="hd">HD</string>
     <string name="share">Κοινοποίηση</string>
     <string name="permission_title">Επιτρέψτε την πρόσβαση</string>
-    <string name="permission_message">Το AI Hairstyle Studio χρειάζεται πρόσβαση στην κάμερα και τις φωτογραφίες για να συλλάβει ή να επιλέξει την εικόνα σας για στυλ με ΤΝ.</string>
+    <string name="permission_message">Το AI Hairstyle Try On: HairGlow χρειάζεται πρόσβαση στην κάμερα και τις φωτογραφίες για να συλλάβει ή να επιλέξει την εικόνα σας για στυλ με ΤΝ.</string>
     <string name="allow_permissions">Επιτρέψτε τις άδειες</string>
     <string name="skip_for_now">Παράλειψη για τώρα</string>
     <string name="permission_camera_denied">Απαιτείται άδεια κάμερας για τη λήψη φωτογραφιών.</string>

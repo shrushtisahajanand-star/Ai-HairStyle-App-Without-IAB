@@ -27,7 +27,71 @@ public final class ADSRewardDisplay {
 
     private static boolean isLoading;
 
+    /** Cached rewarded ad for unlock ads (unlock_items.ads_load_type = PreLoad); generate and save always load on demand. */
+    @Nullable
+    private static RewardedAd preloadedAd;
+    private static long preloadedAtMs;
+    /** Ad unit the cached ad was loaded for (generate and unlock use different units). */
+    @Nullable
+    private static String preloadedUnitId;
+    private static boolean isPreloading;
+    /** Rewarded ads expire after about an hour; drop older cached ones. */
+    private static final long PRELOAD_MAX_AGE_MS = 50L * 60L * 1000L;
+
     private ADSRewardDisplay() {
+    }
+
+    /** Caches the next rewarded ad for unlock ads. The caller decides when (PreLoad mode only). */
+    public static void preload(
+            @NonNull Activity activity,
+            @Nullable String adUnitId,
+            boolean ignoreRewardFlag
+    ) {
+        if (ADSMainClass.getAds_Free()) return;
+        if (!ignoreRewardFlag && !ADSMainClass.getRewardAdsShow()) return;
+        if (activity.isFinishing() || activity.isDestroyed()) return;
+        if (isPreloading || isLoading) return;
+        if (!ADSConsentManager.canRequestAds(activity)) return;
+
+        String unitId = adUnitId != null ? adUnitId.trim() : "";
+        if (unitId.isEmpty()) {
+            unitId = ADSMainClass.getStringValue(ADSMainClass.REWARD_AD_ID).trim();
+        }
+        if (unitId.isEmpty()) return;
+        if (preloadedAd != null && unitId.equals(preloadedUnitId)
+                && System.currentTimeMillis() - preloadedAtMs <= PRELOAD_MAX_AGE_MS) return;
+        final String loadUnitId = unitId;
+
+        isPreloading = true;
+        preloadedAd = null;
+        RewardedAd.load(
+                activity.getApplicationContext(),
+                unitId,
+                new AdRequest.Builder().build(),
+                new RewardedAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                        isPreloading = false;
+                        preloadedAd = rewardedAd;
+                        preloadedAtMs = System.currentTimeMillis();
+                        preloadedUnitId = loadUnitId;
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        isPreloading = false;
+                    }
+                }
+        );
+    }
+
+    @Nullable
+    private static RewardedAd takePreloaded(@NonNull String unitId) {
+        if (!unitId.equals(preloadedUnitId)) return null;
+        RewardedAd ad = preloadedAd;
+        preloadedAd = null;
+        if (ad == null || System.currentTimeMillis() - preloadedAtMs > PRELOAD_MAX_AGE_MS) return null;
+        return ad;
     }
 
     public interface Listener {
@@ -50,20 +114,30 @@ public final class ADSRewardDisplay {
             @Nullable String adUnitId,
             @NonNull Listener listener
     ) {
+        loadAndShow(activity, adUnitId, listener, false);
+    }
+
+    /** @param ignoreRewardFlag {@code true} for unlock ads: always show, ignore {@code reward_ads_show}. */
+    public static void loadAndShow(
+            @NonNull Activity activity,
+            @Nullable String adUnitId,
+            @NonNull Listener listener,
+            boolean ignoreRewardFlag
+    ) {
         if (activity.isFinishing() || activity.isDestroyed()) {
             listener.onAdFailed();
             return;
         }
 
         // Free users: reward_ads_show false â†’ skip ads, grant action
-        if (ADSMainClass.getAds_Free() || !ADSMainClass.getRewardAdsShow()) {
+        if (ADSMainClass.getAds_Free() || (!ignoreRewardFlag && !ADSMainClass.getRewardAdsShow())) {
             // Log.d(TAG, "Reward ads skipped (reward_ads_show=false or ads free)");
             listener.onRewardEarned();
             return;
         }
 
         if (!ADSConsentManager.canRequestAds(activity)) {
-            // Log.d(TAG, "Reward load blocked: consent");
+            android.util.Log.w(TAG, "Reward load blocked: consent (canRequestAds=false)");
             listener.onAdFailed();
             return;
         }
@@ -73,8 +147,15 @@ public final class ADSRewardDisplay {
             unitId = ADSMainClass.getStringValue(ADSMainClass.REWARD_AD_ID).trim();
         }
         if (unitId.isEmpty()) {
-            // Log.d(TAG, "Reward load fail: empty ad unit");
+            android.util.Log.w(TAG, "Reward load fail: empty ad unit");
             listener.onAdFailed();
+            return;
+        }
+
+        RewardedAd cached = ignoreRewardFlag ? takePreloaded(unitId) : null;
+        if (cached != null) {
+            showLoadedAd(activity, cached, listener);
+            preload(activity, unitId, ignoreRewardFlag);
             return;
         }
 
@@ -107,7 +188,7 @@ public final class ADSRewardDisplay {
                         isLoading = false;
                         ADSUtilitis.MassageBoxFullDismiss();
                         ADSUtilitis.trackScreen(activity, "Reward_Fail");
-                        // Log.e(TAG, "Reward load fail: " + loadAdError.getMessage());
+                        android.util.Log.w(TAG, "Reward load fail: code=" + loadAdError.getCode() + " " + loadAdError.getMessage() + " unit=" + finalUnitId);
                         listener.onAdFailed();
                     }
                 }
@@ -137,7 +218,7 @@ public final class ADSRewardDisplay {
                 ADSAppStarting.ADSIsShowing = false;
                 ADSAppManage.FastStart = false;
                 FullscreenAdWindowHelper.restore(activity);
-                // Log.e(TAG, "Reward show fail: " + adError.getMessage());
+                android.util.Log.w(TAG, "Reward show fail: " + adError.getMessage());
                 if (!earned[0]) {
                     listener.onAdFailed();
                 }

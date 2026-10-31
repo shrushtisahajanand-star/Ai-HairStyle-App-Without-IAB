@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">AI Hairstyle &amp; Haircut Try On</string>
+    <string name="app_name" translatable="false">AI Hairstyle Try On: HairGlow</string>
     <string name="percent_format" translatable="false">%1$d%%</string>
     <string-array name="home_hero_titles">
         <item>Curtain Bangs Hairstyle</item>
@@ -186,7 +186,7 @@
     <string name="hd">HD</string>
     <string name="share">Share</string>
     <string name="permission_title">Allow Access</string>
-    <string name="permission_message">AI Hairstyle Studio needs camera and photo access to capture or select your image for AI styling.</string>
+    <string name="permission_message">AI Hairstyle Try On: HairGlow needs camera and photo access to capture or select your image for AI styling.</string>
     <string name="allow_permissions">Allow Permissions</string>
     <string name="skip_for_now">Skip for now</string>
     <string name="permission_camera_denied">Camera permission is required to take photos.</string>
@@ -223,6 +223,7 @@
     <string name="no_internet_message">Please check your internet connection and try again</string>
     <string name="something_went_wrong_title">Something Went Wrong</string>
     <string name="something_went_wrong_message">We couldn\'t generate your hairstyle right now. Please check your internet connection and try again in a moment.</string>
+    <string name="unlock_ad_failed_message">The ad could not be loaded right now. Please try again in a moment.</string>
     <string name="no_internet_toast">No internet connected</string>
     <string name="rate_dialog_title">How would you rate your app experience?</string>
     <string name="rate_dialog_subtitle">Tap a star to share your feedback</string>
@@ -235,4 +236,7 @@
     <string name="feedback_email_hint">Enter Your Email</string>
     <string name="feedback_email_invalid">Please enter a valid email address.</string>
     <string name="beard_fade_haircut_styles">Beard, Fade &amp; HairCut Styles</string>
+    <string name="unlock_dialog_title">Unlock This Style</string>
+    <string name="unlock_dialog_message_one">Watch an ad to unlock this style and create your image.</string>
+    <string name="unlock_dialog_watch">Watch Ad &amp; Unlock</string>
 </resources>

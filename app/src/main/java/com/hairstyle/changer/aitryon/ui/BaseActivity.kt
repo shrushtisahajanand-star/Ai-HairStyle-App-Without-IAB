@@ -118,6 +118,14 @@ abstract class BaseActivity : AppCompatActivity() {
 
     protected fun isScreenAlive(): Boolean = !isFinishing && !isDestroyed
 
+    /** Shows the No Internet dialog and returns `true` when the device is offline. */
+    fun showNoInternetIfOffline(): Boolean {
+        networkMonitor.refresh()
+        if (networkMonitor.isNetworkAvailable()) return false
+        noInternetDialog?.showIfNeeded()
+        return true
+    }
+
     /**
      * Activity [androidx.activity.viewModels] has no ownerProducer.
      * Use this to keep a ViewModel on a custom [ViewModelStoreOwner] with Hilt's factory.

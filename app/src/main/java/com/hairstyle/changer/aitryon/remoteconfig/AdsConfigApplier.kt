@@ -16,13 +16,6 @@ object AdsConfigApplier {
     private const val TAG = "AdsConfigApplier"
     private const val DEFAULT_CONSENT_SCREEN = ADSMainClass.CONSENT_SCREEN_SPLASH
 
-    // Google AdMob sample unit IDs — used only by the TEST block in applyAdUnitIds().
-    private const val TEST_NATIVE = "ca-app-pub-3940256099942544/2247696110"
-    private const val TEST_BANNER = "ca-app-pub-3940256099942544/9214589741"
-    private const val TEST_INTER = "ca-app-pub-3940256099942544/1033173712"
-    private const val TEST_APP_OPEN = "ca-app-pub-3940256099942544/9257395921"
-    private const val TEST_REWARD = "ca-app-pub-3940256099942544/5224354917"
-
     private val BOTTOM_SCREENS = listOf(
         ScreenAdsPrefKeys(
             remoteObjectKey = "intro_screen1",
@@ -210,7 +203,6 @@ object AdsConfigApplier {
 
     fun applyFromRemoteJson(json: String, gson: Gson) {
         if (json.isBlank()) {
-            applyAdUnitIds()
             return
         }
 
@@ -246,6 +238,20 @@ object AdsConfigApplier {
                     applyBottomScreen(adsObj, keys)
                 }
                 applyActionInterFlags(adsObj)
+                // `unlock_ads_show` may sit inside `unlock_items` or directly under `ads`.
+                val unlockObj = adsObj.getAsJsonObjectOrNull("unlock_items")?.deepCopy() ?: JsonObject()
+                adsObj.get("unlock_ads_show")?.takeIf { !it.isJsonNull }
+                    ?.let { unlockObj.add("unlock_ads_show", it) }
+                PrefManager.setUnlockItemsJson(if (unlockObj.size() == 0) "" else unlockObj.toString())
+                // Unlock ads use their own ad units (blank → falls back to the normal ones).
+                ADSMainClass.setStringValue(
+                    ADSMainClass.UNLOCK_REWARD_AD_ID,
+                    unlockObj.get("reward_ad_id")?.takeIf { it.isJsonPrimitive }?.asString?.trim().orEmpty()
+                )
+                ADSMainClass.setStringValue(
+                    ADSMainClass.UNLOCK_INTER_AD_ID,
+                    unlockObj.get("inter_ad_id")?.takeIf { it.isJsonPrimitive }?.asString?.trim().orEmpty()
+                )
                 // Home / Setting also use typed ADSMainClass getters
                 syncHomeTypedPrefs(adsObj)
                 syncSettingTypedPrefs(adsObj)
@@ -257,74 +263,6 @@ object AdsConfigApplier {
         }.onFailure {
             // Log.e(TAG, "Failed to apply ads config", it)
         }
-
-        applyAdUnitIds()
-    }
-
-    /**
-     * Switch TEST / LIVE by commenting one block and uncommenting the other.
-     * Firebase IDs are already written above; the TEST block overwrites them.
-     */
-    private fun applyAdUnitIds() {
-        // ===================== LIVE (Firebase) =====================
-        // Leave this as-is. Remote Config IDs are already applied.
-        // For LIVE: comment the entire TEST block below.
-
-        // ===================== TEST (Google sample IDs) =====================
-        // For TEST: keep this block uncommented. For LIVE: comment it out.
-        ADSMainClass.setStringValue(ADSMainClass.LANGUAGE_SCREEN_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.LANGUAGE_SCREEN_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.PERMISSION_SCREEN_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.PERMISSION_SCREEN_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.HOME_SCREEN_NATIVE1, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.HOME_SCREEN_NATIVE2, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.HOME_SCREEN_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.HOME_SCREEN_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.CHAT_SCREEN_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.CHAT_SCREEN_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.SETTING_SCREEN_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.SETTING_SCREEN_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.SETTING_CENTER_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.SETTING_CENTER_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.CALL_END_Native, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.CALL_END_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.CALL_END_Inter, TEST_INTER)
-        ADSMainClass.setStringValue(ADSMainClass.QUICK_BANNER_ID, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.QUICK_NATIVE_ID, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.APP_OPEN_ID, TEST_APP_OPEN)
-        ADSMainClass.setStringValue(ADSMainClass.INTER_FIRST_TIME, TEST_INTER)
-        ADSMainClass.setStringValue(ADSMainClass.INTER_SECOND_TIME, TEST_INTER)
-        ADSMainClass.setStringValue(ADSMainClass.INTER_BACK_AD_ID, TEST_INTER)
-        ADSMainClass.setStringValue(ADSMainClass.REWARD_AD_ID, TEST_REWARD)
-        ADSMainClass.setStringValue(ADSMainClass.OTHER_SCREEN_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.OTHER_SCREEN_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.EXIT_SCREEN_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1B_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1B_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1C_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1C_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1D_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO1D_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO2_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO2_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO3_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.INTRO3_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.SELECT_IMAGE_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.SELECT_IMAGE_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.ADD_PHOTO_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.ADD_PHOTO_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.GALLERY_PHOTOS_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.GALLERY_PHOTOS_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.PROGRESS_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.PROGRESS_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.RESULT_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.RESULT_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.USER_CREATION_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.USER_CREATION_BANNER, TEST_BANNER)
-        ADSMainClass.setStringValue(ADSMainClass.FEEDBACK_NATIVE, TEST_NATIVE)
-        ADSMainClass.setStringValue(ADSMainClass.FEEDBACK_BANNER, TEST_BANNER)
     }
 
     private fun applyConsent(root: AdsConfigRoot, ads: AdsSection?) {
@@ -653,7 +591,6 @@ object AdsConfigApplier {
             home.applyBool("tryit_show_inter", ADSMainClass.TRYIT_SHOW_INTER)
             home.applyBool("seeall_show_inter", ADSMainClass.SEEALL_SHOW_INTER)
             home.applyBool("uplode_photo_button_show_inter", ADSMainClass.UPLOAD_PHOTO_BUTTON_SHOW_INTER)
-            home.applyBool("fun_beard_tryit_show_inter", ADSMainClass.FUN_BEARD_TRYIT_SHOW_INTER)
             home.applyBool("setting_icon_show_inter", ADSMainClass.SETTING_ICON_SHOW_INTER)
         }
 

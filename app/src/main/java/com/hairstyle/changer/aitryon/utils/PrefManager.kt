@@ -26,6 +26,8 @@ object PrefManager {
     private const val KEY_BASE_URL = "base_url"
     private const val KEY_DAILY_LIMIT_BLOCKED_UNTIL = "daily_limit_blocked_until"
     private const val KEY_PAGE_LIMIT = "images_page_limit"
+    private const val KEY_UNLOCK_ITEMS_JSON = "unlock_items_json"
+    private const val KEY_UNLOCK_SEQUENCE_POS = "unlock_sequence_pos"
     private const val KEY_REMOTE_CONFIG_FETCHED = "remote_config_fetched"
     private const val KEY_SELECTED_HAIRSTYLE_TITLE = "selected_hairstyle_title"
     private const val KEY_SELECTED_HAIRSTYLE_API = "selected_hairstyle_api"
@@ -135,6 +137,21 @@ object PrefManager {
         if (title.isBlank()) return ""
         return prefsOrThrow().getString("$VIDEO_URL_PREFIX$title", "") ?: ""
     }
+
+    /** Raw `ads.unlock_items` JSON object from Remote Config (blank → app defaults). */
+    fun setUnlockItemsJson(value: String) {
+        prefsOrThrow().edit().putString(KEY_UNLOCK_ITEMS_JSON, value).apply()
+    }
+
+    /** How many unlock ads were completed so far — picks the next step of `ads_sequence`. */
+    fun getUnlockSequencePos(): Int = prefsOrThrow().getInt(KEY_UNLOCK_SEQUENCE_POS, 0)
+
+    fun setUnlockSequencePos(value: Int) {
+        prefsOrThrow().edit().putInt(KEY_UNLOCK_SEQUENCE_POS, value).apply()
+    }
+
+    fun getUnlockItemsJson(): String =
+        prefsOrThrow().getString(KEY_UNLOCK_ITEMS_JSON, "").orEmpty()
 
     fun setImagesPageLimit(value: Int) {
         prefsOrThrow().edit().putInt(KEY_PAGE_LIMIT, value).apply()

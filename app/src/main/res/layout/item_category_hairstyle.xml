@@ -59,6 +59,18 @@
                 android:src="@drawable/ic_selction_icon"
                 android:visibility="gone"
                 tools:visibility="visible" />
+            <ImageView
+                android:id="@+id/ivLock"
+                android:layout_width="@dimen/_22sdp"
+                android:layout_height="@dimen/_22sdp"
+                android:layout_gravity="top|start"
+                android:layout_margin="@dimen/_6sdp"
+                android:background="@drawable/bg_lock_badge"
+                android:contentDescription="@null"
+                android:padding="@dimen/_5sdp"
+                android:src="@drawable/ic_lock_badge"
+                android:visibility="gone"
+                tools:visibility="visible" />
         </FrameLayout>
     </com.google.android.material.card.MaterialCardView>
 

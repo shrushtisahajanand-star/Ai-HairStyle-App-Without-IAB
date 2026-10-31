@@ -19,9 +19,6 @@ object ScreenInterAds {
     fun uploadPhoto(): Boolean =
         ADSMainClass.getBooleanValue(ADSMainClass.UPLOAD_PHOTO_BUTTON_SHOW_INTER, true)
 
-    fun funBeardTryIt(): Boolean =
-        ADSMainClass.getBooleanValue(ADSMainClass.FUN_BEARD_TRYIT_SHOW_INTER, true)
-
     fun settingIcon(): Boolean =
         ADSMainClass.getBooleanValue(ADSMainClass.SETTING_ICON_SHOW_INTER, true)
 
