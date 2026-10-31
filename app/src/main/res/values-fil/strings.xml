@@ -49,7 +49,7 @@
     <string name="language">Wika</string>
     <string name="language_subtitle">Filipino</string>
     <string name="share_app">I-share ang App</string>
-    <string name="share_app_subtitle">Anyayahan ang mga kaibigan na subukan ang Lumen AI</string>
+    <string name="share_app_subtitle">Anyayahan ang mga kaibigan na subukan ang AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Tingnan ang %1$s — subukan ang mga AI hairstyle: %2$s</string>
     <string name="rate_us">I-rate Kami</string>
     <string name="rate_us_subtitle">Sabihin sa tindahan ang iyong opinyon</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Isumite ang Rating</string>
     <string name="rate_dialog_maybe_later">Siguro sa susunod</string>
     <string name="rate_dialog_select_stars">Mangyaring pumili ng star rating</string>
-    <string name="terms_of_service">Mga Tuntunin ng Serbisyo</string>
-    <string name="terms_of_service_subtitle">Mga tuntunin at kondisyon sa paggamit ng app</string>
     <string name="feedback_email_label">Email (Opsyonal)</string>
     <string name="feedback_email_hint">Ilagay ang iyong Email</string>
     <string name="feedback_email_invalid">Pakilagay ang wastong email address.</string>
     <string name="beard_fade_haircut_styles">Balbas, Fade &amp; Mga Estilo ng Gupit</string>
     <string name="daily_quota_finished_title">Tapos na ang Araw-araw na Limitasyon</string>
     <string name="daily_quota_finished_message">Tapos na ang iyong araw-araw na limitasyon sa larawan. Bumalik bukas para sa higit pang mga generasyon.</string>
+    <string name="save_hairstyle_subtitle">Manood ng maikling ad para mai-save sa iyong gallery.</string>
+    <string name="image_saved_title">Na-save ang larawan!</string>
+    <string name="image_saved_message">Na-save na ang iyong larawan sa iyong gallery.</string>
+    <string name="unlock_ad_failed_message">Hindi ma-load ang ad ngayon. Pakisubukang muli sa ilang sandali.</string>
+    <string name="unlock_dialog_title">I-unlock ang Estilong Ito</string>
+    <string name="unlock_dialog_message_one">Manood ng ad para ma-unlock ang estilong ito at magawa ang iyong larawan.</string>
+    <string name="unlock_dialog_watch">Manood ng Ad at I-unlock</string>
 </resources>

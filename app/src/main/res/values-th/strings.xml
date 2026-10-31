@@ -49,7 +49,7 @@
     <string name="language">ภาษา</string>
     <string name="language_subtitle">ภาษาไทย</string>
     <string name="share_app">แชร์แอป</string>
-    <string name="share_app_subtitle">เชิญเพื่อนลอง Lumen AI</string>
+    <string name="share_app_subtitle">เชิญเพื่อนลอง AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">ลองดู %1$s — ลองทรงผม AI: %2$s</string>
     <string name="rate_us">ให้คะแนนเรา</string>
     <string name="rate_us_subtitle">บอกให้ร้านค้ารู้ว่าคุณคิดอย่างไร</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">ส่งคะแนน</string>
     <string name="rate_dialog_maybe_later">ไว้ทีหลัง</string>
     <string name="rate_dialog_select_stars">กรุณาเลือกคะแนนดาว</string>
-    <string name="terms_of_service">ข้อกำหนดการให้บริการ</string>
-    <string name="terms_of_service_subtitle">ข้อกำหนดและเงื่อนไขในการใช้แอป</string>
     <string name="feedback_email_label">อีเมล (ไม่บังคับ)</string>
     <string name="feedback_email_hint">ป้อนอีเมลของคุณ</string>
     <string name="feedback_email_invalid">กรุณาป้อนที่อยู่อีเมลที่ถูกต้อง</string>
     <string name="beard_fade_haircut_styles">หนวดเครา เฟด &amp; สไตล์การตัดผม</string>
     <string name="daily_quota_finished_title">ขีดจำกัดรายวันหมดลง</string>
     <string name="daily_quota_finished_message">ขีดจำกัดรูปภาพรายวันของคุณหมดลงแล้ว กลับมาพรุ่งนี้เพื่อสร้างเพิ่มเติม</string>
+    <string name="save_hairstyle_subtitle">ดูโฆษณาสั้น ๆ เพื่อบันทึกลงแกลเลอรี</string>
+    <string name="image_saved_title">บันทึกรูปภาพแล้ว!</string>
+    <string name="image_saved_message">บันทึกรูปภาพของคุณลงในแกลเลอรีแล้ว</string>
+    <string name="unlock_ad_failed_message">ไม่สามารถโหลดโฆษณาได้ในขณะนี้ โปรดลองอีกครั้งในอีกสักครู่</string>
+    <string name="unlock_dialog_title">ปลดล็อกสไตล์นี้</string>
+    <string name="unlock_dialog_message_one">ดูโฆษณาเพื่อปลดล็อกสไตล์นี้และสร้างรูปภาพของคุณ</string>
+    <string name="unlock_dialog_watch">ดูโฆษณาและปลดล็อก</string>
 </resources>

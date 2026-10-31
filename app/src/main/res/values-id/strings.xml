@@ -49,7 +49,7 @@
     <string name="language">Bahasa</string>
     <string name="language_subtitle">Bahasa Indonesia</string>
     <string name="share_app">Bagikan Aplikasi</string>
-    <string name="share_app_subtitle">Ajak teman mencoba Lumen AI</string>
+    <string name="share_app_subtitle">Ajak teman mencoba AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Lihat %1$s — coba gaya rambut AI: %2$s</string>
     <string name="rate_us">Nilai Kami</string>
     <string name="rate_us_subtitle">Beritahu toko apa yang Anda pikirkan</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Kirim Penilaian</string>
     <string name="rate_dialog_maybe_later">Mungkin Nanti</string>
     <string name="rate_dialog_select_stars">Silakan pilih peringkat bintang</string>
-    <string name="terms_of_service">Syarat Layanan</string>
-    <string name="terms_of_service_subtitle">Syarat dan ketentuan untuk menggunakan aplikasi</string>
     <string name="feedback_email_label">Email (Opsional)</string>
     <string name="feedback_email_hint">Masukkan Email Anda</string>
     <string name="feedback_email_invalid">Silakan masukkan alamat email yang valid.</string>
     <string name="beard_fade_haircut_styles">Jenggot, Fade &amp; Gaya Potongan Rambut</string>
     <string name="daily_quota_finished_title">Batas Harian Habis</string>
     <string name="daily_quota_finished_message">Batas gambar harian Anda telah habis. Kembali besok untuk generasi lainnya.</string>
+    <string name="save_hairstyle_subtitle">Tonton iklan singkat untuk menyimpan ke galeri Anda.</string>
+    <string name="image_saved_title">Gambar tersimpan!</string>
+    <string name="image_saved_message">Gambar Anda telah disimpan ke galeri.</string>
+    <string name="unlock_ad_failed_message">Iklan tidak dapat dimuat saat ini. Silakan coba lagi sebentar lagi.</string>
+    <string name="unlock_dialog_title">Buka Kunci Gaya Ini</string>
+    <string name="unlock_dialog_message_one">Tonton iklan untuk membuka kunci gaya ini dan membuat gambar Anda.</string>
+    <string name="unlock_dialog_watch">Tonton Iklan &amp; Buka Kunci</string>
 </resources>

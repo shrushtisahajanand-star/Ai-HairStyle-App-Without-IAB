@@ -13,7 +13,6 @@ data class AdsConfigRoot(
 
 data class AdsSection(
     @SerializedName("privacy_policy_url") val privacyPolicyUrl: String? = null,
-    @SerializedName("terms_url") val termsUrl: String? = null,
     @SerializedName("consent_form_show_screen") val consentFormShowScreen: String? = null,
     @SerializedName("Ads_Loading_Types") val adsLoadingTypes: String? = null,
     @SerializedName("exit_dialog_show") val exitDialogShow: Boolean? = null,

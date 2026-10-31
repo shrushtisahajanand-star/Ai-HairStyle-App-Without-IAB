@@ -49,7 +49,7 @@
     <string name="language">Lingua</string>
     <string name="language_subtitle">Italiano</string>
     <string name="share_app">Condividi app</string>
-    <string name="share_app_subtitle">Invita amici a provare Lumen AI</string>
+    <string name="share_app_subtitle">Invita amici a provare AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Scopri %1$s — prova le acconciature IA: %2$s</string>
     <string name="rate_us">Valutaci</string>
     <string name="rate_us_subtitle">Di al negozio cosa ne pensi</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Invia valutazione</string>
     <string name="rate_dialog_maybe_later">Forse più tardi</string>
     <string name="rate_dialog_select_stars">Seleziona una valutazione a stelle</string>
-    <string name="terms_of_service">Termini di servizio</string>
-    <string name="terms_of_service_subtitle">Termini e condizioni per l\'utilizzo dell\'app</string>
     <string name="feedback_email_label">Email (opzionale)</string>
     <string name="feedback_email_hint">Inserisci la tua email</string>
     <string name="feedback_email_invalid">Inserisci un indirizzo email valido.</string>
     <string name="beard_fade_haircut_styles">Barba, Fade &amp; Tagli di capelli</string>
     <string name="daily_quota_finished_title">Limite Giornaliero Raggiunto</string>
     <string name="daily_quota_finished_message">Il tuo limite giornaliero di immagini è terminato. Torna domani per altre generazioni.</string>
+    <string name="save_hairstyle_subtitle">Guarda un breve annuncio per salvare nella tua galleria.</string>
+    <string name="image_saved_title">Immagine salvata!</string>
+    <string name="image_saved_message">La tua immagine è stata salvata nella galleria.</string>
+    <string name="unlock_ad_failed_message">Impossibile caricare l\'annuncio al momento. Riprova tra poco.</string>
+    <string name="unlock_dialog_title">Sblocca questo stile</string>
+    <string name="unlock_dialog_message_one">Guarda un annuncio per sbloccare questo stile e creare la tua immagine.</string>
+    <string name="unlock_dialog_watch">Guarda annuncio e sblocca</string>
 </resources>

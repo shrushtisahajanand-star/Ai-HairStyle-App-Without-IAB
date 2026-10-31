@@ -71,7 +71,7 @@
     <string name="language">Language</string>
     <string name="language_subtitle">English (United States)</string>
     <string name="share_app">Share App</string>
-    <string name="share_app_subtitle">Invite friends to try Lumen AI</string>
+    <string name="share_app_subtitle">Invite friends to try AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Check out %1$s — try AI hairstyles: %2$s</string>
     <string name="rate_us">Rate Us</string>
     <string name="rate_us_subtitle">Tell the store what you think</string>
@@ -230,8 +230,6 @@
     <string name="rate_dialog_submit">Submit Rating</string>
     <string name="rate_dialog_maybe_later">Maybe Later</string>
     <string name="rate_dialog_select_stars">Please select a star rating</string>
-    <string name="terms_of_service">Terms Of Service</string>
-    <string name="terms_of_service_subtitle">Terms and conditions for using the app</string>
     <string name="feedback_email_label">Email (Optional)</string>
     <string name="feedback_email_hint">Enter Your Email</string>
     <string name="feedback_email_invalid">Please enter a valid email address.</string>

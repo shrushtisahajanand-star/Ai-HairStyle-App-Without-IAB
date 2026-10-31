@@ -49,7 +49,7 @@
     <string name="language">言語</string>
     <string name="language_subtitle">日本語</string>
     <string name="share_app">アプリを共有</string>
-    <string name="share_app_subtitle">友達をLumen AIに招待</string>
+    <string name="share_app_subtitle">友達をAI Hairstyle Try On: HairGlowに招待</string>
     <string name="share_app_message">%1$sをチェック — AIヘアスタイルを試す: %2$s</string>
     <string name="rate_us">評価する</string>
     <string name="rate_us_subtitle">ストアにあなたの意見を伝える</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">評価を送信</string>
     <string name="rate_dialog_maybe_later">後で</string>
     <string name="rate_dialog_select_stars">星の評価を選択してください</string>
-    <string name="terms_of_service">利用規約</string>
-    <string name="terms_of_service_subtitle">アプリ使用の利用規約</string>
     <string name="feedback_email_label">メール（任意）</string>
     <string name="feedback_email_hint">メールアドレスを入力</string>
     <string name="feedback_email_invalid">有効なメールアドレスを入力してください。</string>
     <string name="beard_fade_haircut_styles">ひげ、フェード &amp; ヘアカットスタイル</string>
     <string name="daily_quota_finished_title">日刊制限終了</string>
     <string name="daily_quota_finished_message">あなたの日刊画像制限が終了しました。 より多くの生成のために明日戻ってきてください。</string>
+    <string name="save_hairstyle_subtitle">短い広告を見て、ギャラリーに保存しましょう。</string>
+    <string name="image_saved_title">画像を保存しました！</string>
+    <string name="image_saved_message">画像をギャラリーに保存しました。</string>
+    <string name="unlock_ad_failed_message">現在、広告を読み込めませんでした。しばらくしてからもう一度お試しください。</string>
+    <string name="unlock_dialog_title">このスタイルをアンロック</string>
+    <string name="unlock_dialog_message_one">広告を見てこのスタイルをアンロックし、画像を作成しましょう。</string>
+    <string name="unlock_dialog_watch">広告を見てアンロック</string>
 </resources>

@@ -49,7 +49,7 @@
     <string name="language">Language</string>
     <string name="language_subtitle">English (United Kingdom)</string>
     <string name="share_app">Share App</string>
-    <string name="share_app_subtitle">Invite friends to try Lumen AI</string>
+    <string name="share_app_subtitle">Invite friends to try AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Check out %1$s — try AI hairstyles: %2$s</string>
     <string name="rate_us">Rate Us</string>
     <string name="rate_us_subtitle">Tell the store what you think</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Submit Rating</string>
     <string name="rate_dialog_maybe_later">Maybe Later</string>
     <string name="rate_dialog_select_stars">Please select a star rating</string>
-    <string name="terms_of_service">Terms Of Service</string>
-    <string name="terms_of_service_subtitle">Terms and conditions for using the app</string>
     <string name="feedback_email_label">Email (Optional)</string>
     <string name="feedback_email_hint">Enter Your Email</string>
     <string name="feedback_email_invalid">Please enter a valid email address.</string>
     <string name="beard_fade_haircut_styles">Beard, Fade &amp; HairCut Styles</string>
     <string name="daily_quota_finished_title">Daily Limit Over</string>
     <string name="daily_quota_finished_message">Your daily image limit is finished. Come back tomorrow for more generations.</string>
+    <string name="save_hairstyle_subtitle">Watch a short ad to save to your gallery.</string>
+    <string name="image_saved_title">Image Saved!</string>
+    <string name="image_saved_message">Your image has been saved to your gallery.</string>
+    <string name="unlock_ad_failed_message">The ad could not be loaded right now. Please try again in a moment.</string>
+    <string name="unlock_dialog_title">Unlock This Style</string>
+    <string name="unlock_dialog_message_one">Watch an ad to unlock this style and create your image.</string>
+    <string name="unlock_dialog_watch">Watch Ad &amp; Unlock</string>
 </resources>

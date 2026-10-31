@@ -49,7 +49,7 @@
     <string name="language">Dil</string>
     <string name="language_subtitle">Türkçe</string>
     <string name="share_app">Uygulamayı Paylaş</string>
-    <string name="share_app_subtitle">Arkadaşlarınızı Lumen AI\'yi denemeye davet edin</string>
+    <string name="share_app_subtitle">Arkadaşlarınızı AI Hairstyle Try On: HairGlow\'yi denemeye davet edin</string>
     <string name="share_app_message">%1$s\'e göz atın — yapay zeka saç modellerini deneyin: %2$s</string>
     <string name="rate_us">Bizi Değerlendirin</string>
     <string name="rate_us_subtitle">Mağazaya ne düşündüğünüzü söyleyin</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Değerlendirmeyi Gönder</string>
     <string name="rate_dialog_maybe_later">Belki Sonra</string>
     <string name="rate_dialog_select_stars">Lütfen bir yıldız değerlendirmesi seçin</string>
-    <string name="terms_of_service">Hizmet Şartları</string>
-    <string name="terms_of_service_subtitle">Uygulamayı kullanma koşulları</string>
     <string name="feedback_email_label">E-posta (İsteğe Bağlı)</string>
     <string name="feedback_email_hint">E-postanızı Girin</string>
     <string name="feedback_email_invalid">Lütfen geçerli bir e-posta adresi girin.</string>
     <string name="beard_fade_haircut_styles">Sakal, Fade &amp; Saç Kesim Stilleri</string>
     <string name="daily_quota_finished_title">Günlük Limit Doldu</string>
     <string name="daily_quota_finished_message">Günlük görsel limitiniz doldu. Daha fazla oluşturma için yarın tekrar gelin.</string>
+    <string name="save_hairstyle_subtitle">Galerinize kaydetmek için kısa bir reklam izleyin.</string>
+    <string name="image_saved_title">Görsel kaydedildi!</string>
+    <string name="image_saved_message">Görseliniz galerinize kaydedildi.</string>
+    <string name="unlock_ad_failed_message">Reklam şu anda yüklenemedi. Lütfen biraz sonra tekrar deneyin.</string>
+    <string name="unlock_dialog_title">Bu Stilin Kilidini Aç</string>
+    <string name="unlock_dialog_message_one">Bu stilin kilidini açmak ve görselinizi oluşturmak için bir reklam izleyin.</string>
+    <string name="unlock_dialog_watch">Reklam İzle ve Kilidi Aç</string>
 </resources>

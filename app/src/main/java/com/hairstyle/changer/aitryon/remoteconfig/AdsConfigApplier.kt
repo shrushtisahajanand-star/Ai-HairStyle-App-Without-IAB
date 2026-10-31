@@ -297,9 +297,6 @@ object AdsConfigApplier {
             ADSMainClass.setPrivacyPolicy(it)
             PrefManager.setPrivacyPolicyUrl(it)
         }
-        ads.termsUrl?.takeIf { it.isNotBlank() }?.let {
-            PrefManager.setTermsUrl(it)
-        }
         ads.adsButtonColor?.takeIf { it.isNotBlank() }?.let {
             ADSMainClass.setNativeButtonColor(it.trim())
         }

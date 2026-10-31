@@ -49,7 +49,7 @@
     <string name="language">Idioma</string>
     <string name="language_subtitle">Español</string>
     <string name="share_app">Compartir app</string>
-    <string name="share_app_subtitle">Invita a amigos a probar Lumen AI</string>
+    <string name="share_app_subtitle">Invita a amigos a probar AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Echa un vistazo a %1$s — prueba peinados con IA: %2$s</string>
     <string name="rate_us">Valoranos</string>
     <string name="rate_us_subtitle">Dile a la tienda lo que piensas</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Enviar calificación</string>
     <string name="rate_dialog_maybe_later">Quizás más tarde</string>
     <string name="rate_dialog_select_stars">Selecciona una calificación por estrellas</string>
-    <string name="terms_of_service">Términos de servicio</string>
-    <string name="terms_of_service_subtitle">Términos y condiciones para usar la app</string>
     <string name="feedback_email_label">Correo electrónico (opcional)</string>
     <string name="feedback_email_hint">Introduce tu correo electrónico</string>
     <string name="feedback_email_invalid">Introduce una dirección de correo electrónico válida.</string>
     <string name="beard_fade_haircut_styles">Barba, Fade &amp; Cortes de pelo</string>
     <string name="daily_quota_finished_title">Límite Diario Alcanzado</string>
     <string name="daily_quota_finished_message">Tu límite diario de imágenes ha terminado. Vuelve mañana para más generaciones.</string>
+    <string name="save_hairstyle_subtitle">Mira un anuncio corto para guardar en tu galería.</string>
+    <string name="image_saved_title">¡Imagen guardada!</string>
+    <string name="image_saved_message">Tu imagen se ha guardado en tu galería.</string>
+    <string name="unlock_ad_failed_message">No se pudo cargar el anuncio en este momento. Inténtalo de nuevo en un momento.</string>
+    <string name="unlock_dialog_title">Desbloquear este estilo</string>
+    <string name="unlock_dialog_message_one">Mira un anuncio para desbloquear este estilo y crear tu imagen.</string>
+    <string name="unlock_dialog_watch">Ver anuncio y desbloquear</string>
 </resources>

@@ -90,12 +90,6 @@ class SettingActivity : BaseActivity() {
             R.string.privacy_policy_subtitle
         )
         bindRow(
-            binding.rowTermsOfService,
-            R.drawable.ic_terms_and_condition,
-            R.string.terms_of_service,
-            R.string.terms_of_service_subtitle
-        )
-        bindRow(
             binding.rowCheckForUpdate,
             R.drawable.ic_check_for_update,
             R.string.check_for_update,
@@ -141,9 +135,6 @@ class SettingActivity : BaseActivity() {
         }
         binding.rowPrivacyPolicy.root.setOnClickListener {
             AppLinkHelper.openPrivacyPolicy(this)
-        }
-        binding.rowTermsOfService.root.setOnClickListener {
-            AppLinkHelper.openTermsOfService(this)
         }
         binding.rowCheckForUpdate.root.setOnClickListener {
             showSnackbar(getString(R.string.checking_for_update))

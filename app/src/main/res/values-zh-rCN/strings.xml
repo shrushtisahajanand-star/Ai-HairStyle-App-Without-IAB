@@ -49,7 +49,7 @@
     <string name="language">语言</string>
     <string name="language_subtitle">中文（简体）</string>
     <string name="share_app">分享应用</string>
-    <string name="share_app_subtitle">邀请朋友试用Lumen AI</string>
+    <string name="share_app_subtitle">邀请朋友试用AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">查看 %1$s — 尝试AI发型：%2$s</string>
     <string name="rate_us">给我们评分</string>
     <string name="rate_us_subtitle">告诉商店您的想法</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">提交评分</string>
     <string name="rate_dialog_maybe_later">稍后再说</string>
     <string name="rate_dialog_select_stars">请选择星级评分</string>
-    <string name="terms_of_service">服务条款</string>
-    <string name="terms_of_service_subtitle">使用应用程序的条款和条件</string>
     <string name="feedback_email_label">电子邮件（可选）</string>
     <string name="feedback_email_hint">输入您的电子邮件</string>
     <string name="feedback_email_invalid">请输入有效的电子邮件地址。</string>
     <string name="beard_fade_haircut_styles">胡须、渐变 &amp; 发型</string>
     <string name="daily_quota_finished_title">日限额已用完</string>
     <string name="daily_quota_finished_message">您的每日图片限额已用完。明天再来生成更多内容吧。</string>
+    <string name="save_hairstyle_subtitle">观看一段短广告即可保存到相册。</string>
+    <string name="image_saved_title">图片已保存！</string>
+    <string name="image_saved_message">您的图片已保存到相册。</string>
+    <string name="unlock_ad_failed_message">暂时无法加载广告，请稍后再试。</string>
+    <string name="unlock_dialog_title">解锁此风格</string>
+    <string name="unlock_dialog_message_one">观看广告即可解锁此风格并创建您的图片。</string>
+    <string name="unlock_dialog_watch">观看广告并解锁</string>
 </resources>

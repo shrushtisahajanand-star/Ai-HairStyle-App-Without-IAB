@@ -53,21 +53,6 @@ object AppLinkHelper {
         return context.getString(R.string.privacy_policy_url).trim()
     }
 
-    fun openTermsOfService(context: Context) {
-        val url = resolveTermsUrl(context)
-        if (url.isBlank()) return
-        openUrl(context, url)
-    }
-
-    fun resolveTermsUrl(context: Context): String {
-        val stored = PrefManager.getTermsUrl().trim()
-        if (stored.isNotBlank()) {
-            if (stored.startsWith("http", ignoreCase = true)) return stored
-        }
-        // Default fallback terms URL
-        return "https://sites.google.com/view/aihairstylehaircuttryon-d01g/home"
-    }
-
     fun openUrl(context: Context, url: String, skipAppOpen: Boolean = true) {
         if (url.isBlank()) return
         if (skipAppOpen) {

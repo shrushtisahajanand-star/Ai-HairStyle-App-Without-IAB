@@ -49,7 +49,7 @@
     <string name="language">Sprache</string>
     <string name="language_subtitle">Deutsch</string>
     <string name="share_app">App teilen</string>
-    <string name="share_app_subtitle">Laden Sie Freunde ein, Lumen AI auszuprobieren</string>
+    <string name="share_app_subtitle">Laden Sie Freunde ein, AI Hairstyle Try On: HairGlow auszuprobieren</string>
     <string name="share_app_message">Schauen Sie sich %1$s an — probieren Sie KI-Frisuren: %2$s</string>
     <string name="rate_us">Bewerten Sie uns</string>
     <string name="rate_us_subtitle">Sagen Sie dem Store, was Sie denken</string>
@@ -205,13 +205,18 @@
     <string name="rate_dialog_submit">Bewertung abgeben</string>
     <string name="rate_dialog_maybe_later">Vielleicht später</string>
     <string name="rate_dialog_select_stars">Bitte wählen Sie eine Sternebewertung</string>
-    <string name="terms_of_service">Nutzungsbedingungen</string>
-    <string name="terms_of_service_subtitle">Allgemeine Geschäftsbedingungen für die Nutzung der App</string>
     <string name="feedback_email_label">E-Mail (Optional)</string>
     <string name="feedback_email_hint">Geben Sie Ihre E-Mail ein</string>
     <string name="feedback_email_invalid">Bitte geben Sie eine gültige E-Mail-Adresse ein.</string>
     <string name="beard_fade_haircut_styles">Bart, Fade &amp; Haarschnitt-Stile</string>
     <string name="daily_quota_finished_title">Tägliches Limit erreicht</string>
     <string name="daily_quota_finished_message">Ihr tägliches Bildlimit ist erreicht. Kommen Sie morgen wieder für weitere Generierungen.</string>
+    <string name="save_hairstyle_subtitle">Sehen Sie sich eine kurze Werbung an, um das Bild in Ihrer Galerie zu speichern.</string>
+    <string name="image_saved_title">Bild gespeichert!</string>
+    <string name="image_saved_message">Ihr Bild wurde in Ihrer Galerie gespeichert.</string>
+    <string name="unlock_ad_failed_message">Die Anzeige konnte gerade nicht geladen werden. Bitte versuchen Sie es gleich noch einmal.</string>
+    <string name="unlock_dialog_title">Diesen Stil freischalten</string>
+    <string name="unlock_dialog_message_one">Sehen Sie sich eine Anzeige an, um diesen Stil freizuschalten und Ihr Bild zu erstellen.</string>
+    <string name="unlock_dialog_watch">Anzeige ansehen &amp; freischalten</string>
 </resources>
 

@@ -49,7 +49,7 @@
     <string name="language">भाषा</string>
     <string name="language_subtitle">हिंदी (भारत)</string>
     <string name="share_app">ऐप शेयर करें</string>
-    <string name="share_app_subtitle">दोस्तों को Lumen AI आज़माने के लिए आमंत्रित करें</string>
+    <string name="share_app_subtitle">दोस्तों को AI Hairstyle Try On: HairGlow आज़माने के लिए आमंत्रित करें</string>
     <string name="share_app_message">%1$s देखें — AI हेयरस्टाइल आज़माएं: %2$s</string>
     <string name="rate_us">रेट करें</string>
     <string name="rate_us_subtitle">स्टोर को बताएं कि आप क्या सोचते हैं</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">रेटिंग सबमिट करें</string>
     <string name="rate_dialog_maybe_later">बाद में शायद</string>
     <string name="rate_dialog_select_stars">कृपया एक स्टार रेटिंग चुनें</string>
-    <string name="terms_of_service">सेवा की शर्तें</string>
-    <string name="terms_of_service_subtitle">ऐप का उपयोग करने के लिए नियम और शर्तें</string>
     <string name="feedback_email_label">ईमेल (वैकल्पिक)</string>
     <string name="feedback_email_hint">अपना ईमेल दर्ज करें</string>
     <string name="feedback_email_invalid">कृपया एक मान्य ईमेल पता दर्ज करें।</string>
     <string name="beard_fade_haircut_styles">दाढ़ी, फेड &amp; हेयरकट स्टाइल</string>
     <string name="daily_quota_finished_title">दैनिक सीमा समाप्त</string>
     <string name="daily_quota_finished_message">आपकी दैनिक छवि सीमा समाप्त हो गई है। अधिक जेनरेशन के लिए कल वापस आएं।</string>
+    <string name="save_hairstyle_subtitle">अपनी गैलरी में सेव करने के लिए एक छोटा विज्ञापन देखें।</string>
+    <string name="image_saved_title">इमेज सेव हो गई!</string>
+    <string name="image_saved_message">आपकी इमेज आपकी गैलरी में सेव हो गई है।</string>
+    <string name="unlock_ad_failed_message">विज्ञापन अभी लोड नहीं हो सका। कृपया थोड़ी देर बाद फिर कोशिश करें।</string>
+    <string name="unlock_dialog_title">यह स्टाइल अनलॉक करें</string>
+    <string name="unlock_dialog_message_one">इस स्टाइल को अनलॉक करके अपनी इमेज बनाने के लिए एक विज्ञापन देखें।</string>
+    <string name="unlock_dialog_watch">विज्ञापन देखें और अनलॉक करें</string>
 </resources>

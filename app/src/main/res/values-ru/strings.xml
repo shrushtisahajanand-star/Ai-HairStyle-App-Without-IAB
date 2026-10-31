@@ -49,7 +49,7 @@
     <string name="language">Язык</string>
     <string name="language_subtitle">Русский</string>
     <string name="share_app">Поделиться приложением</string>
-    <string name="share_app_subtitle">Пригласите друзей попробовать Lumen AI</string>
+    <string name="share_app_subtitle">Пригласите друзей попробовать AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Проверьте %1$s — попробуйте AI-прически: %2$s</string>
     <string name="rate_us">Оценить нас</string>
     <string name="rate_us_subtitle">Расскажите магазину, что вы думаете</string>
@@ -205,14 +205,19 @@
     <string name="rate_dialog_submit">Отправить оценку</string>
     <string name="rate_dialog_maybe_later">Возможно, позже</string>
     <string name="rate_dialog_select_stars">Пожалуйста, выберите оценку в звёздах</string>
-    <string name="terms_of_service">Условия использования</string>
-    <string name="terms_of_service_subtitle">Условия использования приложения</string>
     <string name="feedback_email_label">Электронная почта (необязательно)</string>
     <string name="feedback_email_hint">Введите ваш email</string>
     <string name="feedback_email_invalid">Пожалуйста, введите действительный адрес электронной почты.</string>
     <string name="beard_fade_haircut_styles">Борода, Фейд &amp; Стрижки</string>
     <string name="daily_quota_finished_title">Дневной лимит исчерпан</string>
     <string name="daily_quota_finished_message">Ваш дневной лимит изображений исчерпан. Вернитесь завтра для новых генераций.</string>
+    <string name="save_hairstyle_subtitle">Посмотрите короткую рекламу, чтобы сохранить в галерею.</string>
+    <string name="image_saved_title">Изображение сохранено!</string>
+    <string name="image_saved_message">Ваше изображение сохранено в галерею.</string>
+    <string name="unlock_ad_failed_message">Не удалось загрузить рекламу. Попробуйте ещё раз чуть позже.</string>
+    <string name="unlock_dialog_title">Разблокировать этот стиль</string>
+    <string name="unlock_dialog_message_one">Посмотрите рекламу, чтобы разблокировать этот стиль и создать изображение.</string>
+    <string name="unlock_dialog_watch">Смотреть рекламу и разблокировать</string>
 </resources>
 
 

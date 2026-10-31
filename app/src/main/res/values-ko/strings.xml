@@ -49,7 +49,7 @@
     <string name="language">언어</string>
     <string name="language_subtitle">한국어</string>
     <string name="share_app">앱 공유</string>
-    <string name="share_app_subtitle">친구를 Lumen AI에 초대하세요</string>
+    <string name="share_app_subtitle">친구를 AI Hairstyle Try On: HairGlow에 초대하세요</string>
     <string name="share_app_message">%1$s 확인 — AI 헤어스타일 체험: %2$s</string>
     <string name="rate_us">평가하기</string>
     <string name="rate_us_subtitle">스토어에 의견을 알려주세요</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">평점 제출</string>
     <string name="rate_dialog_maybe_later">나중에 하기</string>
     <string name="rate_dialog_select_stars">별점을 선택해 주세요</string>
-    <string name="terms_of_service">이용약관</string>
-    <string name="terms_of_service_subtitle">앱 이용약관</string>
     <string name="feedback_email_label">이메일 (선택사항)</string>
     <string name="feedback_email_hint">이메일 입력</string>
     <string name="feedback_email_invalid">유효한 이메일 주소를 입력해 주세요.</string>
     <string name="beard_fade_haircut_styles">수염, 페이드 &amp; 헤어컷 스타일</string>
     <string name="daily_quota_finished_title">일일 한도 초과</string>
     <string name="daily_quota_finished_message">일일 이미지 한도가 모두 사용되었습니다. 더 많은 생성을 위해 내일 다시 방문하세요.</string>
+    <string name="save_hairstyle_subtitle">짧은 광고를 시청하고 갤러리에 저장하세요.</string>
+    <string name="image_saved_title">이미지가 저장되었습니다!</string>
+    <string name="image_saved_message">이미지가 갤러리에 저장되었습니다.</string>
+    <string name="unlock_ad_failed_message">지금은 광고를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="unlock_dialog_title">이 스타일 잠금 해제</string>
+    <string name="unlock_dialog_message_one">광고를 시청하고 이 스타일을 잠금 해제하여 이미지를 만드세요.</string>
+    <string name="unlock_dialog_watch">광고 보고 잠금 해제</string>
 </resources>

@@ -49,7 +49,7 @@
     <string name="language">Γλώσσα</string>
     <string name="language_subtitle">Ελληνικά</string>
     <string name="share_app">Κοινοποίηση εφαρμογής</string>
-    <string name="share_app_subtitle">Προσκαλέστε φίλους να δοκιμάσουν το Lumen AI</string>
+    <string name="share_app_subtitle">Προσκαλέστε φίλους να δοκιμάσουν το AI Hairstyle Try On: HairGlow</string>
     <string name="share_app_message">Δείτε το %1$s — δοκιμάστε χτενίσματα με ΤΝ: %2$s</string>
     <string name="rate_us">Αξιολογήστε μας</string>
     <string name="rate_us_subtitle">Πείτε στο κατάστημα τι πιστεύετε</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Υποβολή αξιολόγησης</string>
     <string name="rate_dialog_maybe_later">Ίσως αργότερα</string>
     <string name="rate_dialog_select_stars">Παρακαλώ επιλέξτε αξιολόγηση με αστέρια</string>
-    <string name="terms_of_service">Όροι παροχής υπηρεσιών</string>
-    <string name="terms_of_service_subtitle">Όροι και προϋποθέσεις χρήσης της εφαρμογής</string>
     <string name="feedback_email_label">Email (Προαιρετικό)</string>
     <string name="feedback_email_hint">Εισάγετε το email σας</string>
     <string name="feedback_email_invalid">Παρακαλώ εισάγετε έγκυρη διεύθυνση email.</string>
     <string name="beard_fade_haircut_styles">Γένια, Fade &amp; Κουρέματα</string>
     <string name="daily_quota_finished_title">Το Ημερήσιο Όριο Έληξε</string>
     <string name="daily_quota_finished_message">Το ημερήσιο όριο εικόνων σας έληξε. Επιστρέψτε αύριο για περισσότερες δημιουργίες.</string>
+    <string name="save_hairstyle_subtitle">Δείτε μια σύντομη διαφήμιση για να αποθηκεύσετε στη συλλογή σας.</string>
+    <string name="image_saved_title">Η εικόνα αποθηκεύτηκε!</string>
+    <string name="image_saved_message">Η εικόνα σας αποθηκεύτηκε στη συλλογή σας.</string>
+    <string name="unlock_ad_failed_message">Δεν ήταν δυνατή η φόρτωση της διαφήμισης αυτή τη στιγμή. Δοκιμάστε ξανά σε λίγο.</string>
+    <string name="unlock_dialog_title">Ξεκλείδωμα αυτού του στιλ</string>
+    <string name="unlock_dialog_message_one">Δείτε μια διαφήμιση για να ξεκλειδώσετε αυτό το στιλ και να δημιουργήσετε την εικόνα σας.</string>
+    <string name="unlock_dialog_watch">Δείτε διαφήμιση &amp; ξεκλειδώστε</string>
 </resources>

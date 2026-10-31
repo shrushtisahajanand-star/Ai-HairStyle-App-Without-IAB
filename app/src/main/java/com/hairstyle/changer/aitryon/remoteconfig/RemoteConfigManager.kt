@@ -42,7 +42,6 @@ class RemoteConfigManager @Inject constructor(
             runCatching {
                 val root = gson.fromJson(json, RemoteConfigApiRoot::class.java)
                 PrefManager.setPrivacyPolicyUrl(root.api?.privacyPolicyUrl.orEmpty())
-                PrefManager.setTermsUrl(root.api?.termsUrl.orEmpty())
                 PrefManager.setBaseUrl(root.api?.baseUrl.orEmpty())
                 PrefManager.setFeedbackUrl(root.api?.feedbackUrl.orEmpty())
                 PrefManager.setImagesPageLimit(
@@ -151,7 +150,6 @@ class RemoteConfigManager @Inject constructor(
     data class ApiSection(
         @SerializedName("base_url") val baseUrl: String? = null,
         @SerializedName("privacy_policy_url") val privacyPolicyUrl: String? = null,
-        @SerializedName("terms_url") val termsUrl: String? = null,
         @SerializedName("feedback_url") val feedbackUrl: String? = null,
         @SerializedName("page_limit") val pageLimit: Int? = null
     )

@@ -49,7 +49,7 @@
     <string name="language">Taal</string>
     <string name="language_subtitle">Nederlands</string>
     <string name="share_app">App delen</string>
-    <string name="share_app_subtitle">Nodig vrienden uit om Lumen AI te proberen</string>
+    <string name="share_app_subtitle">Nodig vrienden uit om AI Hairstyle Try On: HairGlow te proberen</string>
     <string name="share_app_message">Bekijk %1$s — probeer AI-kapsels: %2$s</string>
     <string name="rate_us">Beoordeel ons</string>
     <string name="rate_us_subtitle">Vertel de winkel wat u vindt</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Beoordeling indienen</string>
     <string name="rate_dialog_maybe_later">Misschien later</string>
     <string name="rate_dialog_select_stars">Selecteer een sterbeoordeling</string>
-    <string name="terms_of_service">Servicevoorwaarden</string>
-    <string name="terms_of_service_subtitle">Voorwaarden voor het gebruik van de app</string>
     <string name="feedback_email_label">E-mail (optioneel)</string>
     <string name="feedback_email_hint">Voer uw e-mail in</string>
     <string name="feedback_email_invalid">Voer een geldig e-mailadres in.</string>
     <string name="beard_fade_haircut_styles">Baard, Fade &amp; Kapsels</string>
     <string name="daily_quota_finished_title">Dagelijkse Limiet Overschreden</string>
     <string name="daily_quota_finished_message">Uw dagelijkse afbeeldingslimiet is overschreden. Kom morgen terug voor meer generaties.</string>
+    <string name="save_hairstyle_subtitle">Bekijk een korte advertentie om op te slaan in uw galerij.</string>
+    <string name="image_saved_title">Afbeelding opgeslagen!</string>
+    <string name="image_saved_message">Uw afbeelding is opgeslagen in uw galerij.</string>
+    <string name="unlock_ad_failed_message">De advertentie kon op dit moment niet worden geladen. Probeer het zo meteen opnieuw.</string>
+    <string name="unlock_dialog_title">Ontgrendel deze stijl</string>
+    <string name="unlock_dialog_message_one">Bekijk een advertentie om deze stijl te ontgrendelen en uw afbeelding te maken.</string>
+    <string name="unlock_dialog_watch">Advertentie bekijken en ontgrendelen</string>
 </resources>

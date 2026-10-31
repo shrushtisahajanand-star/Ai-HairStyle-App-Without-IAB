@@ -49,7 +49,7 @@
     <string name="language">Taal</string>
     <string name="language_subtitle">Afrikaans</string>
     <string name="share_app">Deel app</string>
-    <string name="share_app_subtitle">Nooi vriende om Lumen AI te probeer</string>
+    <string name="share_app_subtitle">Nooi vriende om AI Hairstyle Try On: HairGlow te probeer</string>
     <string name="share_app_message">Kyk na %1$s — probeer KI-haarstyle: %2$s</string>
     <string name="rate_us">Beoordeel ons</string>
     <string name="rate_us_subtitle">Vertel die winkel wat jy dink</string>
@@ -205,12 +205,17 @@
     <string name="rate_dialog_submit">Dien gradering in</string>
     <string name="rate_dialog_maybe_later">Miskien later</string>
     <string name="rate_dialog_select_stars">Kies asseblief \'n ster-gradering</string>
-    <string name="terms_of_service">Diensvoorwaardes</string>
-    <string name="terms_of_service_subtitle">Voorwaardes vir die gebruik van die app</string>
     <string name="feedback_email_label">E-pos (Opsioneel)</string>
     <string name="feedback_email_hint">Voer u e-pos in</string>
     <string name="feedback_email_invalid">Voer asseblief \'n geldige e-posadres in.</string>
     <string name="beard_fade_haircut_styles">Baard, Fade &amp; Haarsny-style</string>
     <string name="daily_quota_finished_title">Daaglikse Limiet Verby</string>
     <string name="daily_quota_finished_message">Jou daaglikse beeldlimiet is verby. Kom môre terug vir meer generasies.</string>
+    <string name="save_hairstyle_subtitle">Kyk \'n kort advertensie om na jou galery te stoor.</string>
+    <string name="image_saved_title">Beeld gestoor!</string>
+    <string name="image_saved_message">Jou beeld is in jou galery gestoor.</string>
+    <string name="unlock_ad_failed_message">Die advertensie kon nie nou gelaai word nie. Probeer asseblief oor \'n oomblik weer.</string>
+    <string name="unlock_dialog_title">Ontsluit hierdie styl</string>
+    <string name="unlock_dialog_message_one">Kyk \'n advertensie om hierdie styl te ontsluit en jou beeld te skep.</string>
+    <string name="unlock_dialog_watch">Kyk advertensie &amp; ontsluit</string>
 </resources>
