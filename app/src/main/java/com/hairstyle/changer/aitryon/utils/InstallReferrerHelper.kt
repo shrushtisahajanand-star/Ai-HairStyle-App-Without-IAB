@@ -15,7 +15,7 @@ import kotlin.coroutines.resume
 
 /**
  * Play Install Referrer → paid vs organic, then Splash picks Firebase
- * [ADSMainClass.NORMAL_USER] JSON.
+ * [ADSMainClass.PAID_USER] or [ADSMainClass.NORMAL_USER] JSON.
  */
 object InstallReferrerHelper {
 
@@ -46,11 +46,11 @@ object InstallReferrerHelper {
                     try {
                         if (responseCode == InstallReferrerClient.InstallReferrerResponse.OK) {
                             try {
-//                                val referrerUrl = referrerClient.installReferrer.installReferrer.orEmpty()
+                                val referrerUrl = referrerClient.installReferrer.installReferrer.orEmpty()
 //                                val referrerUrl = "utm_source=marketing"
-                                 val referrerUrl = "gclid=CjwKCAiAxaCvBhBaEiwAvsLmWPrs37AYx_Ol2GN6T1nt1NHn2TJl7xf65ryNQtoWL-24BefvfIYBGRoCx-gQAvD_BwE"
+//                                 val referrerUrl = "gclid=CjwKCAiAxaCvBhBaEiwAvsLmWPrs37AYx_Ol2GN6T1nt1NHn2TJl7xf65ryNQtoWL-24BefvfIYBGRoCx-gQAvD_BwE"
                                 ADSMainClass.setReferrerUrl(referrerUrl)
-                                Log.d("TAG", "installReferrer=$referrerUrl paid=${isPaidMarketingReferrer(referrerUrl)}")
+//                                Log.d("TAG", "installReferrer=$referrerUrl paid=${isPaidMarketingReferrer(referrerUrl)}")
                             } catch (_: RemoteException) {
                             }
                         }
@@ -74,7 +74,7 @@ object InstallReferrerHelper {
 
     fun isPaidMarketingReferrer(referrerUrl: String = ADSMainClass.getReferrerUrl().orEmpty()): Boolean {
         if (referrerUrl.isBlank()) return false
-        Log.e("sjdshdjsjj", "isPaidMarketingReferrer: "+referrerUrl )
+//        Log.e("sjdshdjsjj", "isPaidMarketingReferrer: "+referrerUrl )
         val marketingUrl = firstQueryParam(referrerUrl)
         val facebookUser = facebookMarketingConverter(referrerUrl)
         val newString = stringMarketingConverter(referrerUrl)

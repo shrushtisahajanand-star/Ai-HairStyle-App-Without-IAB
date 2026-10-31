@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.hairstyle.changer.aitryon.model.CheckFreeLimitResponse
 import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
+import com.hairstyle.changer.aitryon.utils.DailyLimitStore
 import com.hairstyle.changer.aitryon.utils.DeviceIdProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ class FreeLimitRepository @Inject constructor(
      * On network/parse failure → [FreeLimitCheckResult.Allowed] (fail-open).
      */
     suspend fun checkBeforeFaceDetection(): FreeLimitCheckResult = withContext(Dispatchers.IO) {
+        if (DailyLimitStore.isReached()) return@withContext FreeLimitCheckResult.DailyLimitReached
         runCatching {
             val deviceId = DeviceIdProvider.getDeviceId(context)
             val apiUrl = GenerateApiConfig.buildUrl(GenerateApiConfig.CHECK_FREE_LIMIT_ENDPOINT)
@@ -69,13 +71,14 @@ class FreeLimitRepository @Inject constructor(
 
     private fun resolveResult(parsed: CheckFreeLimitResponse): FreeLimitCheckResult {
         val remaining = parsed.data?.remaining
-        if (remaining != null && remaining <= 0) {
-            return FreeLimitCheckResult.DailyLimitReached
-        }
+        val blocked = (remaining != null && remaining <= 0) ||
+            parsed.effectiveImageGeneration() == false
         // null / missing → fail-open
-        if (parsed.effectiveImageGeneration() == false) {
+        if (blocked) {
+            DailyLimitStore.markReached(parsed.data?.resetsAt)
             return FreeLimitCheckResult.DailyLimitReached
         }
+        DailyLimitStore.clear()
         return FreeLimitCheckResult.Allowed
     }
 

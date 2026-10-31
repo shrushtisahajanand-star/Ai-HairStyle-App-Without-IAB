@@ -37,7 +37,7 @@
     <string name="watch_ads_and_save_images">Watch Ad &amp; Save Image</string>
     <string name="generate_now">Generate Now</string>
     <string name="daily_quota_finished_title">Daily Limit Over</string>
-    <string name="daily_quota_finished_message">Your daily image limit is finished. Come back tomorrow for more generations.</string>
+    <string name="daily_quota_finished_message">Your daily limit is over, so you cannot generate more images today. Come back tomorrow.</string>
     <string name="save_hairstyle_title">Save Your Hairstyle</string>
     <string name="save_hairstyle_subtitle">Watch a short ad to save to your gallery.</string>
     <string name="image_not_saved_title">Image not Saved !</string>

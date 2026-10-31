@@ -11,7 +11,7 @@ import com.hairstyle.changer.aitryon.utils.PrefManager
 object GenerateApiConfig {
 
     private const val ENCRYPTED_FALLBACK_BASE_URL =
-        "U2FsdGVkX1++f2YXx70KC4nl/zEno9BC3CkSznrUZwPakdI6gTUe/iR3taF5IsAYz0NpLTMqAdGCOFAcnVIxcA=="
+        "U2FsdGVkX1/zjLowkgHMCJ7/jRpcE3lpNz+UQK3UzgX8t3nwtiKlpkVFSCwYYqDq0Ij02mQe4VdyHNLGd7CJpw=="
 
     const val HAIRSTYLE_ENDPOINT = "api/hairstyle"
     const val CHECK_FREE_LIMIT_ENDPOINT = "api/check-free-limit"

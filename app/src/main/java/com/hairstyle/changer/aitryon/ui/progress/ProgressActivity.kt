@@ -27,6 +27,7 @@ import com.hairstyle.changer.aitryon.ui.BaseActivity
 import com.hairstyle.changer.aitryon.ui.common.DailyQuotaFinishedDialog
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModel
 import com.hairstyle.changer.aitryon.ui.viewmodel.GenerationViewModelOwner
+import com.hairstyle.changer.aitryon.utils.DailyLimitStore
 import com.hairstyle.changer.aitryon.utils.PrefManager
 import com.hairstyle.changer.aitryon.utils.applyStatusBarPadding
 import com.hairstyle.changer.aitryon.utils.showSnackbar
@@ -234,6 +235,15 @@ class ProgressActivity : BaseActivity() {
 
     private fun callGenerateApi() {
         if (apiJob?.isActive == true) return
+        if (DailyLimitStore.isReached()) {
+            progressJob?.cancel()
+            generationStarted = false
+            if (isScreenAlive() && _binding != null) {
+                showChoiceState()
+                DailyQuotaFinishedDialog.show(this)
+            }
+            return
+        }
         apiJob = lifecycleScope.launch {
             val start = System.currentTimeMillis()
             try {

@@ -24,6 +24,7 @@ object PrefManager {
     private const val KEY_TERMS_URL = "terms_url"
     private const val KEY_FEEDBACK_URL = "feedback_url"
     private const val KEY_BASE_URL = "base_url"
+    private const val KEY_DAILY_LIMIT_BLOCKED_UNTIL = "daily_limit_blocked_until"
     private const val KEY_PAGE_LIMIT = "images_page_limit"
     private const val KEY_REMOTE_CONFIG_FETCHED = "remote_config_fetched"
     private const val KEY_SELECTED_HAIRSTYLE_TITLE = "selected_hairstyle_title"
@@ -93,6 +94,14 @@ object PrefManager {
 
     fun getTermsUrl(): String {
         return prefsOrThrow().getString(KEY_TERMS_URL, "") ?: ""
+    }
+
+    fun setDailyLimitBlockedUntil(value: Long) {
+        prefsOrThrow().edit().putLong(KEY_DAILY_LIMIT_BLOCKED_UNTIL, value).apply()
+    }
+
+    fun getDailyLimitBlockedUntil(): Long {
+        return prefsOrThrow().getLong(KEY_DAILY_LIMIT_BLOCKED_UNTIL, 0L)
     }
 
     /** AES-encrypted API base URL from Firebase `APi.base_url`. */

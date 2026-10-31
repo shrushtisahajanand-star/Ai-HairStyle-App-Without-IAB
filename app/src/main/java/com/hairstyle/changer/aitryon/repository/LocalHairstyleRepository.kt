@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.hairstyle.changer.aitryon.model.LocalHairstyleResponse
 import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
 import com.hairstyle.changer.aitryon.remote.GenerateApiFlags
+import com.hairstyle.changer.aitryon.utils.DailyLimitStore
 import com.hairstyle.changer.aitryon.utils.DeviceIdProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -75,7 +76,7 @@ class LocalHairstyleRepository @Inject constructor(
 //            Log.d(TAG, "httpCode    = ${response.code}")
 //            Log.d(TAG, "rawBody     = $raw")
 
-            if (!response.isSuccessful) {
+            if (!response.isSuccessful && response.code != 429) {
 //                 Log.e(TAG, "Generate failed: HTTP ${response.code}")
                 error("Generate failed: HTTP ${response.code} $raw")
             }
@@ -87,6 +88,7 @@ class LocalHairstyleRepository @Inject constructor(
             if (!parsed.success) {
 //                Log.e(TAG, "serverMsg   = ${parsed.failureReason()} (HTTP ${response.code})")
             }
+            DailyLimitStore.update(parsed)
             parsed
         }
     }
@@ -137,7 +139,7 @@ class LocalHairstyleRepository @Inject constructor(
 //            Log.d(TAG, "httpCode     = ${response.code}")
 //            Log.d(TAG, "rawBody      = $raw")
 
-            if (!response.isSuccessful) {
+            if (!response.isSuccessful && response.code != 429) {
 //                Log.e(TAG, "Beard generate failed: HTTP ${response.code}")
                 error("Generate failed: HTTP ${response.code} $raw")
             }
@@ -146,6 +148,7 @@ class LocalHairstyleRepository @Inject constructor(
 
 //            Log.d(TAG, "success      = ${parsed.success}")
 //            Log.d(TAG, "resultUrl    = ${parsed.image}")
+            DailyLimitStore.update(parsed)
             parsed
         }
     }
