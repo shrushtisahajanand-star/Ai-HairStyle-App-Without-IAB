@@ -60,6 +60,7 @@ public class ADSMainClass {
     public static final String CONSENT_SCREEN_SPLASH = "splash";
     public static final String CONSENT_SCREEN_LANGUAGE = "language";
     public static final String NORMAL_USER = "normal_user";
+    public static final String PAID_USER = "paid_user";
     private static final String ReferrerUrl = "install_referrer_urls";
     private static final String InstallReferrerFetched = "install_referrer_fetched";
     private static final String FBNativeBannerID = "FBNativeBannerID";

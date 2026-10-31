@@ -80,7 +80,14 @@
 # names only. Class names stay obfuscated.
 # =============================================================================
 
--keepclassmembers class com.hairstyle.changer.aitryon.data.model.** {
+# Gson models live in these packages. The classes themselves must be kept (not
+# only members) so R8 cannot merge / abstract them — that broke every API in
+# release with "Abstract classes can't be instantiated". Names may be renamed,
+# but field names (the JSON keys) and constructors are kept.
+-keep,allowobfuscation class com.hairstyle.changer.aitryon.model.**
+-keep,allowobfuscation class com.hairstyle.changer.aitryon.domain.model.**
+-keep,allowobfuscation class com.hairstyle.changer.aitryon.remoteconfig.**
+-keepclassmembers class com.hairstyle.changer.aitryon.model.** {
     <init>(...);
     <fields>;
 }
@@ -88,13 +95,16 @@
     <init>(...);
     <fields>;
 }
--keepclassmembers class com.hairstyle.changer.aitryon.data.remoteconfig.** {
+-keepclassmembers class com.hairstyle.changer.aitryon.remoteconfig.** {
     <init>(...);
     <fields>;
 }
 
-# Gson: fields annotated with @SerializedName / @JsonAdapter anywhere else.
--keepclassmembers,allowobfuscation class * {
+# Gson: any other class with @SerializedName fields keeps its class + those fields.
+-keep,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+-keepclassmembers class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }
 -keepclassmembers class * {

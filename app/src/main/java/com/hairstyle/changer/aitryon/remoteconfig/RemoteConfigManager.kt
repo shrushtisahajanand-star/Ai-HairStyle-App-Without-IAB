@@ -9,6 +9,7 @@ import com.google.gson.annotations.SerializedName
 import com.hairstyle.changer.aitryon.Ads.ADSMainClass
 import com.hairstyle.changer.aitryon.remote.FeedbackApiConfig
 import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
+import com.hairstyle.changer.aitryon.utils.InstallReferrerHelper
 import com.hairstyle.changer.aitryon.utils.PrefManager
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -72,13 +73,29 @@ class RemoteConfigManager @Inject constructor(
             else -> null
         } ?: return raw
 
-        if (!root.has(ADSMainClass.NORMAL_USER)) {
+        if (!root.has(ADSMainClass.NORMAL_USER) && !root.has(ADSMainClass.PAID_USER)) {
             return raw
         }
 
-        val block = root.get(ADSMainClass.NORMAL_USER)?.takeIf { it.isJsonObject }
+        val preferredKey = if (InstallReferrerHelper.isPaidMarketingReferrer()) {
+            Log.d(TAG, "resolveUserSegmentJson: using paid_user")
+            ADSMainClass.PAID_USER
+        } else {
+            Log.d(TAG, "resolveUserSegmentJson: using normal_user")
+            ADSMainClass.NORMAL_USER
+        }
+
+        val fallbackKey = if (preferredKey == ADSMainClass.PAID_USER) {
+            ADSMainClass.NORMAL_USER
+        } else {
+            ADSMainClass.PAID_USER
+        }
+        val block = root.get(preferredKey)?.takeIf { it.isJsonObject }
+            ?: root.get(fallbackKey)?.takeIf { it.isJsonObject }
         if (block == null) {
-            Log.w(TAG, "resolveUserSegmentJson: missing normal_user block")
+            Log.w(TAG, "resolveUserSegmentJson: missing paid_user and normal_user blocks")
+        } else if (block !== root.get(preferredKey)) {
+            Log.w(TAG, "resolveUserSegmentJson: fallback to $fallbackKey ($preferredKey missing)")
         }
         return block?.asJsonObject?.toString() ?: raw
     }
