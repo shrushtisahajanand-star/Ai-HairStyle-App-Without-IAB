@@ -129,6 +129,8 @@ dependencies {
 //    implementation("com.google.android.ump:user-messaging-platform:3.1.0")
     implementation("com.google.ads.mediation:facebook:6.21.0.0")
     implementation("com.facebook.android:audience-network-sdk:6.21.0")
+    // Liftoff Monetize (Vungle) AdMob mediation adapter
+    implementation("com.google.ads.mediation:vungle:7.6.1.0")
 
     // Play In-App Updates
     implementation("com.google.android.play:app-update:2.1.0")

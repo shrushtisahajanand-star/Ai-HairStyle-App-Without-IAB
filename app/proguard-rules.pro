@@ -147,6 +147,7 @@
 -keep class com.facebook.ads.** { *; }
 -dontwarn com.google.android.gms.ads.**
 -dontwarn com.facebook.ads.**
+-dontwarn com.vungle.**
 
 # =============================================================================
 # Misc warnings (no keeps — these libraries bring their own rules)
