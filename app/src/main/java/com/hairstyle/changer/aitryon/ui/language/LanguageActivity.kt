@@ -67,11 +67,32 @@ class LanguageActivity : BaseActivity() {
             onConfirmClicked()
         }
 
+        prepareLanguageAdPlaceholder()
+
         if (ADSMainClass.shouldShowConsentOnLanguage()) {
             continueAfterConsent { loadLanguageAds() }
         } else {
             initializeAdsAndLoad { loadLanguageAds() }
         }
+    }
+
+    /**
+     * The ad request waits for consent / SDK init, so the layout's default (small) shimmer used to
+     * show first and then jump to the real size. Show the right-size shimmer now - or no ad slot
+     * at all when no native ad will load - so nothing changes size later.
+     */
+    private fun prepareLanguageAdPlaceholder() {
+        if (!ADSMainClass.getLanguageScreenBottomAdShow() || ADSMainClass.getAds_Free()) {
+            hideLanguageAdPlaceholders()
+            return
+        }
+        if (ADSMainClass.getLanguageAdsType().trim().lowercase() == "banner") return
+        binding.cardView.visibility = View.VISIBLE
+        ADSNativeDisplay.prepareNativeShimmer(
+            binding.shimmerContainerSmall,
+            binding.flNativeSmallPlaceholder,
+            ADSMainClass.getLanguageAdsSize()
+        )
     }
 
     private fun continueAfterConsent(action: () -> Unit) {

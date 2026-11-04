@@ -64,6 +64,7 @@ public final class ADSRewardDisplay {
 
         isPreloading = true;
         preloadedAd = null;
+        android.util.Log.d(TAG, "Reward preload start: unit=" + unitId);
         RewardedAd.load(
                 activity.getApplicationContext(),
                 unitId,
@@ -75,11 +76,13 @@ public final class ADSRewardDisplay {
                         preloadedAd = rewardedAd;
                         preloadedAtMs = System.currentTimeMillis();
                         preloadedUnitId = loadUnitId;
+                        android.util.Log.d(TAG, "Reward preload loaded: unit=" + loadUnitId);
                     }
 
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                         isPreloading = false;
+                        android.util.Log.w(TAG, "Reward preload fail: code=" + loadAdError.getCode() + " " + loadAdError.getMessage() + " unit=" + loadUnitId);
                     }
                 }
         );
@@ -131,7 +134,7 @@ public final class ADSRewardDisplay {
 
         // Free users: reward_ads_show false â†’ skip ads, grant action
         if (ADSMainClass.getAds_Free() || (!ignoreRewardFlag && !ADSMainClass.getRewardAdsShow())) {
-            // Log.d(TAG, "Reward ads skipped (reward_ads_show=false or ads free)");
+            android.util.Log.d(TAG, "Reward ads skipped (reward_ads_show=false or ads free)");
             listener.onRewardEarned();
             return;
         }
@@ -154,17 +157,19 @@ public final class ADSRewardDisplay {
 
         RewardedAd cached = ignoreRewardFlag ? takePreloaded(unitId) : null;
         if (cached != null) {
+            android.util.Log.d(TAG, "Reward using preloaded ad: unit=" + unitId);
             showLoadedAd(activity, cached, listener);
             preload(activity, unitId, ignoreRewardFlag);
             return;
         }
 
         if (isLoading) {
-            // Log.d(TAG, "Reward already loading");
+            android.util.Log.d(TAG, "Reward already loading");
             return;
         }
 
         isLoading = true;
+        android.util.Log.d(TAG, "Reward load start: unit=" + unitId);
         ADSUtilitis.MassageBoxFull(activity);
 
         final String finalUnitId = unitId;
@@ -180,6 +185,7 @@ public final class ADSRewardDisplay {
                         isLoading = false;
                         ADSUtilitis.MassageBoxFullDismiss();
                         ADSUtilitis.trackScreen(activity, "Reward_Load");
+                        android.util.Log.d(TAG, "Reward loaded: unit=" + finalUnitId);
                         showLoadedAd(activity, rewardedAd, listener);
                     }
 
@@ -208,6 +214,7 @@ public final class ADSRewardDisplay {
                 ADSAppStarting.ADSIsShowing = false;
                 ADSAppManage.FastStart = false;
                 FullscreenAdWindowHelper.restore(activity);
+                android.util.Log.d(TAG, "Reward dismissed: earned=" + earned[0]);
                 if (!earned[0]) {
                     listener.onClosedWithoutReward();
                 }
@@ -228,6 +235,7 @@ public final class ADSRewardDisplay {
             public void onAdShowedFullScreenContent() {
                 ADSAppStarting.ADSIsShowing = true;
                 ADSAppManage.FastStart = true;
+                android.util.Log.d(TAG, "Reward shown");
             }
         });
 
@@ -242,6 +250,7 @@ public final class ADSRewardDisplay {
             public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
                 earned[0] = true;
                 ADSUtilitis.trackScreen(activity, "Reward_Earned");
+                android.util.Log.d(TAG, "Reward earned: type=" + rewardItem.getType() + " amount=" + rewardItem.getAmount());
                 listener.onRewardEarned();
             }
         });

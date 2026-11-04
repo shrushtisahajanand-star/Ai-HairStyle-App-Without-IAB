@@ -4,6 +4,10 @@ package com.hairstyle.changer.aitryon.Ads;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -18,6 +22,18 @@ import com.google.android.gms.ads.appopen.AppOpenAd;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
+import java.util.function.Consumer;
+
+/**
+ * Splash ad. One request only:
+ * <ol>
+ *   <li>{@link #prefetchSplashAd} sends the request as soon as the Firebase config is in (Splash
+ *       does not wait for consent dialogs / SDK init to finish first).</li>
+ *   <li>{@link #AdsSplashAppStartingDisplay} shows it if loaded, waits for it while it is still
+ *       loading (up to {@link #SPLASH_AD_TIMEOUT_MS} after the request), and on fail / timeout
+ *       just continues to the next screen. Nothing is requested twice.</li>
+ * </ol>
+ */
 public class ADSAppStarting {
 
     public static OnFinishAds onFinishAds;
@@ -26,6 +42,51 @@ public class ADSAppStarting {
     public static boolean ADSIsShowing = false;
     private static InterstitialAd AdmobmInterstitialAd;
 
+    private static final long SPLASH_AD_TIMEOUT_MS = 6000L;
+    private static final long MIN_WAIT_AFTER_DISPLAY_MS = 1500L;
+
+    private static final int IDLE = 0;
+    private static final int LOADING = 1;
+    private static final int LOADED = 2;
+    private static final int FAILED = 3;
+
+    private static final Handler splashHandler = new Handler(Looper.getMainLooper());
+    private static int state = IDLE;
+    private static boolean displayRequested;
+    private static boolean gaveUp;
+    private static long splashAdStartMs;
+    /** Shows the loaded ad on the given (Splash) activity. */
+    private static Consumer<Activity> pendingShow;
+
+    private static void adMark(String stage) {
+        Log.d("SplashTime", "  [ad +" + (SystemClock.elapsedRealtime() - splashAdStartMs) + "ms] " + stage);
+    }
+
+    /** Call when Splash opens, so a previous launch's state is never reused. */
+    public static void resetSplashAd() {
+        splashHandler.removeCallbacksAndMessages(null);
+        state = IDLE;
+        displayRequested = false;
+        gaveUp = false;
+        pendingShow = null;
+        splashActivity = null;
+    }
+
+    /** True once the splash ad is loaded or failed (nothing left to wait for). */
+    public static boolean isSplashAdSettled() {
+        return state == LOADED || state == FAILED;
+    }
+
+    /** Sends the single splash ad request now. Safe to call more than once. */
+    public static void prefetchSplashAd(Activity context) {
+        if (state != IDLE) return;
+        if (ADSMainClass.getAds_Free()) return;
+        state = LOADING;
+        splashAdStartMs = SystemClock.elapsedRealtime();
+        adMark("request started");
+        ADSSplashAppStartingLoad(context);
+    }
+
     public static void AdsSplashAppStartingDisplay(Activity context, OnFinishAds onFinishAd, boolean... doShowAds) {
         onFinishAds = onFinishAd;
         if (ADSMainClass.getAds_Free()) {
@@ -33,14 +94,60 @@ public class ADSAppStarting {
             return;
         }
 
-        ADSSplashAppStartingLoad(context);
+        displayRequested = true;
+        if (state == IDLE) {
+            prefetchSplashAd(context);
+        }
+
+        if (state == FAILED) {
+            adMark("failed earlier -> next");
+            onFinishAds.onFinishAds(true);
+            return;
+        }
+        if (state == LOADED) {
+            adMark("already loaded -> show");
+            pendingShow.accept(context);
+            return;
+        }
+
+        // Still loading: wait for what is left of the budget, then give up.
+        splashActivity = context;
+        long left = SPLASH_AD_TIMEOUT_MS - (SystemClock.elapsedRealtime() - splashAdStartMs);
+        splashHandler.removeCallbacksAndMessages(null);
+        splashHandler.postDelayed(() -> {
+            if (state == LOADING) {
+                gaveUp = true;
+                adMark("TIMEOUT -> next");
+                onFinishAds.onFinishAds(true);
+            }
+        }, Math.max(left, MIN_WAIT_AFTER_DISPLAY_MS));
+    }
+
+    private static Activity splashActivity;
+
+    private static void onSplashAdLoaded(Consumer<Activity> showAction) {
+        adMark("loaded (gaveUp=" + gaveUp + ")");
+        if (gaveUp) return;
+        state = LOADED;
+        pendingShow = showAction;
+        splashHandler.removeCallbacksAndMessages(null);
+        if (displayRequested && splashActivity != null
+                && !splashActivity.isFinishing() && !splashActivity.isDestroyed()) {
+            showAction.accept(splashActivity);
+        }
+    }
+
+    private static void onSplashAdFailed() {
+        adMark("failed / no ad");
+        if (gaveUp) return;
+        state = FAILED;
+        splashHandler.removeCallbacksAndMessages(null);
+        if (displayRequested && onFinishAds != null) {
+            onFinishAds.onFinishAds(true);
+        }
     }
 
     public static void ADSSplashAppStartingLoad(Activity context) {
-//        if (ADSMainClass.getAdsTypeManage().equals("Load")) {
-//            ADSUtilitis.MassageBoxFull(context);
-//        }
-
         String splashType = ADSMainClass.getSplashADType();
         boolean isAppOpenType = splashType != null && splashType.equalsIgnoreCase("AppOpen");
         boolean isInterType = splashType != null
@@ -53,10 +160,7 @@ public class ADSAppStarting {
         }
 
         if (!isAppOpenType) {
-//            if (ADSMainClass.getAdsTypeManage().equals("Load")) {
-//                ADSUtilitis.MassageBoxFullDismiss();
-//            }
-            onFinishAds.onFinishAds(true);
+            onSplashAdFailed();
             return;
         }
 
@@ -69,13 +173,14 @@ public class ADSAppStarting {
         }
 
         if (ADSAppBackground.isAppOpenAdReady()) {
-            ADSAppBackground.showPreloadedAppOpenForSplash(context, onFinishAds);
+            onSplashAdLoaded(activity ->
+                    ADSAppBackground.showPreloadedAppOpenForSplash(activity, onFinishAds));
         } else {
-            loadAndShowAppOpen(context, appOpenId);
+            loadAppOpen(context, appOpenId);
         }
     }
 
-    private static void loadAndShowAppOpen(Activity context, String appOpenId) {
+    private static void loadAppOpen(Activity context, String appOpenId) {
         try {
             Bundle bundle = new Bundle();
             AdRequest adRequest = new AdRequest.Builder()
@@ -89,34 +194,28 @@ public class ADSAppStarting {
                     AppStartingAd = ad;
                     ADSIsShowing = false;
                     ADSUtilitis.trackScreen(context, "Splash_AppOpen_Load");
-                    ADSAppBackground.showPreloadedAppOpenForSplash(context, onFinishAds);
+                    onSplashAdLoaded(activity ->
+                            ADSAppBackground.showPreloadedAppOpenForSplash(activity, onFinishAds));
                 }
 
                 @Override
                 public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-//                    ADSUtilitis.MassageBoxFullDismiss();
                     ADSUtilitis.trackScreen(context, "Splash_AppOpen_Fail");
-                    // Fallback to interstitial when AppOpen fails
-                    AdmobInterstitialAd(context);
+                    // No second request: a failed App Open goes straight to the next screen.
+                    onSplashAdFailed();
                 }
             });
         } catch (Exception e) {
-//            ADSUtilitis.MassageBoxFullDismiss();
-            onFinishAds.onFinishAds(true);
+            onSplashAdFailed();
         }
     }
 
     private static void AdmobInterstitialAd(Activity context) {
         String interstitialId = ADSMainClass.getStringValue(ADSMainClass.INTER_FIRST_TIME);
         if (interstitialId == null || interstitialId.isEmpty()) {
-//            ADSUtilitis.MassageBoxFullDismiss();
-            onFinishAds.onFinishAds(true);
+            onSplashAdFailed();
             return;
         }
-
-//        if (ADSMainClass.getAdsTypeManage().equals("Load")) {
-//            ADSUtilitis.MassageBoxFull(context);
-//        }
 
         AdRequest adRequest = new AdRequest.Builder().build();
         AdmobmInterstitialAd = null;
@@ -134,17 +233,16 @@ public class ADSAppStarting {
 
                         LoadingCheck = true;
                         AdmobmInterstitialAd = interstitialAd;
-//                        if (ADSMainClass.getAdsTypeManage().equals("Load")) {
-//                            ADSUtilitis.MassageBoxFullDismiss();
-//                        }
-                        AdmobmInterstitialAd.show(context);
-                        onAdsLoadAdListener(context);
+                        onSplashAdLoaded(activity -> {
+                            onAdsLoadAdListener(activity);
+                            FullscreenAdWindowHelper.prepare(activity);
+                            AdmobmInterstitialAd.show(activity);
+                        });
                     }
 
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-//                        ADSUtilitis.MassageBoxFullDismiss();
-                        onFinishAds.onFinishAds(true);
+                        onSplashAdFailed();
                     }
                 });
     }
@@ -157,11 +255,15 @@ public class ADSAppStarting {
 
             @Override
             public void onAdDismissedFullScreenContent() {
+                adMark("dismissed");
+                if (context instanceof Activity) FullscreenAdWindowHelper.restore((Activity) context);
                 onFinishAds.onFinishAds(true);
             }
 
             @Override
             public void onAdFailedToShowFullScreenContent(AdError adError) {
+                adMark("failed to show");
+                if (context instanceof Activity) FullscreenAdWindowHelper.restore((Activity) context);
                 onFinishAds.onFinishAds(true);
             }
 
@@ -171,6 +273,7 @@ public class ADSAppStarting {
 
             @Override
             public void onAdShowedFullScreenContent() {
+                adMark("shown");
             }
         });
     }

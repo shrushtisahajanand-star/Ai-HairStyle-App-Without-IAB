@@ -201,9 +201,59 @@ object AdsConfigApplier {
         )
     )
 
-    fun applyFromRemoteJson(json: String, gson: Gson) {
-        if (json.isBlank()) {
+    /**
+     * TEST ADS SWITCH. `true` → every ad unit id from Firebase is replaced with Google's demo
+     * ad unit of the same type (reward / inter / native / banner / app open), so live builds can be
+     * tested safely. To stop test ads: set this to `false` and release again.
+     */
+    private const val USE_TEST_ADS = true
+
+    private const val TEST_BANNER = "ca-app-pub-3940256099942544/6300978111"
+    private const val TEST_INTER = "ca-app-pub-3940256099942544/1033173712"
+    private const val TEST_REWARD = "ca-app-pub-3940256099942544/5224354917"
+    private const val TEST_APP_OPEN = "ca-app-pub-3940256099942544/9257395921"
+    private const val TEST_NATIVE = "ca-app-pub-3940256099942544/2247696110"
+
+    /** Test id for a Firebase key like `home_native_ads_id`, or null when the key is not an ad id. */
+    private fun testIdFor(key: String): String? {
+        val k = key.lowercase()
+        if (!k.endsWith("_id")) return null
+        return when {
+            "reward" in k -> TEST_REWARD
+            "app_open" in k -> TEST_APP_OPEN
+            "native" in k -> TEST_NATIVE
+            "banner" in k -> TEST_BANNER
+            "inter" in k -> TEST_INTER
+            else -> null
+        }
+    }
+
+    private fun replaceWithTestIds(element: com.google.gson.JsonElement) {
+        if (!element.isJsonObject) return
+        val obj = element.asJsonObject
+        for (key in obj.keySet().toList()) {
+            val value = obj.get(key)
+            if (value.isJsonObject) {
+                replaceWithTestIds(value)
+            } else if (value.isJsonPrimitive && value.asJsonPrimitive.isString) {
+                testIdFor(key)?.let { obj.addProperty(key, it) }
+            }
+        }
+    }
+
+    fun applyFromRemoteJson(remoteJson: String, gson: Gson) {
+        if (remoteJson.isBlank()) {
             return
+        }
+        val json = if (USE_TEST_ADS) {
+            runCatching {
+                val tree = JsonParser.parseString(remoteJson)
+                replaceWithTestIds(tree)
+                android.util.Log.e(TAG, "USE_TEST_ADS=true: Firebase ad unit ids replaced with test ids")
+                tree.toString()
+            }.getOrDefault(remoteJson)
+        } else {
+            remoteJson
         }
 
         runCatching {
@@ -220,6 +270,10 @@ object AdsConfigApplier {
                 PrefManager.setAdsConfigJson(adsObj.toString())
 //                Log.d(TAG, "Ads JSON stored in PrefManager (${adsObj.keySet().size} keys)")
             }
+
+            // Applied first and on its own: pure JsonObject, so a later Gson/apply failure
+            // can never leave the lock icons without their config.
+            if (adsObj != null) applyUnlockItems(adsObj)
 
             val root = gson.fromJson(json, AdsConfigRoot::class.java)
             val ads = root.ads ?: gson.fromJson(adsObj, AdsSection::class.java)
@@ -238,20 +292,6 @@ object AdsConfigApplier {
                     applyBottomScreen(adsObj, keys)
                 }
                 applyActionInterFlags(adsObj)
-                // `unlock_ads_show` may sit inside `unlock_items` or directly under `ads`.
-                val unlockObj = adsObj.getAsJsonObjectOrNull("unlock_items")?.deepCopy() ?: JsonObject()
-                adsObj.get("unlock_ads_show")?.takeIf { !it.isJsonNull }
-                    ?.let { unlockObj.add("unlock_ads_show", it) }
-                PrefManager.setUnlockItemsJson(if (unlockObj.size() == 0) "" else unlockObj.toString())
-                // Unlock ads use their own ad units (blank → falls back to the normal ones).
-                ADSMainClass.setStringValue(
-                    ADSMainClass.UNLOCK_REWARD_AD_ID,
-                    unlockObj.get("reward_ad_id")?.takeIf { it.isJsonPrimitive }?.asString?.trim().orEmpty()
-                )
-                ADSMainClass.setStringValue(
-                    ADSMainClass.UNLOCK_INTER_AD_ID,
-                    unlockObj.get("inter_ad_id")?.takeIf { it.isJsonPrimitive }?.asString?.trim().orEmpty()
-                )
                 // Home / Setting also use typed ADSMainClass getters
                 syncHomeTypedPrefs(adsObj)
                 syncSettingTypedPrefs(adsObj)
@@ -261,7 +301,30 @@ object AdsConfigApplier {
 
             // Log.d(TAG, "All ads config applied to SharedPreferences")
         }.onFailure {
-            // Log.e(TAG, "Failed to apply ads config", it)
+            // Log.e is not stripped by R8 (only v/d/i/w are), so release failures stay visible.
+            android.util.Log.e(TAG, "Failed to apply ads config", it)
+        }
+    }
+
+    private fun applyUnlockItems(adsObj: JsonObject) {
+        runCatching {
+            // `unlock_ads_show` may sit inside `unlock_items` or directly under `ads`.
+            val unlockObj = adsObj.getAsJsonObjectOrNull("unlock_items")?.deepCopy() ?: JsonObject()
+            adsObj.get("unlock_ads_show")?.takeIf { !it.isJsonNull }
+                ?.let { unlockObj.add("unlock_ads_show", it) }
+            PrefManager.setUnlockItemsJson(if (unlockObj.size() == 0) "" else unlockObj.toString())
+            // Unlock ads use their own ad units (blank → falls back to the normal ones).
+            ADSMainClass.setStringValue(
+                ADSMainClass.UNLOCK_REWARD_AD_ID,
+                unlockObj.get("reward_ad_id")?.takeIf { it.isJsonPrimitive }?.asString?.trim().orEmpty()
+            )
+            ADSMainClass.setStringValue(
+                ADSMainClass.UNLOCK_INTER_AD_ID,
+                unlockObj.get("inter_ad_id")?.takeIf { it.isJsonPrimitive }?.asString?.trim().orEmpty()
+            )
+            android.util.Log.e(TAG, "unlock_items applied: size=${unlockObj.size()} show=${unlockObj.get("unlock_ads_show")}")
+        }.onFailure {
+            android.util.Log.e(TAG, "Failed to apply unlock_items", it)
         }
     }
 

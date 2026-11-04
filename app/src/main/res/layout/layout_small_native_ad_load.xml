@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Shimmer placeholder matching admob_small_native_ad (icon + text + CTA, no media) -->
+<!-- Shimmer placeholder matching admob_small_native_ad: same card background, padding, icon,
+     headline + 2-line body, CTA. Keep the sizes in sync with that layout. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_native_ad_card"
+    android:tag="native_shimmer_root"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="@dimen/_10sdp"
-    android:paddingVertical="@dimen/_8sdp">
+    android:padding="@dimen/_8sdp">
 
     <View
         android:layout_width="@dimen/_40sdp"
@@ -26,14 +28,20 @@
             android:background="@drawable/bg_shimmer_placeholder" />
 
         <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_9sdp"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:background="@drawable/bg_shimmer_placeholder" />
+
+        <View
             android:layout_width="@dimen/_100sdp"
-            android:layout_height="@dimen/_10sdp"
-            android:layout_marginTop="@dimen/_6sdp"
+            android:layout_height="@dimen/_9sdp"
+            android:layout_marginTop="@dimen/_3sdp"
             android:background="@drawable/bg_shimmer_placeholder" />
     </LinearLayout>
 
     <View
         android:layout_width="@dimen/_64sdp"
-        android:layout_height="@dimen/_32sdp"
+        android:layout_height="@dimen/_30sdp"
         android:background="@drawable/bg_shimmer_placeholder" />
 </LinearLayout>

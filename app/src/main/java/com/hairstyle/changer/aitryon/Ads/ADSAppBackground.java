@@ -128,12 +128,14 @@ public class ADSAppBackground {
         }
 
         ADSUtilitis.trackScreen(activity, "Splash_AppOpen_Show");
+        FullscreenAdWindowHelper.prepare(activity);
 
         ADSAppStarting.AppStartingAd.setFullScreenContentCallback(new FullScreenContentCallback() {
             @Override
             public void onAdDismissedFullScreenContent() {
                 ADSAppStarting.ADSIsShowing = false;
                 ADSAppStarting.AppStartingAd = null;
+                FullscreenAdWindowHelper.restore(activity);
                 preloadAfterShow(activity.getApplicationContext());
                 onFinishAds.onFinishAds(true);
             }
@@ -142,6 +144,7 @@ public class ADSAppBackground {
             public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
                 ADSAppStarting.AppStartingAd = null;
                 ADSAppStarting.ADSIsShowing = false;
+                FullscreenAdWindowHelper.restore(activity);
                 preloadAfterShow(activity.getApplicationContext());
                 onFinishAds.onFinishAds(true);
             }

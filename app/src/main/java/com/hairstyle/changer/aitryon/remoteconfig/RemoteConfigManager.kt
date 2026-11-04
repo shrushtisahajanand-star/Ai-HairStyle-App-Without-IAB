@@ -34,6 +34,8 @@ class RemoteConfigManager @Inject constructor(
 
         val fileName = RemoteConfigKeys.remoteConfigFileName()
         val rawJson = remoteConfig.getString(fileName)
+        // Log.e on purpose: release builds strip Log.d/w, and this is the first thing to check.
+        Log.e(TAG, "Remote Config key=$fileName rawLength=${rawJson.length} source=${remoteConfig.getValue(fileName).source}")
         val json = resolveUserSegmentJson(rawJson)
 
         PrefManager.setRemoteConfigJson(json)

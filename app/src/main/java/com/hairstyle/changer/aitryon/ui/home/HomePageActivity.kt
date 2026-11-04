@@ -134,9 +134,11 @@ class HomePageActivity : BaseActivity() {
     /** Home only: #4E4C4C on bar + CardView + Native body + shimmer (when Native is active). */
     private fun applyHomeNativeAdsBackground() {
         if (_binding == null) return
-        val adsVisible = binding.root.findViewById<View>(R.id.screenAdContainer)
-            ?.isVisible == true
-        val useNativeBg = adsVisible && normalizeHomeAdsType() == "native"
+        // Decided from the config, NOT from whether the ad slot is visible yet: it runs before the
+        // slot is shown, and a late decision let the ad / shimmer pick Firebase's colour first.
+        val home = ScreenAdsHelper.home()
+        val useNativeBg = home.show && !ADSMainClass.getAds_Free() &&
+            normalizeHomeAdsType() == "native"
         if (useNativeBg) {
             val bg = ContextCompat.getColor(this, R.color.home_native_ads_background)
             val shimmer = ContextCompat.getColor(this, R.color.home_native_ads_shimmer)

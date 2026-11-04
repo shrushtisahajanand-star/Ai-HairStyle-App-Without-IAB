@@ -124,21 +124,27 @@ public class ADSNativeDisplay {
             int placeholder = homeNativeShimmerColor != null
                     ? homeNativeShimmerColor
                     : homeNativeBackgroundColor;
-            tintShimmerPlaceholders(shimmerFrameLayout, placeholder);
+            tintShimmerPlaceholders(shimmerFrameLayout, placeholder, homeNativeBackgroundColor);
         }
     }
 
-    private static void tintShimmerPlaceholders(View root, int color) {
+    /**
+     * The shimmer layouts carry the card background on their root (tag {@code native_shimmer_root})
+     * and grey placeholder shapes inside. Shapes get {@code color}; the root gets the card colour,
+     * otherwise the whole card would be tinted like its placeholders and the shapes disappear.
+     */
+    private static void tintShimmerPlaceholders(View root, int color, int cardColor) {
         if (root == null) return;
         if (!(root instanceof ShimmerFrameLayout) && root.getBackground() != null) {
+            int tint = "native_shimmer_root".equals(root.getTag()) ? cardColor : color;
             android.graphics.drawable.Drawable bg = root.getBackground().mutate();
-            bg.setTint(color);
+            bg.setTint(tint);
             root.setBackground(bg);
         }
         if (root instanceof android.view.ViewGroup) {
             android.view.ViewGroup group = (android.view.ViewGroup) root;
             for (int i = 0; i < group.getChildCount(); i++) {
-                tintShimmerPlaceholders(group.getChildAt(i), color);
+                tintShimmerPlaceholders(group.getChildAt(i), color, cardColor);
             }
         }
     }
@@ -160,6 +166,19 @@ public class ADSNativeDisplay {
         } else {
             hideAction.run();
         }
+    }
+
+    /**
+     * Show the shimmer in the right size (small / medium / big) right away, before the ad request
+     * is made. Screens that wait for consent / SDK init first call this so the user never sees a
+     * default (small) shimmer that later jumps to the real size.
+     */
+    public static void prepareNativeShimmer(
+            ShimmerFrameLayout shimmerFrameLayout,
+            FrameLayout adContainer,
+            String size
+    ) {
+        showNativeShimmer(shimmerFrameLayout, adContainer, normalizeNativeSize(size));
     }
 
     private static void showNativeShimmer(ShimmerFrameLayout shimmerFrameLayout, FrameLayout linearLayout) {

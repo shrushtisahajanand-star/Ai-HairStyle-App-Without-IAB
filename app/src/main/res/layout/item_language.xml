@@ -19,10 +19,10 @@
 
         <ImageView
             android:id="@+id/ivFlag"
-            android:layout_width="@dimen/_32sdp"
-            android:layout_height="@dimen/_22sdp"
+            android:layout_width="@dimen/_26sdp"
+            android:layout_height="@dimen/_26sdp"
             android:contentDescription="@null"
-            android:scaleType="centerCrop"
+            android:scaleType="fitCenter"
             tools:src="@drawable/ic_flag1" />
 
         <LinearLayout

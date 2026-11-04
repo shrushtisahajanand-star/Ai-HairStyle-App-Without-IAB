@@ -25,8 +25,16 @@ import com.hairstyle.changer.aitryon.utils.NavGradientHelper.applyBrandTextGradi
 import com.hairstyle.changer.aitryon.utils.PermissionHelper
 import com.hairstyle.changer.aitryon.utils.SplashAnimationHelper
 import dagger.hilt.android.AndroidEntryPoint
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import com.hairstyle.changer.aitryon.utils.PrefManager
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -43,6 +51,14 @@ class SplashActivity : BaseActivity() {
 
     @Inject
     lateinit var videosRepository: VideosRepository
+
+    private val startMs = SystemClock.elapsedRealtime()
+    private var catalogJob: Deferred<Unit>? = null
+
+    /** Splash timeline in Logcat (tag SplashTime) — shows which step is slow. */
+    private fun mark(stage: String) {
+        android.util.Log.d("SplashTime", "+${SystemClock.elapsedRealtime() - startMs}ms $stage")
+    }
 
     private var animationReady = false
     private var navigated = false
@@ -69,6 +85,7 @@ class SplashActivity : BaseActivity() {
 
         ADSMainClass.initAppContext(applicationContext)
         ADSAppManage.FastStart = true
+        ADSAppStarting.resetSplashAd()
         ADSAppStarting.ADSIsShowing = false
         ADSAppManage.AppStartingScreenOpen = false
 
@@ -109,15 +126,36 @@ class SplashActivity : BaseActivity() {
             if (!isScreenAlive() || navigated) return@launch
 
             val startedAt = System.currentTimeMillis()
+            mark("online")
+            startAdsInitEarly()
             runCatching {
-                InstallReferrerHelper.awaitFetch(this@SplashActivity)
-                remoteConfigManager.fetchAndSaveAll()
-                videosRepository.fetchAndSaveAllVideos()
-                if (!IntroManager.isIntroCompleted()) {
-                    videosRepository.preloadIntroVideos()
+                // Capped: a slow referrer / Remote Config must not hold Splash. Returning users
+                // already have the last config saved, so they can wait less than first-time users.
+                val budget = if (PrefManager.getRemoteConfigFetched()) CONFIG_WAIT_MS else FIRST_CONFIG_WAIT_MS
+                val done = withTimeoutOrNull(budget) {
+                    InstallReferrerHelper.awaitFetch(this@SplashActivity)
+                    mark("referrer")
+                    remoteConfigManager.fetchAndSaveAll()
+                    true
                 }
+                mark(if (done == true) "remote-config" else "remote-config TIMEOUT")
             }.onFailure {
-                // Log.e(TAG, "Splash fetch/cache failed", it)
+                android.util.Log.e("SplashFetch", "Splash fetch/cache failed", it)
+            }
+            startSplashAdEarly()
+            // Videos catalog needs the base url from Remote Config, but it only stores URLs, so
+            // it runs alongside consent / ads instead of in front of them. Navigation joins it.
+            catalogJob = lifecycleScope.async(Dispatchers.IO) {
+                runCatching {
+                    videosRepository.fetchAndSaveAllVideos()
+                    // Only the 3 intro videos, and only until the intro is completed.
+                    if (!IntroManager.isIntroCompleted()) {
+                        videosRepository.preloadIntroVideos()
+                    }
+                }.onFailure {
+                    android.util.Log.e("SplashFetch", "Videos catalog failed", it)
+                }
+                mark("videos-catalog")
             }
             if (!isScreenAlive() || navigated) return@launch
 
@@ -129,6 +167,62 @@ class SplashActivity : BaseActivity() {
 
             requestNotificationThenShowAds()
         }
+    }
+
+    /** `shouldShowSplashAd()` counts a visit each time it is asked, so ask once per launch. */
+    private var splashAdAllowedCache: Boolean? = null
+
+    private fun splashAdAllowed(): Boolean =
+        splashAdAllowedCache ?: ADSMainClass.shouldShowSplashAd().also { splashAdAllowedCache = it }
+
+    private var adsInitDone = false
+    private var adConfigReady = false
+
+    /**
+     * Starts as soon as we are online - in parallel with the Firebase fetch, because neither the
+     * consent refresh nor the SDK init needs the config. (Mediation adapters such as Vungle make
+     * the init slow, so it must not wait behind Remote Config.) Consent state is refreshed first
+     * with no form; only if ads are allowed does the init start. If a consent form is needed the
+     * normal flow (form -> init -> request) takes over.
+     */
+    private fun startAdsInitEarly() {
+        if (ADSMainClass.getAds_Free()) return
+        if (!ADSUtilitis.IsNetworkConnected(this)) return
+        ADSConsentManager.gatherConsent(this, false) { _ ->
+            if (!isScreenAlive() || navigated || !ADSConsentManager.canRequestAds(this)) {
+                mark("early ads-init skipped (consent needed)")
+                return@gatherConsent
+            }
+            mark("ads-init started early")
+            ADSAppManage.initializeMobileAdsIfNeeded(applicationContext) {
+                runOnUiThread {
+                    mark("ads-init complete (early)")
+                    adsInitDone = true
+                    tryPrefetchSplashAd()
+                }
+            }
+        }
+    }
+
+    /** Once the Firebase config is in: is a splash ad wanted at all? */
+    private fun startSplashAdEarly() {
+        if (!isScreenAlive() || navigated) return
+        if (ADSMainClass.getAds_Free()) return
+        if (!ADSUtilitis.IsNetworkConnected(this)) return
+        if (!splashAdAllowed()) return
+        val type = ADSMainClass.getSplashADType().orEmpty()
+        if (!type.equals("AppOpen", true) && !type.equals("Inter", true) &&
+            !type.equals("Interstitial", true)
+        ) return
+        adConfigReady = true
+        tryPrefetchSplashAd()
+    }
+
+    /** The single splash ad request: only when consent + SDK init are done AND the config says yes. */
+    private fun tryPrefetchSplashAd() {
+        if (!adsInitDone || !adConfigReady) return
+        if (!isScreenAlive() || navigated || isFinishing || isDestroyed) return
+        ADSAppStarting.prefetchSplashAd(this)
     }
 
     private fun continueAfterConsent(action: () -> Unit) {
@@ -162,16 +256,30 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun proceedAfterConsentGathered(activity: Activity, action: () -> Unit) {
+        mark("consent")
         if (ADSConsentManager.canRequestAds(activity) && !ADSMainClass.getAds_Free()) {
-            ADSAppManage.initializeMobileAdsIfNeeded(activity.applicationContext) {
+            // MobileAds.initialize waits for every mediation adapter; cap it so a slow adapter
+            // cannot hold Splash. `proceed` runs once, from whichever comes first.
+            var proceeded = false
+            val proceed = Runnable {
+                if (proceeded) return@Runnable
+                proceeded = true
                 activity.runOnUiThread {
                     if (isScreenAlive() && !navigated && !activity.isFinishing && !activity.isDestroyed) {
+                        mark("ads-init done")
                         preloadNativeAdsIfNeeded(activity)
                         preloadInterstitialAdsIfNeeded(activity)
                         action()
                     }
                 }
             }
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (!proceeded) mark("ads-init TIMEOUT")
+                proceed.run()
+            }, ADS_INIT_TIMEOUT_MS)
+            ADSAppManage.initializeMobileAdsIfNeeded(activity.applicationContext) { proceed.run() }
+            // Splash ad already loaded / failed → nothing left to wait for.
+            if (ADSAppStarting.isSplashAdSettled()) proceed.run()
         } else {
             activity.runOnUiThread {
                 if (isScreenAlive() && !navigated) {
@@ -248,7 +356,7 @@ class SplashActivity : BaseActivity() {
             return
         }
 
-        if (!ADSMainClass.shouldShowSplashAd()) {
+        if (!splashAdAllowed()) {
             // Log.d(TAG, "Splash ad skipped by after_count / show flag")
             navigateFromSplash()
             return
@@ -311,7 +419,17 @@ class SplashActivity : BaseActivity() {
     private fun navigateFromSplash() {
         if (!isScreenAlive() || navigated) return
         navigated = true
+        mark("navigate (ad finished / skipped)")
 
+        // Join the videos catalog (started on Splash) for at most a moment, then go.
+        lifecycleScope.launch {
+            withTimeoutOrNull(CATALOG_WAIT_MS) { catalogJob?.await() }
+            if (isFinishing || isDestroyed) return@launch
+            openNextScreen()
+        }
+    }
+
+    private fun openNextScreen() {
         AppVisitManager.incrementLaunchCount()
         ADSAppManage.AppStartingScreenOpen = true
 
@@ -350,5 +468,9 @@ class SplashActivity : BaseActivity() {
     companion object {
         private const val TAG = "SplashAds"
         private const val MIN_SPLASH_MS = 2000L
+        private const val CONFIG_WAIT_MS = 5000L
+        private const val FIRST_CONFIG_WAIT_MS = 10000L
+        private const val ADS_INIT_TIMEOUT_MS = 2000L
+        private const val CATALOG_WAIT_MS = 3000L
     }
 }
