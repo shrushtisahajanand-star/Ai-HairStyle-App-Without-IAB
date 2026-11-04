@@ -1,6 +1,8 @@
 package com.hairstyle.changer.aitryon.repository
 
 import android.content.Context
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.google.gson.Gson
 import com.hairstyle.changer.aitryon.model.VideoItemDto
 import com.hairstyle.changer.aitryon.model.VideosApiResponse
@@ -102,6 +104,16 @@ class VideosRepository @Inject constructor(
         )
     }
 
+    /** Home media warm-up: the 3 category animations + the first hero pictures. */
+    fun prefetchHomeMedia() {
+        preloadHomeVideos()
+        getHomeHeroSlides().take(2).forEach { slide ->
+            if (slide.imageUrl.isNotBlank()) {
+                context.imageLoader.enqueue(ImageRequest.Builder(context).data(slide.imageUrl).build())
+            }
+        }
+    }
+
     fun preloadHomeVideos() {
         preloadInBackground(
             VideoTitleKeys.HOME_VIDEO_1,
@@ -128,17 +140,17 @@ class VideosRepository @Inject constructor(
         val keys = videoTitleKeys.distinct().filter { startedPreloads.add(it) }
         if (keys.isEmpty()) return
         preloadScope.launch {
-            keys.map { key ->
-                async {
-                    val url = VideoUrlManager.getVideoUrl(key)?.takeIf { it.isNotBlank() }
-                    if (url == null) {
-                        startedPreloads.remove(key)
-                        return@async
-                    }
+            // One at a time, in order: on a slow network three parallel downloads all finish
+            // last; this way the first picture is ready as early as possible.
+            keys.forEach { key ->
+                val url = VideoUrlManager.getVideoUrl(key)?.takeIf { it.isNotBlank() }
+                if (url == null) {
+                    startedPreloads.remove(key)
+                } else {
                     VideoCacheManager.cacheVideo(context, okHttpClient, key, url)
                         ?: startedPreloads.remove(key)
                 }
-            }.awaitAll()
+            }
         }
     }
 

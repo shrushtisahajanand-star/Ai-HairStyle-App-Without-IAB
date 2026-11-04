@@ -13,40 +13,107 @@ import com.hairstyle.changer.aitryon.remoteconfig.RemoteConfigManager
 import com.hairstyle.changer.aitryon.domain.model.BeardStyle
 import com.hairstyle.changer.aitryon.domain.model.CategoryHairstyle
 import com.hairstyle.changer.aitryon.domain.model.FunStyle
+import android.content.Context
+import coil.imageLoader
+import coil.request.ImageRequest
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class CategoryImagesRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val remoteConfigManager: RemoteConfigManager,
     private val okHttpClient: OkHttpClient,
     private val gson: Gson
 ) {
 
+    /**
+     * First page of each Home list. Splash starts these ([prefetchHome]) while it waits for
+     * consent / the splash ad, so Home finds them ready instead of fetching after it opens.
+     * Memory only, valid for [FIRST_PAGE_TTL_MS]; failures are never kept.
+     */
+    private class FirstPage(val loadedAt: Long, val deferred: Deferred<PagedCategoryImages>)
+
+    private val firstPages = ConcurrentHashMap<String, FirstPage>()
+    private val prefetchScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private suspend fun loadHomePage(
+        label: String,
+        category: ImageApiCategory,
+        page: Int,
+        limit: Int
+    ): PagedCategoryImages {
+        if (page != 1) return loadImages(label, category, page, limit)
+
+        val key = "$label|$limit"
+        val now = System.currentTimeMillis()
+        var entry = firstPages[key]
+        if (entry == null || now - entry.loadedAt > FIRST_PAGE_TTL_MS) {
+            entry = FirstPage(now, prefetchScope.async { loadImages(label, category, 1, limit) })
+            firstPages[key] = entry
+        }
+        return try {
+            entry.deferred.await()
+        } catch (e: Exception) {
+            firstPages.remove(key, entry)
+            throw e
+        }
+    }
+
+    /**
+     * Fetches the 3 Home lists now (fire and forget) and warms the image cache with the first
+     * images of each, so Home shows data and pictures without waiting on the network.
+     */
+    fun prefetchHome(limit: Int = remoteConfigManager.getPageLimit()) {
+        listOf(
+            Triple(LOG_MEN, ImageApiCategory.HOME_MEN, "men"),
+            Triple(LOG_WOMEN, ImageApiCategory.HOME_WOMEN, "women"),
+            Triple(LOG_CHILDREN, ImageApiCategory.HOME_CHILDREN, "children")
+        ).forEach { (label, category, _) ->
+            prefetchScope.launch {
+                runCatching { loadHomePage(label, category, 1, limit) }
+                    .onSuccess { page ->
+                        page.items.take(PREFETCH_IMAGES_PER_LIST).forEach { item ->
+                            context.imageLoader.enqueue(
+                                ImageRequest.Builder(context).data(item.imageUrl).build()
+                            )
+                        }
+                    }
+            }
+        }
+    }
+
     suspend fun loadMenHairstyles(
         page: Int = 1,
         limit: Int = remoteConfigManager.getPageLimit()
     ): PagedCategoryImages = withContext(Dispatchers.IO) {
-        loadImages(LOG_MEN, ImageApiCategory.HOME_MEN, page, limit)
+        loadHomePage(LOG_MEN, ImageApiCategory.HOME_MEN, page, limit)
     }
 
     suspend fun loadWomenHairstyles(
         page: Int = 1,
         limit: Int = remoteConfigManager.getPageLimit()
     ): PagedCategoryImages = withContext(Dispatchers.IO) {
-        loadImages(LOG_WOMEN, ImageApiCategory.HOME_WOMEN, page, limit)
+        loadHomePage(LOG_WOMEN, ImageApiCategory.HOME_WOMEN, page, limit)
     }
 
     suspend fun loadChildrenHairstyles(
         page: Int = 1,
         limit: Int = remoteConfigManager.getPageLimit()
     ): PagedCategoryImages = withContext(Dispatchers.IO) {
-        loadImages(LOG_CHILDREN, ImageApiCategory.HOME_CHILDREN, page, limit)
+        loadHomePage(LOG_CHILDREN, ImageApiCategory.HOME_CHILDREN, page, limit)
     }
 
     suspend fun loadHairColors(
@@ -407,6 +474,8 @@ class CategoryImagesRepository @Inject constructor(
     }
 
     companion object {
+        private const val FIRST_PAGE_TTL_MS = 5 * 60 * 1000L
+        private const val PREFETCH_IMAGES_PER_LIST = 4
         private const val LOG_MEN = "home_men"
         private const val LOG_WOMEN = "home_women"
         private const val LOG_CHILDREN = "home_children"

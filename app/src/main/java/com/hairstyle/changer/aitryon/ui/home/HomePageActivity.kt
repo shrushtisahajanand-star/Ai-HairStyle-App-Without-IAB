@@ -80,7 +80,7 @@ class HomePageActivity : BaseActivity() {
         ScreenAdsHelper.load(this, binding.root, ScreenAdsHelper.home())
         applyHomeNativeAdsBackground()
         InterstitialNavHelper.preload(this)
-        videosRepository.preloadHomeVideos()
+        videosRepository.prefetchHomeMedia()
     }
 
     override fun onResume() {

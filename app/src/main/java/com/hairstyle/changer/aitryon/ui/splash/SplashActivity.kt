@@ -52,6 +52,9 @@ class SplashActivity : BaseActivity() {
     @Inject
     lateinit var videosRepository: VideosRepository
 
+    @Inject
+    lateinit var categoryImagesRepository: com.hairstyle.changer.aitryon.repository.CategoryImagesRepository
+
     private val startMs = SystemClock.elapsedRealtime()
     private var catalogJob: Deferred<Unit>? = null
 
@@ -143,6 +146,8 @@ class SplashActivity : BaseActivity() {
                 android.util.Log.e("SplashFetch", "Splash fetch/cache failed", it)
             }
             startSplashAdEarly()
+            // Home lists + first pictures load now, while consent / the splash ad are in progress.
+            runCatching { categoryImagesRepository.prefetchHome() }
             // Videos catalog needs the base url from Remote Config, but it only stores URLs, so
             // it runs alongside consent / ads instead of in front of them. Navigation joins it.
             catalogJob = lifecycleScope.async(Dispatchers.IO) {
@@ -151,6 +156,9 @@ class SplashActivity : BaseActivity() {
                     // Only the 3 intro videos, and only until the intro is completed.
                     if (!IntroManager.isIntroCompleted()) {
                         videosRepository.preloadIntroVideos()
+                    } else {
+                        // Returning user: Home is next, so warm its animations + hero pictures now.
+                        videosRepository.prefetchHomeMedia()
                     }
                 }.onFailure {
                     android.util.Log.e("SplashFetch", "Videos catalog failed", it)
