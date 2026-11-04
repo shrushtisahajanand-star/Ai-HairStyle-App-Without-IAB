@@ -109,9 +109,10 @@ class UserCreationPreviewActivity : BaseActivity() {
             activity = this,
             mode = SaveHairstyleDialog.Mode.SAVE_HD,
             onFreeAdClick = {
-                RewardedAdHelper.showForReward(
+                // Ad failed / not ready → still saves; closing the ad early does not.
+                RewardedAdHelper.showForSave(
                     activity = this,
-                    onRewardEarned = { downloadImage() }
+                    onSave = { downloadImage() }
                 )
             }
         )

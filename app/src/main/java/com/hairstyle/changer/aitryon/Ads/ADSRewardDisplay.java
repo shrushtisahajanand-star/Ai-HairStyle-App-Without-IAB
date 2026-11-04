@@ -127,6 +127,20 @@ public final class ADSRewardDisplay {
             @NonNull Listener listener,
             boolean ignoreRewardFlag
     ) {
+        loadAndShow(activity, adUnitId, listener, ignoreRewardFlag, 0L);
+    }
+
+    /**
+     * @param loadTimeoutMs when &gt; 0 and the ad is not loaded in that time, the loading dialog is
+     *                      closed and {@link Listener#onAdFailed()} is called; a late ad is dropped.
+     */
+    public static void loadAndShow(
+            @NonNull Activity activity,
+            @Nullable String adUnitId,
+            @NonNull Listener listener,
+            boolean ignoreRewardFlag,
+            long loadTimeoutMs
+    ) {
         if (activity.isFinishing() || activity.isDestroyed()) {
             listener.onAdFailed();
             return;
@@ -174,6 +188,18 @@ public final class ADSRewardDisplay {
 
         final String finalUnitId = unitId;
         AdRequest request = new AdRequest.Builder().build();
+        final boolean[] timedOut = {false};
+        final android.os.Handler timeoutHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        if (loadTimeoutMs > 0) {
+            timeoutHandler.postDelayed(() -> {
+                if (!isLoading) return;
+                timedOut[0] = true;
+                isLoading = false;
+                ADSUtilitis.MassageBoxFullDismiss();
+                android.util.Log.w(TAG, "Reward load timeout after " + loadTimeoutMs + "ms");
+                listener.onAdFailed();
+            }, loadTimeoutMs);
+        }
         // Always onLoad â€” no PreLoad path
         RewardedAd.load(
                 activity,
@@ -182,6 +208,8 @@ public final class ADSRewardDisplay {
                 new RewardedAdLoadCallback() {
                     @Override
                     public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                        timeoutHandler.removeCallbacksAndMessages(null);
+                        if (timedOut[0]) return; // caller already moved on
                         isLoading = false;
                         ADSUtilitis.MassageBoxFullDismiss();
                         ADSUtilitis.trackScreen(activity, "Reward_Load");
@@ -191,6 +219,8 @@ public final class ADSRewardDisplay {
 
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        timeoutHandler.removeCallbacksAndMessages(null);
+                        if (timedOut[0]) return;
                         isLoading = false;
                         ADSUtilitis.MassageBoxFullDismiss();
                         ADSUtilitis.trackScreen(activity, "Reward_Fail");

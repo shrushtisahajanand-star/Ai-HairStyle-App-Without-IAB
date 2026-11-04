@@ -139,12 +139,12 @@ class ResultActivity : BaseActivity() {
             mode = mode,
             onFreeAdClick = {
                 // Save is never blocked by generate quota (incl. 3rd / last free image).
-                RewardedAdHelper.showForReward(
+                // Ad failed / not ready → still saves; closing the ad early does not.
+                RewardedAdHelper.showForSave(
                     activity = this,
-                    onRewardEarned = {
+                    onSave = {
                         saveImage(highQuality = mode == SaveHairstyleDialog.Mode.SAVE_HD)
-                    },
-                    onFailedOrSkipped = { /* stay on result — no save */ }
+                    }
                 )
             }
         )
