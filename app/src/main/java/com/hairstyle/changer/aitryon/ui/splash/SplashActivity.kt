@@ -146,6 +146,8 @@ class SplashActivity : BaseActivity() {
                 android.util.Log.e("SplashFetch", "Splash fetch/cache failed", it)
             }
             startSplashAdEarly()
+            rcDone = true
+            tryPrefetchLanguageNative()
             // Home lists + first pictures load now, while consent / the splash ad are in progress.
             runCatching { categoryImagesRepository.prefetchHome() }
             // Videos catalog needs the base url from Remote Config, but it only stores URLs, so
@@ -185,6 +187,7 @@ class SplashActivity : BaseActivity() {
 
     private var adsInitDone = false
     private var adConfigReady = false
+    private var rcDone = false
 
     /**
      * Starts as soon as we are online - in parallel with the Firebase fetch, because neither the
@@ -206,6 +209,7 @@ class SplashActivity : BaseActivity() {
                 runOnUiThread {
                     mark("ads-init complete (early)")
                     adsInitDone = true
+                    tryPrefetchLanguageNative()
                     tryPrefetchSplashAd()
                 }
             }
@@ -224,6 +228,31 @@ class SplashActivity : BaseActivity() {
         ) return
         adConfigReady = true
         tryPrefetchSplashAd()
+    }
+
+    private fun tryPrefetchLanguageNative() {
+        if (!adsInitDone || !rcDone) return
+        prefetchLanguageNativeNow(this)
+    }
+
+    /**
+     * Next screen is Language (first launch): request its bottom native now, in parallel with the
+     * splash ad, so it is ready when Language opens. Needs consent (canRequestAds).
+     */
+    private fun prefetchLanguageNativeNow(activity: Activity) {
+        if (!isScreenAlive() || navigated || isFinishing || isDestroyed) return
+        if (LocaleManager.isLanguageOnboardingDone()) return
+        if (!ADSMainClass.getLanguageScreenBottomAdShow() || ADSMainClass.getAds_Free()) return
+        if (ADSMainClass.getLanguageAdsType().trim().equals("banner", ignoreCase = true)) return
+        if (!ADSConsentManager.canRequestAds(activity)) return
+        // After the splash ad has loaded / failed: no bandwidth shared with it, Splash not slowed.
+        val appContext = activity.applicationContext
+        ADSAppStarting.runWhenSplashAdSettled(adConfigReady) {
+            ADSNativeDisplay.prefetchLanguageNative(
+                appContext,
+                ADSMainClass.getStringValue(ADSMainClass.LANGUAGE_SCREEN_NATIVE)
+            )
+        }
     }
 
     /** The single splash ad request: only when consent + SDK init are done AND the config says yes. */
@@ -276,6 +305,7 @@ class SplashActivity : BaseActivity() {
                     if (isScreenAlive() && !navigated && !activity.isFinishing && !activity.isDestroyed) {
                         mark("ads-init done")
                         preloadNativeAdsIfNeeded(activity)
+                        prefetchLanguageNativeNow(activity)
                         preloadInterstitialAdsIfNeeded(activity)
                         action()
                     }

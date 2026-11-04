@@ -316,12 +316,111 @@ public class ADSNativeDisplay {
      * Inflate layout for current {@link #AdsDisplayType}:
      * small → {@code admob_small_native_ad}, medium → {@code admob_medium_native_ad}, big → {@code admob_big_native_ad}.
      */
+    // ---- Language screen: native loaded on Splash (works for both Load and PreLoad modes) ----
+
+    private static NativeAd languagePrefetchedAd;
+    private static boolean languagePrefetching;
+    private static Runnable languageWaiter;
+
+    /** True while a Splash-started Language native is loading or ready to be shown. */
+    public static boolean hasLanguagePrefetch() {
+        return languagePrefetching || languagePrefetchedAd != null;
+    }
+
+    /**
+     * Splash calls this as soon as ads are allowed and the next screen is Language, so the ad is
+     * already loaded (or well on its way) when Language opens. One request, independent of
+     * {@code Ads_Loading_Types}; a failure just lets Language load normally.
+     */
+    public static void prefetchLanguageNative(Context context, String adsId) {
+        if (context == null || ADSMainClass.getAds_Free()) return;
+        if (adsId == null || adsId.trim().isEmpty()) return;
+        if (languagePrefetching || languagePrefetchedAd != null) return;
+
+        languagePrefetching = true;
+        final Context appContext = context.getApplicationContext();
+        new AdLoader.Builder(appContext, adsId.trim())
+                .forNativeAd(nativeAd -> {
+                    nativeAd.setOnPaidEventListener(adValue -> ADSUtilitis.logAdRevenue(appContext, adValue));
+                    languagePrefetching = false;
+                    languagePrefetchedAd = nativeAd;
+                    ADSUtilitis.trackScreen(appContext, "Language_Native_Prefetch");
+                    runLanguageWaiter();
+                })
+                .withNativeAdOptions(new NativeAdOptions.Builder()
+                        .setVideoOptions(new VideoOptions.Builder().setStartMuted(true).build())
+                        .setMediaAspectRatio(NativeAdOptions.NATIVE_MEDIA_ASPECT_RATIO_ANY)
+                        .build())
+                .withAdListener(new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError adError) {
+                        languagePrefetching = false;
+                        languagePrefetchedAd = null;
+                        runLanguageWaiter();
+                    }
+                })
+                .build()
+                .loadAd(new AdRequest.Builder().build());
+    }
+
+    private static void runLanguageWaiter() {
+        Runnable waiter = languageWaiter;
+        languageWaiter = null;
+        if (waiter != null) waiter.run();
+    }
+
+    /**
+     * Language screen: show the Splash-prefetched ad. Returns true when it handled the slot
+     * (ad shown now, or shown as soon as the prefetch finishes); on prefetch failure
+     * {@code fallbackLoad} runs. Returns false when nothing was prefetched.
+     */
+    public static boolean showLanguagePrefetch(
+            final Context context,
+            final FrameLayout container,
+            final ShimmerFrameLayout shimmer,
+            final String size,
+            final Runnable fallbackLoad
+    ) {
+        if (languagePrefetchedAd != null) {
+            NativeAd ad = languagePrefetchedAd;
+            languagePrefetchedAd = null;
+            setDisplaySize(size);
+            showNativeShimmer(shimmer, container, size);
+            bindNativeAd(context, container, shimmer, ad);
+            return true;
+        }
+        if (languagePrefetching) {
+            setDisplaySize(size);
+            showNativeShimmer(shimmer, container, size);
+            languageWaiter = () -> {
+                if (languagePrefetchedAd != null) {
+                    NativeAd ad = languagePrefetchedAd;
+                    languagePrefetchedAd = null;
+                    bindNativeAd(context, container, shimmer, ad);
+                } else {
+                    fallbackLoad.run();
+                }
+            };
+            return true;
+        }
+        return false;
+    }
+
     private static void bindNativeAdToLayout(
             Context context,
             FrameLayout linearLayout,
             ShimmerFrameLayout shimmerFrameLayout
     ) {
-        if (context == null || linearLayout == null || AdmobNativeAd == null) {
+        bindNativeAd(context, linearLayout, shimmerFrameLayout, AdmobNativeAd);
+    }
+
+    private static void bindNativeAd(
+            Context context,
+            FrameLayout linearLayout,
+            ShimmerFrameLayout shimmerFrameLayout,
+            NativeAd nativeAd
+    ) {
+        if (context == null || linearLayout == null || nativeAd == null) {
             return;
         }
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -332,16 +431,16 @@ public class ADSNativeDisplay {
         switch (size) {
             case SIZE_BIG:
                 adView = (NativeAdView) inflater.inflate(R.layout.admob_big_native_ad, null);
-                PopulateUnifiedFullNativeAdView(AdmobNativeAd, adView, false);
+                PopulateUnifiedFullNativeAdView(nativeAd, adView, false);
                 break;
             case SIZE_MEDIUM:
                 adView = (NativeAdView) inflater.inflate(R.layout.admob_medium_native_ad, null);
-                populateUnifiedNativeSmallAdView(AdmobNativeAd, adView);
+                populateUnifiedNativeSmallAdView(nativeAd, adView);
                 break;
             case SIZE_SMALL:
             default:
                 adView = (NativeAdView) inflater.inflate(R.layout.admob_small_native_ad, null);
-                populateUnifiedNativeSmallAdView(AdmobNativeAd, adView);
+                populateUnifiedNativeSmallAdView(nativeAd, adView);
                 break;
         }
 

@@ -64,6 +64,7 @@ public class ADSAppStarting {
 
     /** Call when Splash opens, so a previous launch's state is never reused. */
     public static void resetSplashAd() {
+        onSettled = null;
         splashHandler.removeCallbacksAndMessages(null);
         state = IDLE;
         displayRequested = false;
@@ -118,6 +119,7 @@ public class ADSAppStarting {
             if (state == LOADING) {
                 gaveUp = true;
                 adMark("TIMEOUT -> next");
+                fireSettled();
                 onFinishAds.onFinishAds(true);
             }
         }, Math.max(left, MIN_WAIT_AFTER_DISPLAY_MS));
@@ -125,9 +127,32 @@ public class ADSAppStarting {
 
     private static Activity splashActivity;
 
+    private static Runnable onSettled;
+
+    /**
+     * Runs {@code r} once the splash ad has loaded / failed / timed out - so other requests
+     * (e.g. the Language native) do not compete with it for bandwidth. Runs at once when there is
+     * no splash ad in play.
+     */
+    public static void runWhenSplashAdSettled(boolean splashAdExpected, Runnable r) {
+        boolean settled = state == LOADED || state == FAILED || gaveUp
+                || (!splashAdExpected && state == IDLE);
+        if (settled) {
+            r.run();
+        } else {
+            onSettled = r;
+        }
+    }
+
+    private static void fireSettled() {
+        Runnable r = onSettled;
+        onSettled = null;
+        if (r != null) r.run();
+    }
+
     private static void onSplashAdLoaded(Consumer<Activity> showAction) {
         adMark("loaded (gaveUp=" + gaveUp + ")");
-        if (gaveUp) return;
+        if (gaveUp) { fireSettled(); return; }
         state = LOADED;
         pendingShow = showAction;
         splashHandler.removeCallbacksAndMessages(null);
@@ -135,16 +160,18 @@ public class ADSAppStarting {
                 && !splashActivity.isFinishing() && !splashActivity.isDestroyed()) {
             showAction.accept(splashActivity);
         }
+        fireSettled();
     }
 
     private static void onSplashAdFailed() {
         adMark("failed / no ad");
-        if (gaveUp) return;
+        if (gaveUp) { fireSettled(); return; }
         state = FAILED;
         splashHandler.removeCallbacksAndMessages(null);
         if (displayRequested && onFinishAds != null) {
             onFinishAds.onFinishAds(true);
         }
+        fireSettled();
     }
 
     public static void ADSSplashAppStartingLoad(Activity context) {

@@ -3,6 +3,8 @@ package com.hairstyle.changer.aitryon.ui.language
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.lifecycle.lifecycleScope
 import com.hairstyle.changer.aitryon.databinding.FragmentLanguageBinding
@@ -122,12 +124,23 @@ class LanguageActivity : BaseActivity() {
 
     private fun initializeAdsAndLoad(action: () -> Unit) {
         if (ADSConsentManager.canRequestAds(this) && !ADSMainClass.getAds_Free()) {
-            ADSAppManage.initializeMobileAdsIfNeeded(applicationContext) {
+            // Never wait on the SDK init alone: mediation adapters (Vungle) can take very long.
+            // `once` runs from whichever comes first - init done, a Splash prefetch, or the cap.
+            var done = false
+            val once = Runnable {
+                if (done) return@Runnable
+                done = true
                 runOnUiThread {
                     if (isScreenAlive() && _binding != null && !isFinishing && !isDestroyed) {
                         action()
                     }
                 }
+            }
+            ADSAppManage.initializeMobileAdsIfNeeded(applicationContext) { once.run() }
+            if (ADSNativeDisplay.hasLanguagePrefetch()) {
+                once.run()
+            } else {
+                Handler(Looper.getMainLooper()).postDelayed({ once.run() }, ADS_INIT_WAIT_MS)
             }
         } else {
             runOnUiThread {
@@ -161,13 +174,26 @@ class LanguageActivity : BaseActivity() {
         if (adsType == "native") {
             binding.flBannerSmallPlaceholder.visibility = View.GONE
             binding.cardView.visibility = View.VISIBLE
-            ADSNativeDisplay.loadAdmobNativeAdBig(
-                ADSMainClass.getStringValue(ADSMainClass.LANGUAGE_SCREEN_NATIVE),
-                binding.flNativeSmallPlaceholder,
-                binding.shimmerContainerSmall,
-                adsSize,
-                this
-            )
+            val nativeId = ADSMainClass.getStringValue(ADSMainClass.LANGUAGE_SCREEN_NATIVE)
+            val loadNow = {
+                ADSNativeDisplay.loadAdmobNativeAdBig(
+                    nativeId,
+                    binding.flNativeSmallPlaceholder,
+                    binding.shimmerContainerSmall,
+                    adsSize,
+                    this
+                )
+            }
+            // Splash already requested this ad: show it (or wait for it) instead of a new request.
+            if (!ADSNativeDisplay.showLanguagePrefetch(
+                    this,
+                    binding.flNativeSmallPlaceholder,
+                    binding.shimmerContainerSmall,
+                    adsSize
+                ) { if (isScreenAlive() && _binding != null) loadNow() }
+            ) {
+                loadNow()
+            }
         } else {
             binding.cardView.visibility = View.GONE
             binding.flNativeSmallPlaceholder.visibility = View.GONE
@@ -312,6 +338,7 @@ class LanguageActivity : BaseActivity() {
     companion object {
         private const val TAG = "LanguageAds"
         private const val NEXT_ICON_DELAY_MS = 400L
+        private const val ADS_INIT_WAIT_MS = 1500L
         const val ARG_FROM_SETTINGS = "from_settings"
 
         fun createIntent(context: Context, fromSettings: Boolean): Intent {
