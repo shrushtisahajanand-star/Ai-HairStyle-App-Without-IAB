@@ -188,60 +188,11 @@ object AdsConfigApplier {
         )
     )
 
-    /**
-     * TEST ADS SWITCH. `true` → every ad unit id from Firebase is replaced with Google's demo
-     * ad unit of the same type (reward / inter / native / banner / app open), so live builds can be
-     * tested safely. To stop test ads: set this to `false` and release again.
-     */
-    private const val USE_TEST_ADS = false
-
-    private const val TEST_BANNER = "ca-app-pub-3940256099942544/6300978111"
-    private const val TEST_INTER = "ca-app-pub-3940256099942544/1033173712"
-    private const val TEST_REWARD = "ca-app-pub-3940256099942544/5224354917"
-    private const val TEST_APP_OPEN = "ca-app-pub-3940256099942544/9257395921"
-    private const val TEST_NATIVE = "ca-app-pub-3940256099942544/2247696110"
-
-    /** Test id for a Firebase key like `home_native_ads_id`, or null when the key is not an ad id. */
-    private fun testIdFor(key: String): String? {
-        val k = key.lowercase()
-        if (!k.endsWith("_id")) return null
-        return when {
-            "reward" in k -> TEST_REWARD
-            "app_open" in k -> TEST_APP_OPEN
-            "native" in k -> TEST_NATIVE
-            "banner" in k -> TEST_BANNER
-            "inter" in k -> TEST_INTER
-            else -> null
-        }
-    }
-
-    private fun replaceWithTestIds(element: com.google.gson.JsonElement) {
-        if (!element.isJsonObject) return
-        val obj = element.asJsonObject
-        for (key in obj.keySet().toList()) {
-            val value = obj.get(key)
-            if (value.isJsonObject) {
-                replaceWithTestIds(value)
-            } else if (value.isJsonPrimitive && value.asJsonPrimitive.isString) {
-                testIdFor(key)?.let { obj.addProperty(key, it) }
-            }
-        }
-    }
-
     fun applyFromRemoteJson(remoteJson: String, gson: Gson) {
         if (remoteJson.isBlank()) {
             return
         }
-        val json = if (USE_TEST_ADS) {
-            runCatching {
-                val tree = JsonParser.parseString(remoteJson)
-                replaceWithTestIds(tree)
-                android.util.Log.e(TAG, "USE_TEST_ADS=true: Firebase ad unit ids replaced with test ids")
-                tree.toString()
-            }.getOrDefault(remoteJson)
-        } else {
-            remoteJson
-        }
+        val json = remoteJson
 
         runCatching {
             val rootObj = JsonParser.parseString(json).asJsonObject

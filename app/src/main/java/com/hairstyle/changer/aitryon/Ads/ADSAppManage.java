@@ -13,10 +13,7 @@ import android.os.Handler;
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.RequestConfiguration;
 
-import java.util.Arrays;
-import java.util.List;
 
 public class ADSAppManage extends Application {
 
@@ -48,11 +45,6 @@ public class ADSAppManage extends Application {
             return;
         }
         AdSdkInitHelper.runIfWebViewAvailable(context, () -> {
-            List<String> testDeviceIds = Arrays.asList("");
-            RequestConfiguration configuration = new RequestConfiguration.Builder()
-                    .setTestDeviceIds(testDeviceIds)
-                    .build();
-            MobileAds.setRequestConfiguration(configuration);
             MobileAds.initialize(context, initializationStatus -> {
                 mobileAdsInitialized = true;
                 preloadAppOpenAdIfNeeded();
