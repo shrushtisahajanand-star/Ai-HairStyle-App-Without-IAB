@@ -21,7 +21,6 @@ object PrefManager {
     private const val KEY_REMOTE_CONFIG_JSON = "remote_config_json"
     private const val KEY_ADS_CONFIG_JSON = "ads_config_json"
     private const val KEY_PRIVACY_POLICY_URL = "privacy_policy_url"
-    private const val KEY_FEEDBACK_URL = "feedback_url"
     private const val KEY_BASE_URL = "base_url"
     private const val KEY_DAILY_LIMIT_BLOCKED_UNTIL = "daily_limit_blocked_until"
     private const val KEY_PAGE_LIMIT = "images_page_limit"
@@ -40,7 +39,6 @@ object PrefManager {
     private const val KEY_UPDATE_APP_JSON = "update_app_json"
     private const val KEY_IN_APP_UPDATE_DIALOG_DAY = "in_app_update_dialog_day"
     private const val KEY_IN_APP_UPDATE_DIALOG_COUNT = "in_app_update_dialog_count"
-    private const val KEY_FEEDBACK_SUBMITTED = "feedback_submitted"
 
     private lateinit var prefs: SharedPreferences
 
@@ -104,15 +102,6 @@ object PrefManager {
 
     fun getBaseUrl(): String {
         return prefsOrThrow().getString(KEY_BASE_URL, "") ?: ""
-    }
-
-    /** Plain feedback API base URL from Firebase (no encrypt/decrypt). */
-    fun setFeedbackUrl(value: String) {
-        prefsOrThrow().edit().putString(KEY_FEEDBACK_URL, value).apply()
-    }
-
-    fun getFeedbackUrl(): String {
-        return prefsOrThrow().getString(KEY_FEEDBACK_URL, "") ?: ""
     }
 
     private const val VIDEO_URL_PREFIX = "video_url_"
@@ -300,14 +289,6 @@ object PrefManager {
 
     fun remove(key: String) {
         prefsOrThrow().edit().remove(key).apply()
-    }
-
-    fun setFeedbackSubmitted(value: Boolean) {
-        prefsOrThrow().edit().putBoolean(KEY_FEEDBACK_SUBMITTED, value).apply()
-    }
-
-    fun isFeedbackSubmitted(): Boolean {
-        return prefsOrThrow().getBoolean(KEY_FEEDBACK_SUBMITTED, false)
     }
 
     fun clear() {

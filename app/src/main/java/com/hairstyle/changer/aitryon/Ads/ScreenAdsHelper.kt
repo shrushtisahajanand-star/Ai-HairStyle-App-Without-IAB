@@ -425,13 +425,5 @@ object ScreenAdsHelper {
         bannerId = ADSMainClass.getStringValue(ADSMainClass.USER_CREATION_BANNER)
     )
 
-    fun feedback(): Config = Config(
-        show = ADSMainClass.getBooleanValue(ADSMainClass.FEEDBACK_SHOW_BOTTOM_ADS),
-        adsType = ADSMainClass.getStringValue(ADSMainClass.FEEDBACK_ADS_TYPE),
-        adsSize = ADSMainClass.getStringValue(ADSMainClass.FEEDBACK_ADS_SIZE),
-        nativeId = ADSMainClass.getStringValue(ADSMainClass.FEEDBACK_NATIVE),
-        bannerId = ADSMainClass.getStringValue(ADSMainClass.FEEDBACK_BANNER)
-    )
-
     // endregion
 }

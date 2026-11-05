@@ -5,7 +5,6 @@ import android.content.Intent
 import com.hairstyle.changer.aitryon.ui.category.SelectCategoryActivity
 import com.hairstyle.changer.aitryon.ui.creation.UserCreationActivity
 import com.hairstyle.changer.aitryon.ui.creation.UserCreationPreviewActivity
-import com.hairstyle.changer.aitryon.ui.feedback.FeedbackActivity
 import com.hairstyle.changer.aitryon.ui.gallery.GalleryPhotoSelectionActivity
 import com.hairstyle.changer.aitryon.ui.gallery.PhotoSelectActivity
 import com.hairstyle.changer.aitryon.ui.home.HomePageActivity
@@ -54,10 +53,6 @@ object AppNavigator {
 
     fun openSettings(from: Activity) {
         from.startActivity(Intent(from, SettingActivity::class.java))
-    }
-
-    fun openFeedback(from: Activity) {
-        from.startActivity(Intent(from, FeedbackActivity::class.java))
     }
 
     fun openUserCreation(from: Activity) {

@@ -53,23 +53,6 @@
     <string name="share_app_message">%1$s\'e göz atın — yapay zeka saç modellerini deneyin: %2$s</string>
     <string name="rate_us">Bizi Değerlendirin</string>
     <string name="rate_us_subtitle">Mağazaya ne düşündüğünüzü söyleyin</string>
-    <string name="feedback">Geri Bildirim</string>
-    <string name="feedback_subtitle">Bir sonraki sürümü şekillendirmeye yardımcı olun</string>
-    <string name="feedback_name_label">İsim</string>
-    <string name="feedback_name_hint">İsminizi Girin</string>
-    <string name="feedback_message_label">Mesajınız</string>
-    <string name="feedback_message_hint">Deneyiminiz hakkında bize bilgi verin veya yeni bir özellik önerin..</string>
-    <string name="feedback_attachments_label">Ekler (İsteğe Bağlı)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Değiştir</string>
-    <string name="feedback_submit">Geri Bildirim Gönder</string>
-    <string name="feedback_submitted_title">Geri Bildiriminiz Gönderildi</string>
-    <string name="feedback_submitted_message">Uygulamayı iyileştirmemize yardımcı olduğunuz için teşekkürler.</string>
-    <string name="feedback_name_required">Lütfen isminizi girin.</string>
-    <string name="feedback_message_required">Lütfen mesajınızı girin.</string>
-    <string name="feedback_only_one_image">Yalnızca 1 görsel yükleyebilirsiniz.</string>
-    <string name="feedback_submit_failed">Geri bildirim gönderilemedi. Lütfen tekrar deneyin.</string>
     <string name="privacy_policy">Gizlilik Politikası</string>
     <string name="privacy_policy_subtitle">Veri, izinler ve yüz modeli</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Değerlendirmeyi Gönder</string>
     <string name="rate_dialog_maybe_later">Belki Sonra</string>
     <string name="rate_dialog_select_stars">Lütfen bir yıldız değerlendirmesi seçin</string>
-    <string name="feedback_email_label">E-posta (İsteğe Bağlı)</string>
-    <string name="feedback_email_hint">E-postanızı Girin</string>
-    <string name="feedback_email_invalid">Lütfen geçerli bir e-posta adresi girin.</string>
     <string name="beard_fade_haircut_styles">Sakal, Fade &amp; Saç Kesim Stilleri</string>
     <string name="daily_quota_finished_title">Günlük Limit Doldu</string>
     <string name="daily_quota_finished_message">Günlük görsel limitiniz doldu. Daha fazla oluşturma için yarın tekrar gelin.</string>

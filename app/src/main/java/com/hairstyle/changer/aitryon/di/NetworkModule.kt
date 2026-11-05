@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 /**
- * Shared OkHttp client for generate / feedback / videos / image downloads.
+ * Shared OkHttp client for generate / videos / image downloads.
  * Retrofit + the old ailabapi service stay commented below.
  */
 @Module

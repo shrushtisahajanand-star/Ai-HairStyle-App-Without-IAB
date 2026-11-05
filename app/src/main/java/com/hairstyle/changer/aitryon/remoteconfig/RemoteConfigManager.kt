@@ -7,8 +7,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import com.hairstyle.changer.aitryon.Ads.ADSMainClass
-import com.hairstyle.changer.aitryon.remote.FeedbackApiConfig
-import com.hairstyle.changer.aitryon.remote.GenerateApiConfig
 import com.hairstyle.changer.aitryon.utils.InstallReferrerHelper
 import com.hairstyle.changer.aitryon.utils.PrefManager
 import kotlinx.coroutines.tasks.await
@@ -45,7 +43,6 @@ class RemoteConfigManager @Inject constructor(
                 val root = gson.fromJson(json, RemoteConfigApiRoot::class.java)
                 PrefManager.setPrivacyPolicyUrl(root.api?.privacyPolicyUrl.orEmpty())
                 PrefManager.setBaseUrl(root.api?.baseUrl.orEmpty())
-                PrefManager.setFeedbackUrl(root.api?.feedbackUrl.orEmpty())
                 PrefManager.setImagesPageLimit(
                     root.api?.pageLimit ?: RemoteConfigKeys.DEFAULT_PAGE_LIMIT
                 )
@@ -129,21 +126,6 @@ class RemoteConfigManager @Inject constructor(
         return if (stored.startsWith("http", ignoreCase = true)) stored else ""
     }
 
-    fun getFeedbackUrl(): String {
-        val url = PrefManager.getFeedbackUrl().trim().trimEnd('/')
-        require(url.isNotBlank()) {
-            "feedback_url not found in prefs. Remote Config must load on Splash."
-        }
-        require(url.startsWith("http", ignoreCase = true)) {
-            "Invalid feedback_url: $url"
-        }
-        return url
-    }
-
-    fun buildFeedbackUploadUrl(): String {
-        return GenerateApiConfig.buildUrl(getFeedbackUrl(), FeedbackApiConfig.UPLOAD_ENDPOINT)
-    }
-
     data class RemoteConfigApiRoot(
         @SerializedName("APi") val api: ApiSection? = null,
         @SerializedName("update_app") val updateApp: InAppUpdateConfig? = null
@@ -152,7 +134,6 @@ class RemoteConfigManager @Inject constructor(
     data class ApiSection(
         @SerializedName("base_url") val baseUrl: String? = null,
         @SerializedName("privacy_policy_url") val privacyPolicyUrl: String? = null,
-        @SerializedName("feedback_url") val feedbackUrl: String? = null,
         @SerializedName("page_limit") val pageLimit: Int? = null
     )
 }

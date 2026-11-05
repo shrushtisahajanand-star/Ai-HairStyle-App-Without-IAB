@@ -53,23 +53,6 @@
     <string name="share_app_message">Schauen Sie sich %1$s an — probieren Sie KI-Frisuren: %2$s</string>
     <string name="rate_us">Bewerten Sie uns</string>
     <string name="rate_us_subtitle">Sagen Sie dem Store, was Sie denken</string>
-    <string name="feedback">Feedback</string>
-    <string name="feedback_subtitle">Helfen Sie mit, das nächste Release zu gestalten</string>
-    <string name="feedback_name_label">Name</string>
-    <string name="feedback_name_hint">Geben Sie Ihren Namen ein</string>
-    <string name="feedback_message_label">Ihre Nachricht</string>
-    <string name="feedback_message_hint">Erzählen Sie uns von Ihrer Erfahrung oder schlagen Sie eine neue Funktion vor..</string>
-    <string name="feedback_attachments_label">Anhänge (optional)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Ersetzen</string>
-    <string name="feedback_submit">Feedback absenden</string>
-    <string name="feedback_submitted_title">Ihr Feedback wurde übermittelt</string>
-    <string name="feedback_submitted_message">Vielen Dank, dass Sie uns helfen, die App zu verbessern.</string>
-    <string name="feedback_name_required">Bitte geben Sie Ihren Namen ein.</string>
-    <string name="feedback_message_required">Bitte geben Sie Ihre Nachricht ein.</string>
-    <string name="feedback_only_one_image">Sie können nur 1 Bild hochladen.</string>
-    <string name="feedback_submit_failed">Feedback konnte nicht übermittelt werden. Bitte versuchen Sie es erneut.</string>
     <string name="privacy_policy">Datenschutzrichtlinie</string>
     <string name="privacy_policy_subtitle">Daten, Berechtigungen und Gesichtsmodell</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Bewertung abgeben</string>
     <string name="rate_dialog_maybe_later">Vielleicht später</string>
     <string name="rate_dialog_select_stars">Bitte wählen Sie eine Sternebewertung</string>
-    <string name="feedback_email_label">E-Mail (Optional)</string>
-    <string name="feedback_email_hint">Geben Sie Ihre E-Mail ein</string>
-    <string name="feedback_email_invalid">Bitte geben Sie eine gültige E-Mail-Adresse ein.</string>
     <string name="beard_fade_haircut_styles">Bart, Fade &amp; Haarschnitt-Stile</string>
     <string name="daily_quota_finished_title">Tägliches Limit erreicht</string>
     <string name="daily_quota_finished_message">Ihr tägliches Bildlimit ist erreicht. Kommen Sie morgen wieder für weitere Generierungen.</string>

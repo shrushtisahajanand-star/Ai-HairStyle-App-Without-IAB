@@ -53,23 +53,6 @@
     <string name="share_app_message">Scopri %1$s — prova le acconciature IA: %2$s</string>
     <string name="rate_us">Valutaci</string>
     <string name="rate_us_subtitle">Di al negozio cosa ne pensi</string>
-    <string name="feedback">Feedback</string>
-    <string name="feedback_subtitle">Aiuta a plasmare la prossima versione</string>
-    <string name="feedback_name_label">Nome</string>
-    <string name="feedback_name_hint">Inserisci il tuo nome</string>
-    <string name="feedback_message_label">Il tuo messaggio</string>
-    <string name="feedback_message_hint">Raccontaci la tua esperienza o suggerisci una nuova funzione..</string>
-    <string name="feedback_attachments_label">Allegati (opzionale)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Sostituisci</string>
-    <string name="feedback_submit">Invia feedback</string>
-    <string name="feedback_submitted_title">Il tuo feedback è stato inviato</string>
-    <string name="feedback_submitted_message">Grazie per averci aiutato a migliorare l\'app.</string>
-    <string name="feedback_name_required">Inserisci il tuo nome.</string>
-    <string name="feedback_message_required">Inserisci il tuo messaggio.</string>
-    <string name="feedback_only_one_image">Puoi caricare solo 1 immagine.</string>
-    <string name="feedback_submit_failed">Impossibile inviare il feedback. Riprova.</string>
     <string name="privacy_policy">Informativa sulla privacy</string>
     <string name="privacy_policy_subtitle">Dati, autorizzazioni e modello facciale</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Invia valutazione</string>
     <string name="rate_dialog_maybe_later">Forse più tardi</string>
     <string name="rate_dialog_select_stars">Seleziona una valutazione a stelle</string>
-    <string name="feedback_email_label">Email (opzionale)</string>
-    <string name="feedback_email_hint">Inserisci la tua email</string>
-    <string name="feedback_email_invalid">Inserisci un indirizzo email valido.</string>
     <string name="beard_fade_haircut_styles">Barba, Fade &amp; Tagli di capelli</string>
     <string name="daily_quota_finished_title">Limite Giornaliero Raggiunto</string>
     <string name="daily_quota_finished_message">Il tuo limite giornaliero di immagini è terminato. Torna domani per altre generazioni.</string>

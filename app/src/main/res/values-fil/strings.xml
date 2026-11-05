@@ -53,23 +53,6 @@
     <string name="share_app_message">Tingnan ang %1$s — subukan ang mga AI hairstyle: %2$s</string>
     <string name="rate_us">I-rate Kami</string>
     <string name="rate_us_subtitle">Sabihin sa tindahan ang iyong opinyon</string>
-    <string name="feedback">Feedback</string>
-    <string name="feedback_subtitle">Tumulong na hubugin ang susunod na release</string>
-    <string name="feedback_name_label">Pangalan</string>
-    <string name="feedback_name_hint">Ilagay ang Iyong Pangalan</string>
-    <string name="feedback_message_label">Iyong Mensahe</string>
-    <string name="feedback_message_hint">Sabihin sa amin ang tungkol sa iyong karanasan o magmungkahi ng bagong feature..</string>
-    <string name="feedback_attachments_label">Mga Attachment (Opsiyonal)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Palitan</string>
-    <string name="feedback_submit">Ipasa ang Feedback</string>
-    <string name="feedback_submitted_title">Naipasa na ang Iyong Feedback</string>
-    <string name="feedback_submitted_message">Salamat sa pagtulong sa amin na mapabuti ang app.</string>
-    <string name="feedback_name_required">Pakilagay ang iyong pangalan.</string>
-    <string name="feedback_message_required">Pakilagay ang iyong mensahe.</string>
-    <string name="feedback_only_one_image">Maaari ka lamang mag-upload ng 1 larawan.</string>
-    <string name="feedback_submit_failed">Hindi maipasa ang feedback. Pakisubukan muli.</string>
     <string name="privacy_policy">Patakaran sa Privacy</string>
     <string name="privacy_policy_subtitle">Data, mga pahintulot at face model</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Isumite ang Rating</string>
     <string name="rate_dialog_maybe_later">Siguro sa susunod</string>
     <string name="rate_dialog_select_stars">Mangyaring pumili ng star rating</string>
-    <string name="feedback_email_label">Email (Opsyonal)</string>
-    <string name="feedback_email_hint">Ilagay ang iyong Email</string>
-    <string name="feedback_email_invalid">Pakilagay ang wastong email address.</string>
     <string name="beard_fade_haircut_styles">Balbas, Fade &amp; Mga Estilo ng Gupit</string>
     <string name="daily_quota_finished_title">Tapos na ang Araw-araw na Limitasyon</string>
     <string name="daily_quota_finished_message">Tapos na ang iyong araw-araw na limitasyon sa larawan. Bumalik bukas para sa higit pang mga generasyon.</string>

@@ -53,23 +53,6 @@
     <string name="share_app_message">Проверьте %1$s — попробуйте AI-прически: %2$s</string>
     <string name="rate_us">Оценить нас</string>
     <string name="rate_us_subtitle">Расскажите магазину, что вы думаете</string>
-    <string name="feedback">Обратная связь</string>
-    <string name="feedback_subtitle">Помогите сформировать следующий релиз</string>
-    <string name="feedback_name_label">Имя</string>
-    <string name="feedback_name_hint">Введите ваше имя</string>
-    <string name="feedback_message_label">Ваше сообщение</string>
-    <string name="feedback_message_hint">Расскажите о своем опыте или предложите новую функцию..</string>
-    <string name="feedback_attachments_label">Вложения (необязательно)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Заменить</string>
-    <string name="feedback_submit">Отправить отзыв</string>
-    <string name="feedback_submitted_title">Ваш отзыв отправлен</string>
-    <string name="feedback_submitted_message">Спасибо за помощь в улучшении приложения.</string>
-    <string name="feedback_name_required">Пожалуйста, введите ваше имя.</string>
-    <string name="feedback_message_required">Пожалуйста, введите ваше сообщение.</string>
-    <string name="feedback_only_one_image">Вы можете загрузить только 1 изображение.</string>
-    <string name="feedback_submit_failed">Не удалось отправить отзыв. Пожалуйста, попробуйте снова.</string>
     <string name="privacy_policy">Политика конфиденциальности</string>
     <string name="privacy_policy_subtitle">Данные, разрешения и модель лица</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Отправить оценку</string>
     <string name="rate_dialog_maybe_later">Возможно, позже</string>
     <string name="rate_dialog_select_stars">Пожалуйста, выберите оценку в звёздах</string>
-    <string name="feedback_email_label">Электронная почта (необязательно)</string>
-    <string name="feedback_email_hint">Введите ваш email</string>
-    <string name="feedback_email_invalid">Пожалуйста, введите действительный адрес электронной почты.</string>
     <string name="beard_fade_haircut_styles">Борода, Фейд &amp; Стрижки</string>
     <string name="daily_quota_finished_title">Дневной лимит исчерпан</string>
     <string name="daily_quota_finished_message">Ваш дневной лимит изображений исчерпан. Вернитесь завтра для новых генераций.</string>

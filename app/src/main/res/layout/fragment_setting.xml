@@ -178,16 +178,6 @@
                     android:background="@drawable/bg_settings_divider" />
 
                 <include
-                    android:id="@+id/rowFeedback"
-                    layout="@layout/item_settings_row" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="@dimen/_60sdp"
-                    android:background="@drawable/bg_settings_divider" />
-
-                <include
                     android:id="@+id/rowPrivacyPolicy"
                     layout="@layout/item_settings_row" />
 

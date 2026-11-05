@@ -98,13 +98,6 @@
             android:theme="@style/Theme.AIHairstyleStudio"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".ui.feedback.FeedbackActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AIHairstyleStudio"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="LockedOrientationActivity" />
-        <activity
             android:name=".ui.creation.UserCreationActivity"
             android:exported="false"
             android:screenOrientation="portrait"

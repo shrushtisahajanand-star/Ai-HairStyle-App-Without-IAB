@@ -53,23 +53,6 @@
     <string name="share_app_message">Bekijk %1$s — probeer AI-kapsels: %2$s</string>
     <string name="rate_us">Beoordeel ons</string>
     <string name="rate_us_subtitle">Vertel de winkel wat u vindt</string>
-    <string name="feedback">Feedback</string>
-    <string name="feedback_subtitle">Help de volgende release vorm te geven</string>
-    <string name="feedback_name_label">Naam</string>
-    <string name="feedback_name_hint">Voer uw naam in</string>
-    <string name="feedback_message_label">Uw bericht</string>
-    <string name="feedback_message_hint">Vertel ons over uw ervaring of stel een nieuwe functie voor..</string>
-    <string name="feedback_attachments_label">Bijlagen (optioneel)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Vervangen</string>
-    <string name="feedback_submit">Feedback verzenden</string>
-    <string name="feedback_submitted_title">Uw feedback is verzonden</string>
-    <string name="feedback_submitted_message">Bedankt voor het helpen verbeteren van de app.</string>
-    <string name="feedback_name_required">Voer uw naam in.</string>
-    <string name="feedback_message_required">Voer uw bericht in.</string>
-    <string name="feedback_only_one_image">U kunt slechts 1 afbeelding uploaden.</string>
-    <string name="feedback_submit_failed">Feedback kon niet worden verzonden. Probeer het opnieuw.</string>
     <string name="privacy_policy">Privacybeleid</string>
     <string name="privacy_policy_subtitle">Gegevens, machtigingen en gezichtsmodel</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Beoordeling indienen</string>
     <string name="rate_dialog_maybe_later">Misschien later</string>
     <string name="rate_dialog_select_stars">Selecteer een sterbeoordeling</string>
-    <string name="feedback_email_label">E-mail (optioneel)</string>
-    <string name="feedback_email_hint">Voer uw e-mail in</string>
-    <string name="feedback_email_invalid">Voer een geldig e-mailadres in.</string>
     <string name="beard_fade_haircut_styles">Baard, Fade &amp; Kapsels</string>
     <string name="daily_quota_finished_title">Dagelijkse Limiet Overschreden</string>
     <string name="daily_quota_finished_message">Uw dagelijkse afbeeldingslimiet is overschreden. Kom morgen terug voor meer generaties.</string>

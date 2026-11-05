@@ -53,23 +53,6 @@
     <string name="share_app_message">Δείτε το %1$s — δοκιμάστε χτενίσματα με ΤΝ: %2$s</string>
     <string name="rate_us">Αξιολογήστε μας</string>
     <string name="rate_us_subtitle">Πείτε στο κατάστημα τι πιστεύετε</string>
-    <string name="feedback">Σχόλια</string>
-    <string name="feedback_subtitle">Βοηθήστε στη διαμόρφωση της επόμενης έκδοσης</string>
-    <string name="feedback_name_label">Όνομα</string>
-    <string name="feedback_name_hint">Εισάγετε το όνομά σας</string>
-    <string name="feedback_message_label">Το μήνυμά σας</string>
-    <string name="feedback_message_hint">Πείτε μας για την εμπειρία σας ή προτείνετε μια νέα λειτουργία..</string>
-    <string name="feedback_attachments_label">Συνημμένα (Προαιρετικά)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Αντικατάσταση</string>
-    <string name="feedback_submit">Υποβολή σχολίων</string>
-    <string name="feedback_submitted_title">Τα σχόλιά σας υποβλήθηκαν</string>
-    <string name="feedback_submitted_message">Σας ευχαριστούμε που μας βοηθάτε να βελτιώσουμε την εφαρμογή.</string>
-    <string name="feedback_name_required">Παρακαλώ εισάγετε το όνομά σας.</string>
-    <string name="feedback_message_required">Παρακαλώ εισάγετε το μήνυμά σας.</string>
-    <string name="feedback_only_one_image">Μπορείτε να ανεβάσετε μόνο 1 εικόνα.</string>
-    <string name="feedback_submit_failed">Δεν ήταν δυνατή η υποβολή σχολίων. Παρακαλώ δοκιμάστε ξανά.</string>
     <string name="privacy_policy">Πολιτική απορρήτου</string>
     <string name="privacy_policy_subtitle">Δεδομένα, άδειες και μοντέλο προσώπου</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Υποβολή αξιολόγησης</string>
     <string name="rate_dialog_maybe_later">Ίσως αργότερα</string>
     <string name="rate_dialog_select_stars">Παρακαλώ επιλέξτε αξιολόγηση με αστέρια</string>
-    <string name="feedback_email_label">Email (Προαιρετικό)</string>
-    <string name="feedback_email_hint">Εισάγετε το email σας</string>
-    <string name="feedback_email_invalid">Παρακαλώ εισάγετε έγκυρη διεύθυνση email.</string>
     <string name="beard_fade_haircut_styles">Γένια, Fade &amp; Κουρέματα</string>
     <string name="daily_quota_finished_title">Το Ημερήσιο Όριο Έληξε</string>
     <string name="daily_quota_finished_message">Το ημερήσιο όριο εικόνων σας έληξε. Επιστρέψτε αύριο για περισσότερες δημιουργίες.</string>

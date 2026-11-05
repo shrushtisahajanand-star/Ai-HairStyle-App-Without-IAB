@@ -185,19 +185,6 @@ object AdsConfigApplier {
             prefType = ADSMainClass.USER_CREATION_ADS_TYPE,
             prefNative = ADSMainClass.USER_CREATION_NATIVE,
             prefBanner = ADSMainClass.USER_CREATION_BANNER
-        ),
-        ScreenAdsPrefKeys(
-            remoteObjectKey = "feedback_screen",
-            remoteShow = "feedback_show_bottom_ads",
-            remoteSize = "feedback_ads_size",
-            remoteType = "feedback_ads_type",
-            remoteNative = "feedback_native_ads_id",
-            remoteBanner = "feedback_banner_ads_id",
-            prefShow = ADSMainClass.FEEDBACK_SHOW_BOTTOM_ADS,
-            prefSize = ADSMainClass.FEEDBACK_ADS_SIZE,
-            prefType = ADSMainClass.FEEDBACK_ADS_TYPE,
-            prefNative = ADSMainClass.FEEDBACK_NATIVE,
-            prefBanner = ADSMainClass.FEEDBACK_BANNER
         )
     )
 
@@ -206,7 +193,7 @@ object AdsConfigApplier {
      * ad unit of the same type (reward / inter / native / banner / app open), so live builds can be
      * tested safely. To stop test ads: set this to `false` and release again.
      */
-    private const val USE_TEST_ADS = true
+    private const val USE_TEST_ADS = false
 
     private const val TEST_BANNER = "ca-app-pub-3940256099942544/6300978111"
     private const val TEST_INTER = "ca-app-pub-3940256099942544/1033173712"
@@ -719,8 +706,7 @@ object AdsConfigApplier {
             ADSMainClass.GALLERY_PHOTOS_SHOW_BOTTOM_ADS,
             ADSMainClass.PROGRESS_SHOW_BOTTOM_ADS,
             ADSMainClass.RESULT_SHOW_BOTTOM_ADS,
-            ADSMainClass.USER_CREATION_SHOW_BOTTOM_ADS,
-            ADSMainClass.FEEDBACK_SHOW_BOTTOM_ADS
+            ADSMainClass.USER_CREATION_SHOW_BOTTOM_ADS
         ).any { ADSMainClass.getBooleanValue(it) }
         ADSMainClass.setOtherAdsShow(anyOtherShow)
         if (otherNative != null) {

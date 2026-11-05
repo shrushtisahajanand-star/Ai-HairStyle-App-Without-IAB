@@ -53,23 +53,6 @@
     <string name="share_app_message">Kyk na %1$s — probeer KI-haarstyle: %2$s</string>
     <string name="rate_us">Beoordeel ons</string>
     <string name="rate_us_subtitle">Vertel die winkel wat jy dink</string>
-    <string name="feedback">Terugvoer</string>
-    <string name="feedback_subtitle">Help om die volgende vrystelling te vorm</string>
-    <string name="feedback_name_label">Naam</string>
-    <string name="feedback_name_hint">Voer jou naam in</string>
-    <string name="feedback_message_label">Jou boodskap</string>
-    <string name="feedback_message_hint">Vertel ons van jou ervaring of stel \'n nuwe funksie voor..</string>
-    <string name="feedback_attachments_label">Aanhegsels (Opsioneel)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Vervang</string>
-    <string name="feedback_submit">Dien terugvoer in</string>
-    <string name="feedback_submitted_title">Jou terugvoer is ingedien</string>
-    <string name="feedback_submitted_message">Dankie dat jy ons help om die app te verbeter.</string>
-    <string name="feedback_name_required">Voer asseblief jou naam in.</string>
-    <string name="feedback_message_required">Voer asseblief jou boodskap in.</string>
-    <string name="feedback_only_one_image">Jy kan slegs 1 beeld oplaai.</string>
-    <string name="feedback_submit_failed">Kon nie terugvoer indien nie. Probeer asseblief weer.</string>
     <string name="privacy_policy">Privaatheidsbeleid</string>
     <string name="privacy_policy_subtitle">Data, toestemmings en gesigsmodel</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Dien gradering in</string>
     <string name="rate_dialog_maybe_later">Miskien later</string>
     <string name="rate_dialog_select_stars">Kies asseblief \'n ster-gradering</string>
-    <string name="feedback_email_label">E-pos (Opsioneel)</string>
-    <string name="feedback_email_hint">Voer u e-pos in</string>
-    <string name="feedback_email_invalid">Voer asseblief \'n geldige e-posadres in.</string>
     <string name="beard_fade_haircut_styles">Baard, Fade &amp; Haarsny-style</string>
     <string name="daily_quota_finished_title">Daaglikse Limiet Verby</string>
     <string name="daily_quota_finished_message">Jou daaglikse beeldlimiet is verby. Kom môre terug vir meer generasies.</string>

@@ -53,23 +53,6 @@
     <string name="share_app_message">查看 %1$s — 尝试AI发型：%2$s</string>
     <string name="rate_us">给我们评分</string>
     <string name="rate_us_subtitle">告诉商店您的想法</string>
-    <string name="feedback">反馈</string>
-    <string name="feedback_subtitle">帮助塑造下一个版本</string>
-    <string name="feedback_name_label">姓名</string>
-    <string name="feedback_name_hint">输入您的姓名</string>
-    <string name="feedback_message_label">您的消息</string>
-    <string name="feedback_message_hint">告诉我们您的体验或建议新功能..</string>
-    <string name="feedback_attachments_label">附件（可选）</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">替换</string>
-    <string name="feedback_submit">提交反馈</string>
-    <string name="feedback_submitted_title">您的反馈已提交</string>
-    <string name="feedback_submitted_message">感谢您帮助我们改进应用。</string>
-    <string name="feedback_name_required">请输入您的姓名。</string>
-    <string name="feedback_message_required">请输入您的消息。</string>
-    <string name="feedback_only_one_image">您只能上传1张图片。</string>
-    <string name="feedback_submit_failed">无法提交反馈。请重试。</string>
     <string name="privacy_policy">隐私政策</string>
     <string name="privacy_policy_subtitle">数据、权限和人脸模型</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">提交评分</string>
     <string name="rate_dialog_maybe_later">稍后再说</string>
     <string name="rate_dialog_select_stars">请选择星级评分</string>
-    <string name="feedback_email_label">电子邮件（可选）</string>
-    <string name="feedback_email_hint">输入您的电子邮件</string>
-    <string name="feedback_email_invalid">请输入有效的电子邮件地址。</string>
     <string name="beard_fade_haircut_styles">胡须、渐变 &amp; 发型</string>
     <string name="daily_quota_finished_title">日限额已用完</string>
     <string name="daily_quota_finished_message">您的每日图片限额已用完。明天再来生成更多内容吧。</string>

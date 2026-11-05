@@ -78,12 +78,6 @@ class SettingActivity : BaseActivity() {
             R.string.rate_us_subtitle
         )
         bindRow(
-            binding.rowFeedback,
-            R.drawable.ic_feed_back,
-            R.string.feedback,
-            R.string.feedback_subtitle
-        )
-        bindRow(
             binding.rowPrivacyPolicy,
             R.drawable.ic_privacy_policy,
             R.string.privacy_policy,
@@ -129,9 +123,6 @@ class SettingActivity : BaseActivity() {
             } else {
                 AppLinkHelper.openPlayStore(this)
             }
-        }
-        binding.rowFeedback.root.setOnClickListener {
-            AppNavigator.openFeedback(this)
         }
         binding.rowPrivacyPolicy.root.setOnClickListener {
             AppLinkHelper.openPrivacyPolicy(this)

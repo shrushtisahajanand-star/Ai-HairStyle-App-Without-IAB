@@ -61,18 +61,20 @@ public final class ADSRewardDisplay {
         if (preloadedAd != null && unitId.equals(preloadedUnitId)
                 && System.currentTimeMillis() - preloadedAtMs <= PRELOAD_MAX_AGE_MS) return;
         final String loadUnitId = unitId;
+        final android.content.Context appContext = activity.getApplicationContext();
 
         isPreloading = true;
         preloadedAd = null;
         android.util.Log.d(TAG, "Reward preload start: unit=" + unitId);
         RewardedAd.load(
-                activity.getApplicationContext(),
+                appContext,
                 unitId,
                 new AdRequest.Builder().build(),
                 new RewardedAdLoadCallback() {
                     @Override
                     public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
                         isPreloading = false;
+                        rewardedAd.setOnPaidEventListener(adValue -> ADSUtilitis.logAdRevenue(appContext, adValue));
                         preloadedAd = rewardedAd;
                         preloadedAtMs = System.currentTimeMillis();
                         preloadedUnitId = loadUnitId;
@@ -187,6 +189,7 @@ public final class ADSRewardDisplay {
         ADSUtilitis.MassageBoxFull(activity);
 
         final String finalUnitId = unitId;
+        final android.content.Context appContext = activity.getApplicationContext();
         AdRequest request = new AdRequest.Builder().build();
         final boolean[] timedOut = {false};
         final android.os.Handler timeoutHandler = new android.os.Handler(android.os.Looper.getMainLooper());
@@ -212,6 +215,7 @@ public final class ADSRewardDisplay {
                         if (timedOut[0]) return; // caller already moved on
                         isLoading = false;
                         ADSUtilitis.MassageBoxFullDismiss();
+                        rewardedAd.setOnPaidEventListener(adValue -> ADSUtilitis.logAdRevenue(appContext, adValue));
                         ADSUtilitis.trackScreen(activity, "Reward_Load");
                         android.util.Log.d(TAG, "Reward loaded: unit=" + finalUnitId);
                         showLoadedAd(activity, rewardedAd, listener);

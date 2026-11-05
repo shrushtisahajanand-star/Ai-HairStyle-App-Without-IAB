@@ -229,12 +229,6 @@ public class ADSMainClass {
     public static String USER_CREATION_NATIVE = "user_creation_native_ads_id";
     public static String USER_CREATION_BANNER = "user_creation_banner_ads_id";
 
-    public static String FEEDBACK_SHOW_BOTTOM_ADS = "feedback_show_bottom_ads";
-    public static String FEEDBACK_ADS_SIZE = "feedback_ads_size";
-    public static String FEEDBACK_ADS_TYPE = "feedback_ads_type";
-    public static String FEEDBACK_NATIVE = "feedback_native_ads_id";
-    public static String FEEDBACK_BANNER = "feedback_banner_ads_id";
-
     public static String CALL_END_BANNER = "callend_banner_ad_id";
     public static String CALL_END_Native = "callend_native_ad_id";
     public static String CALL_END_Inter = "callend_inter_ad_id";

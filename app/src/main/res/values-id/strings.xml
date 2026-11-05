@@ -53,23 +53,6 @@
     <string name="share_app_message">Lihat %1$s — coba gaya rambut AI: %2$s</string>
     <string name="rate_us">Nilai Kami</string>
     <string name="rate_us_subtitle">Beritahu toko apa yang Anda pikirkan</string>
-    <string name="feedback">Masukan</string>
-    <string name="feedback_subtitle">Bantu membentuk rilis berikutnya</string>
-    <string name="feedback_name_label">Nama</string>
-    <string name="feedback_name_hint">Masukkan Nama Anda</string>
-    <string name="feedback_message_label">Pesan Anda</string>
-    <string name="feedback_message_hint">Ceritakan pengalaman Anda atau sarankan fitur baru..</string>
-    <string name="feedback_attachments_label">Lampiran (Opsional)</string>
-    <string name="feedback_attachment_count">0/1</string>
-    <string name="feedback_attachment_count_full">1/1</string>
-    <string name="feedback_replace">Ganti</string>
-    <string name="feedback_submit">Kirim Masukan</string>
-    <string name="feedback_submitted_title">Masukan Anda Telah Dikirim</string>
-    <string name="feedback_submitted_message">Terima kasih telah membantu kami meningkatkan aplikasi.</string>
-    <string name="feedback_name_required">Silakan masukkan nama Anda.</string>
-    <string name="feedback_message_required">Silakan masukkan pesan Anda.</string>
-    <string name="feedback_only_one_image">Anda hanya dapat mengunggah 1 gambar.</string>
-    <string name="feedback_submit_failed">Tidak dapat mengirim masukan. Silakan coba lagi.</string>
     <string name="privacy_policy">Kebijakan Privasi</string>
     <string name="privacy_policy_subtitle">Data, izin &amp; model wajah</string>
     <string name="privacy_policy_url" translatable="false">https://hair.champslevl.com/privacy-policy</string>
@@ -205,9 +188,6 @@
     <string name="rate_dialog_submit">Kirim Penilaian</string>
     <string name="rate_dialog_maybe_later">Mungkin Nanti</string>
     <string name="rate_dialog_select_stars">Silakan pilih peringkat bintang</string>
-    <string name="feedback_email_label">Email (Opsional)</string>
-    <string name="feedback_email_hint">Masukkan Email Anda</string>
-    <string name="feedback_email_invalid">Silakan masukkan alamat email yang valid.</string>
     <string name="beard_fade_haircut_styles">Jenggot, Fade &amp; Gaya Potongan Rambut</string>
     <string name="daily_quota_finished_title">Batas Harian Habis</string>
     <string name="daily_quota_finished_message">Batas gambar harian Anda telah habis. Kembali besok untuk generasi lainnya.</string>

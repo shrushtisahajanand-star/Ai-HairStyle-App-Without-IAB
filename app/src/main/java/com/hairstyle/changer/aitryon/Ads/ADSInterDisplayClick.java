@@ -382,13 +382,15 @@ public class ADSInterDisplayClick {
         if (unlockInterstitial != null && id.equals(unlockInterstitialId)) return;
         if (!ADSConsentManager.canRequestAds(activity)) return;
 
+        final Context appContext = activity.getApplicationContext();
         unlockInterLoading = true;
         unlockInterstitial = null;
-        InterstitialAd.load(activity.getApplicationContext(), id, new AdRequest.Builder().build(),
+        InterstitialAd.load(appContext, id, new AdRequest.Builder().build(),
                 new InterstitialAdLoadCallback() {
                     @Override
                     public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                         unlockInterLoading = false;
+                        interstitialAd.setOnPaidEventListener(adValue -> ADSUtilitis.logAdRevenue(appContext, adValue));
                         unlockInterstitial = interstitialAd;
                         unlockInterstitialId = id;
                     }
@@ -438,12 +440,14 @@ public class ADSInterDisplayClick {
             return;
         }
 
+        final Context appContext = activity.getApplicationContext();
         ADSUtilitis.MassageBoxFull(activity);
         InterstitialAd.load(activity, id, new AdRequest.Builder().build(),
                 new InterstitialAdLoadCallback() {
                     @Override
                     public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                         ADSUtilitis.MassageBoxFullDismiss();
+                        interstitialAd.setOnPaidEventListener(adValue -> ADSUtilitis.logAdRevenue(appContext, adValue));
                         ADSUtilitis.trackScreen(activity, "Inter_Load");
                         showUnlockAd(activity, interstitialAd, id, listener);
                     }
